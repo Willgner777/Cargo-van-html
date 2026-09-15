@@ -1,770 +1,459 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark h-full">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetAnalytics Elite - Dashboard & SharePoint Integration</title>
-    
-    <!-- MSAL.js CDN (Microsoft Authentication Library) -->
-    <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logs_cargo_van · Registro de Eventos</title>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<style>
+  :root{
+    --bg:#0B1220;
+    --panel:#101A2E;
+    --panel-2:#0C1729;
+    --line:#22304A;
+    --line-soft:#1A2740;
+    --ink:#E7ECF6;
+    --ink-dim:#8C9AB8;
+    --amber:#F5A623;
+    --amber-dim:#8A6220;
+    --teal:#2DD4BF;
+    --red:#F0625A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(245,166,35,0.07), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    min-height:100vh;
+  }
+  @font-face{
+    font-family:'Space Grotesk';
+    src:local('Space Grotesk');
+  }
+  .head-font{font-family:'Space Grotesk','Segoe UI',sans-serif;}
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- SheetJS (XLSX Export) CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Google Fonts (Plus Jakarta Sans) -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            900: '#14532d',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+  /* Top bar */
+  .topbar{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:26px;
+    gap:16px;flex-wrap:wrap;
+  }
+  .brand-eyebrow{color:var(--amber);font-size:11px;letter-spacing:0.04em;margin-bottom:6px;}
+  .brand-title{font-size:26px;font-weight:600;color:var(--ink);}
+  .brand-sub{color:var(--ink-dim);font-size:12.5px;margin-top:4px;}
 
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
-        .glass-card {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .glass-nav {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(16px);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-        }
-    </style>
+  .auth-box{display:flex;align-items:center;gap:12px;}
+  .status-pill{
+    display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-dim);
+    border:1px solid var(--line);border-radius:20px;padding:6px 12px 6px 10px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--red);}
+  .dot.on{background:var(--teal);}
+
+  button{
+    font-family:inherit;font-size:13px;cursor:pointer;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    padding:9px 16px;transition:background .15s ease, border-color .15s ease, transform .05s ease;
+  }
+  button:hover{border-color:#374766;}
+  button:active{transform:translateY(1px);}
+  button.primary{background:var(--amber);border-color:var(--amber);color:#241802;font-weight:600;}
+  button.primary:hover{background:#ffb43c;}
+  button.primary:disabled{background:var(--amber-dim);border-color:var(--amber-dim);color:#5c4514;cursor:not-allowed;}
+  button.ghost{background:transparent;}
+  button.small{padding:6px 11px;font-size:12px;}
+
+  /* Panels */
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:22px;margin-bottom:22px;
+  }
+  .panel-title{
+    font-family:'Space Grotesk','Segoe UI',sans-serif;
+    font-size:15px;font-weight:600;color:var(--ink);margin:0 0 3px;
+  }
+  .panel-desc{color:var(--ink-dim);font-size:12.5px;margin:0 0 18px;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1 / -1;}
+  label{font-size:11px;color:var(--ink-dim);letter-spacing:0.02em;}
+  input[type=text], input[list], textarea, select{
+    font-family:inherit;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--ink);border-radius:7px;padding:10px 11px;font-size:13.5px;
+    outline:none;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--amber);}
+  textarea{resize:vertical;min-height:64px;}
+
+  .actions-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap;}
+  .hint{color:var(--ink-dim);font-size:11.5px;}
+
+  .msg{font-size:12.5px;border-radius:7px;padding:9px 12px;margin-top:14px;display:none;}
+  .msg.show{display:block;}
+  .msg.ok{background:rgba(45,212,191,0.09);border:1px solid rgba(45,212,191,0.35);color:var(--teal);}
+  .msg.err{background:rgba(240,98,90,0.09);border:1px solid rgba(240,98,90,0.35);color:var(--red);}
+
+  /* Table */
+  .table-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{
+    text-align:left;color:var(--ink-dim);font-weight:500;font-size:10.5px;
+    letter-spacing:0.03em;border-bottom:1px solid var(--line);padding:0 10px 10px;
+  }
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink);}
+  tbody tr:hover{background:rgba(255,255,255,0.015);}
+  .col-title{color:var(--amber);}
+  .empty-row td{color:var(--ink-dim);text-align:center;padding:34px 10px;}
+
+  .diag{
+    margin-top:10px;font-size:11.5px;color:var(--ink-dim);
+    background:var(--panel-2);border:1px solid var(--line-soft);border-radius:7px;
+    padding:12px;white-space:pre-wrap;word-break:break-word;display:none;max-height:220px;overflow:auto;
+  }
+  .diag.show{display:block;}
+
+  @media (max-width:640px){
+    .grid{grid-template-columns:1fr;}
+    .topbar{align-items:flex-start;}
+  }
+</style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased h-full overflow-hidden flex">
-
-    <!-- SIDEBAR DE NAVEGAÇÃO -->
-    <aside class="w-64 glass-nav flex flex-col justify-between shrink-0 z-20">
-        <div>
-            <!-- Logo / Brand -->
-            <div class="h-20 flex items-center px-6 gap-3 border-b border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-500/20">
-                    <i class="fa-solid fa-truck-fast"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-base tracking-wide bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">FleetAnalytics</h1>
-                    <span class="text-xs text-emerald-400 font-medium">Microsoft 365 Connected</span>
-                </div>
-            </div>
-
-            <!-- Menu de Abas -->
-            <nav class="p-4 space-y-1.5" id="tabContainer">
-                <button onclick="AppEngine.switchTab('operacao')" id="nav-operacao" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/60 active">
-                    <i class="fa-solid fa-route text-lg w-6 text-center"></i>
-                    <span>Operação</span>
-                </button>
-                <button onclick="AppEngine.switchTab('combustivel')" id="nav-combustivel" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/60">
-                    <i class="fa-solid fa-gas-pump text-lg w-6 text-center"></i>
-                    <span>Combustível</span>
-                </button>
-                <button onclick="AppEngine.switchTab('despesas')" id="nav-despesas" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/60">
-                    <i class="fa-solid fa-receipt text-lg w-6 text-center"></i>
-                    <span>Despesas</span>
-                </button>
-                <button onclick="AppEngine.switchTab('coletas')" id="nav-coletas" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/60">
-                    <i class="fa-solid fa-boxes-packing text-lg w-6 text-center"></i>
-                    <span>Coletas</span>
-                </button>
-            </nav>
-        </div>
-
-        <!-- Footer da Sidebar (User Info, Sync & Auth) -->
-        <div class="p-4 border-t border-slate-800/80 space-y-3">
-            <!-- Usuário Autenticado -->
-            <div id="userProfile" class="hidden items-center gap-3 px-2 py-1">
-                <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-500/40" id="userAvatar">
-                    U
-                </div>
-                <div class="overflow-hidden flex-1">
-                    <p class="text-xs font-bold text-white truncate" id="userName">Usuário</p>
-                    <p class="text-[10px] text-slate-400 truncate" id="userEmail">usuario@empresa.com</p>
-                </div>
-                <button onclick="AuthService.logout()" title="Sair" class="text-slate-400 hover:text-rose-400 transition-colors">
-                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
-                </button>
-            </div>
-
-            <!-- Botão de Sincronização -->
-            <button onclick="FleetStore.syncSharePointLists()" id="btnSync" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-all duration-200 border border-slate-700/50">
-                <i id="iconSync" class="fa-solid fa-rotate text-emerald-400"></i>
-                <span>Sincronizar SharePoint</span>
-            </button>
-
-            <!-- Botão de Login (Visível se deslogado) -->
-            <button onclick="AuthService.login()" id="btnLogin" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg shadow-emerald-600/20 transition-all duration-200">
-                <i class="fa-brands fa-microsoft"></i>
-                <span>Entrar com Microsoft</span>
-            </button>
-
-            <div class="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
-                <span>Status Conexão:</span>
-                <span id="connectionStatus" class="inline-flex items-center gap-1.5 text-slate-400 font-medium">
-                    <span class="w-2 h-2 rounded-full bg-slate-500"></span> Desconectado
-                </span>
-            </div>
-        </div>
-    </aside>
-
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-950">
-        
-        <!-- TOPBAR & FILTROS -->
-        <header class="h-20 border-b border-slate-800/80 px-8 flex items-center justify-between shrink-0 glass-card">
-            <div>
-                <h2 id="currentTabTitle" class="text-xl font-bold text-white tracking-tight">Painel de Operação</h2>
-                <p class="text-xs text-slate-400">Dados ao vivo integrados às listas do SharePoint Online</p>
-            </div>
-
-            <!-- Filtros Globais -->
-            <div class="flex items-center gap-3">
-                <div class="relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                    <input type="text" id="filterPlaca" placeholder="Filtrar por Placa ou Termo..." class="pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 w-64 transition-all">
-                </div>
-
-                <select id="filterStatus" class="bg-slate-900 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-                    <option value="">Todos os Status</option>
-                    <option value="Concluído">Concluído</option>
-                    <option value="Em Andamento">Em Andamento</option>
-                    <option value="Pendente">Pendente</option>
-                </select>
-
-                <button onclick="AppEngine.exportToExcel()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-600/20 transition-all duration-200">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>Exportar Excel</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- ÁREA SCROLLÁVEL DO DASHBOARD -->
-        <div class="flex-1 overflow-y-auto p-8 space-y-6">
-
-            <!-- METRIC CARDS (KPIs) -->
-            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" id="kpiContainer">
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" id="kpi1-label">Total Registros</span>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-list-check"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <p class="text-2xl font-extrabold text-white" id="kpi1-value">0</p>
-                        <span class="text-[11px] text-emerald-400 font-medium inline-flex items-center gap-1 mt-1">
-                            <i class="fa-solid fa-cloud-arrow-down"></i> Sincronizado Graph API
-                        </span>
-                    </div>
-                </div>
-
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" id="kpi2-label">Métrica Principal</span>
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <p class="text-2xl font-extrabold text-white" id="kpi2-value">0</p>
-                        <span class="text-[11px] text-slate-400 font-medium inline-flex items-center gap-1 mt-1">
-                            Consolidado das listas
-                        </span>
-                    </div>
-                </div>
-
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" id="kpi3-label">Em Andamento</span>
-                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-spinner"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <p class="text-2xl font-extrabold text-white" id="kpi3-value">0</p>
-                        <span class="text-[11px] text-amber-400 font-medium inline-flex items-center gap-1 mt-1">
-                            Pendentes de ação
-                        </span>
-                    </div>
-                </div>
-
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" id="kpi4-label">Taxa de Conclusão</span>
-                        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-percent"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <p class="text-2xl font-extrabold text-white" id="kpi4-value">0%</p>
-                        <span class="text-[11px] text-purple-400 font-medium inline-flex items-center gap-1 mt-1">
-                            Aproveitamento frotas
-                        </span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- GRÁFICOS ANALÍTICOS -->
-            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="glass-card p-6 rounded-2xl lg:col-span-2">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-white tracking-wide">Volume Histórico de Atividades</h3>
-                        <span class="text-xs text-slate-400">Registros no SharePoint</span>
-                    </div>
-                    <div class="h-64 relative">
-                        <canvas id="chartTrend"></canvas>
-                    </div>
-                </div>
-
-                <div class="glass-card p-6 rounded-2xl">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-white tracking-wide">Distribuição de Status</h3>
-                        <span class="text-xs text-slate-400">Proporção das listas</span>
-                    </div>
-                    <div class="h-64 relative flex items-center justify-center">
-                        <canvas id="chartStatus"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TABELA DE DADOS -->
-            <section class="glass-card rounded-2xl overflow-hidden border border-slate-800/80">
-                <div class="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-bold text-white tracking-wide">Registros do SharePoint</h3>
-                        <span id="recordCount" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0 itens</span>
-                    </div>
-                    <span class="text-xs text-slate-400">Alimentado via Graph API</span>
-                </div>
-
-                <div class="overflow-x-auto max-h-[450px]">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider font-semibold sticky top-0 z-10 backdrop-blur-md">
-                            <tr id="tableHeaders"></tr>
-                        </thead>
-                        <tbody id="tableBody" class="divide-y divide-slate-800/50">
-                            <!-- Preenchido via JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-        </div>
-    </main>
-
-    <!-- SCRIPT DE CONFIGURAÇÃO E AUTENTICAÇÃO MSAL + GRAPH API -->
-    <script>
-        // ==========================================
-        // 1. CONFIGURAÇÃO AZURE ENTRA ID & MSAL
-        // ==========================================
-        const msalConfig = {
-            auth: {
-                clientId: "64fad274-dc8c-44c4-8e35-28953441f1ba",
-                authority: "https://login.microsoftonline.com/669ab69-4a10-4796-a3dc-90f5e7d6ff40",
-                redirectUri: "https://willgner777.github.io/Cargo-van-html/"
-            },
-            cache: {
-                cacheLocation: "sessionStorage",
-                storeAuthStateInCookie: false
-            }
-        };
-
-        const loginRequest = {
-            scopes: ["User.Read", "Sites.Read.All"]
-        };
-
-        // Mapeamento dos nomes exatos das Listas no SharePoint
-        const SHAREPOINT_LIST_MAP = {
-            operacao: 'LIBERACAO_VEICULO',
-            combustivel: 'COMBUSTIVEL',
-            despesas: 'DESPESAS',
-            coletas: 'COLETAS'
-        };
-
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-        // ==========================================
-        // 2. MÓDULO DE AUTENTICAÇÃO (AUTH SERVICE)
-        // ==========================================
-        const AuthService = {
-            account: null,
-
-            async init() {
-                try {
-                    await msalInstance.initialize();
-                    const response = await msalInstance.handleRedirectPromise();
-                    
-                    if (response) {
-                        this.account = response.account;
-                    } else {
-                        const currentAccounts = msalInstance.getAllAccounts();
-                        if (currentAccounts.length > 0) {
-                            this.account = currentAccounts[0];
-                        }
-                    }
-
-                    this.updateUI();
-
-                    if (this.account) {
-                        await FleetStore.syncSharePointLists();
-                    }
-                } catch (error) {
-                    console.error("Erro na inicialização do MSAL:", error);
-                }
-            },
-
-            async login() {
-                try {
-                    const loginResponse = await msalInstance.loginPopup(loginRequest);
-                    this.account = loginResponse.account;
-                    this.updateUI();
-                    await FleetStore.syncSharePointLists();
-                } catch (error) {
-                    console.error("Erro no login:", error);
-                    alert("Falha na autenticação Microsoft: " + error.message);
-                }
-            },
-
-            async logout() {
-                if (!this.account) return;
-                await msalInstance.logoutPopup({
-                    account: this.account
-                });
-                this.account = null;
-                this.updateUI();
-                FleetStore.clearData();
-                AppEngine.renderAll();
-            },
-
-            async getToken() {
-                if (!this.account) throw new Error("Usuário não autenticado.");
-                
-                const request = {
-                    ...loginRequest,
-                    account: this.account
-                };
-
-                try {
-                    const response = await msalInstance.acquireTokenSilent(request);
-                    return response.accessToken;
-                } catch (error) {
-                    console.warn("Token silencioso falhou, solicitando popup...", error);
-                    const response = await msalInstance.acquireTokenPopup(request);
-                    return response.accessToken;
-                }
-            },
-
-            updateUI() {
-                const btnLogin = document.getElementById('btnLogin');
-                const userProfile = document.getElementById('userProfile');
-                const connStatus = document.getElementById('connectionStatus');
-
-                if (this.account) {
-                    btnLogin.classList.add('hidden');
-                    userProfile.classList.remove('hidden');
-                    userProfile.classList.add('flex');
-
-                    document.getElementById('userName').textContent = this.account.name || 'Usuário MS365';
-                    document.getElementById('userEmail').textContent = this.account.username || '';
-                    document.getElementById('userAvatar').textContent = (this.account.name || 'U').charAt(0).toUpperCase();
-
-                    connStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Conectado MS365`;
-                    connStatus.className = "inline-flex items-center gap-1.5 text-emerald-400 font-medium";
-                } else {
-                    btnLogin.classList.remove('hidden');
-                    userProfile.classList.add('hidden');
-
-                    connStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span> Desconectado`;
-                    connStatus.className = "inline-flex items-center gap-1.5 text-slate-400 font-medium";
-                }
-            }
-        };
-
-        // ==========================================
-        // 3. MÓDULO DE DADOS & GRAPH API (FLEET STORE)
-        // ==========================================
-        const FleetStore = {
-            state: {
-                activeTab: 'operacao',
-                filtros: { texto: '', status: '' },
-                operacao: [],
-                combustivel: [],
-                despesas: [],
-                coletas: []
-            },
-
-            clearData() {
-                this.state.operacao = [];
-                this.state.combustivel = [];
-                this.state.despesas = [];
-                this.state.coletas = [];
-            },
-
-            async fetchGraphList(listDisplayName) {
-                const token = await AuthService.getToken();
-                
-                // Busca os itens da lista do SharePoint expandindo os campos customizados
-                const url = `https://graph.microsoft.com/v1.0/sites/root/lists/${listDisplayName}/items?expand=fields`;
-
-                const response = await fetch(url, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Falha ao carregar lista '${listDisplayName}' (${response.status})`);
-                }
-
-                const data = await response.json();
-
-                // Normaliza o retorno extraindo os dados de 'fields'
-                return data.value.map(item => {
-                    const fields = item.fields || {};
-                    return {
-                        id: item.id,
-                        // Normalização com fallbacks para padrões de nomenclatura do SharePoint
-                        placa: fields.Placa || fields.Title || 'N/A',
-                        motorista: fields.Motorista || fields.Driver || '-',
-                        destino: fields.Destino || fields.Destination || '-',
-                        dataSaida: fields.DataSaida || fields.Data_x0020_Saida || fields.Created ? new Date(fields.DataSaida || fields.Created).toLocaleDateString('pt-BR') : '-',
-                        status: fields.Status || fields.Situacao || 'Concluído',
-                        odometro: Number(fields.Odometro || fields.KM || 0),
-                        data: fields.Data ? new Date(fields.Data).toLocaleDateString('pt-BR') : '-',
-                        posto: fields.Posto || fields.Estabelecimento || '-',
-                        litros: fields.Litros || fields.Quantidade || '0',
-                        tipo: fields.TipoCombustivel || fields.Tipo || 'Diesel',
-                        valorTotal: Number(fields.ValorTotal || fields.Valor || 0).toFixed(2),
-                        categoria: fields.Categoria || fields.TipoDespesa || '-',
-                        fornecedor: fields.Fornecedor || '-',
-                        valor: Number(fields.Valor || fields.Custo || 0).toFixed(2),
-                        codigo: fields.Codigo || fields.Title || `#${item.id}`,
-                        cliente: fields.Cliente || '-',
-                        origem: fields.Origem || '-',
-                        volumeM3: fields.VolumeM3 || fields.Volume || '0'
-                    };
-                });
-            },
-
-            async syncSharePointLists() {
-                if (!AuthService.account) {
-                    alert("Por favor, faça login com a conta Microsoft para sincronizar dados reais do SharePoint.");
-                    return;
-                }
-
-                const icon = document.getElementById('iconSync');
-                icon.classList.add('fa-spin');
-
-                try {
-                    // Executa chamadas paralelas para carregar as 4 listas
-                    const [operacaoData, combustivelData, despesasData, coletasData] = await Promise.allSettled([
-                        this.fetchGraphList(SHAREPOINT_LIST_MAP.operacao),
-                        this.fetchGraphList(SHAREPOINT_LIST_MAP.combustivel),
-                        this.fetchGraphList(SHAREPOINT_LIST_MAP.despesas),
-                        this.fetchGraphList(SHAREPOINT_LIST_MAP.coletas)
-                    ]);
-
-                    if (operacaoData.status === 'fulfilled') this.state.operacao = operacaoData.value;
-                    if (combustivelData.status === 'fulfilled') this.state.combustivel = combustivelData.value;
-                    if (despesasData.status === 'fulfilled') this.state.despesas = despesasData.value;
-                    if (coletasData.status === 'fulfilled') this.state.coletas = coletasData.value;
-
-                    AppEngine.renderAll();
-                } catch (error) {
-                    console.error("Erro ao sincronizar do SharePoint:", error);
-                    alert("Erro durante a consulta das listas no SharePoint. Verifique as permissões da conta.");
-                } finally {
-                    icon.classList.remove('fa-spin');
-                }
-            }
-        };
-
-        // ==========================================
-        // 4. MOTOR DA INTERFACE (APP ENGINE)
-        // ==========================================
-        const AppEngine = {
-            chartTrendInstance: null,
-            chartStatusInstance: null,
-
-            init() {
-                this.setupEventListeners();
-                AuthService.init();
-            },
-
-            setupEventListeners() {
-                const filterPlaca = document.getElementById('filterPlaca');
-                filterPlaca.addEventListener('keyup', this.debounce(() => {
-                    FleetStore.state.filtros.texto = filterPlaca.value.toLowerCase();
-                    this.renderAll();
-                }, 250));
-
-                const filterStatus = document.getElementById('filterStatus');
-                filterStatus.addEventListener('change', () => {
-                    FleetStore.state.filtros.status = filterStatus.value;
-                    this.renderAll();
-                });
-            },
-
-            switchTab(tabName) {
-                FleetStore.state.activeTab = tabName;
-
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('bg-slate-800', 'text-white', 'border-r-2', 'border-emerald-500');
-                    btn.classList.add('text-slate-400');
-                });
-
-                const activeBtn = document.getElementById(`nav-${tabName}`);
-                if (activeBtn) {
-                    activeBtn.classList.add('bg-slate-800', 'text-white', 'border-r-2', 'border-emerald-500');
-                    activeBtn.classList.remove('text-slate-400');
-                }
-
-                const titles = {
-                    operacao: 'Painel de Operação (Liberação de Veículos)',
-                    combustivel: 'Gestão de Combustível e Abastecimento',
-                    despesas: 'Controle de Despesas e Manutenção',
-                    coletas: 'Monitoramento de Coletas e Entregas'
-                };
-                document.getElementById('currentTabTitle').textContent = titles[tabName];
-
-                this.renderAll();
-            },
-
-            getFilteredData() {
-                const currentTab = FleetStore.state.activeTab;
-                const rawData = FleetStore.state[currentTab] || [];
-                const { texto, status } = FleetStore.state.filtros;
-
-                return rawData.filter(item => {
-                    const matchesText = !texto || Object.values(item).some(val => 
-                        String(val).toLowerCase().includes(texto)
-                    );
-                    const matchesStatus = !status || item.status === status;
-                    return matchesText && matchesStatus;
-                });
-            },
-
-            renderAll() {
-                const data = this.getFilteredData();
-                this.renderKPIs(data);
-                this.renderCharts(data);
-                this.renderTable(data);
-            },
-
-            renderKPIs(data) {
-                const tab = FleetStore.state.activeTab;
-                document.getElementById('kpi1-value').textContent = data.length;
-
-                const concluidos = data.filter(d => d.status === 'Concluído').length;
-                const emAndamento = data.filter(d => d.status === 'Em Andamento').length;
-                const taxa = data.length > 0 ? ((concluidos / data.length) * 100).toFixed(1) : 0;
-
-                document.getElementById('kpi3-value').textContent = emAndamento;
-                document.getElementById('kpi4-value').textContent = `${taxa}%`;
-
-                if (tab === 'operacao') {
-                    document.getElementById('kpi2-label').textContent = 'Km Média Acumulada';
-                    const avgKm = data.length ? (data.reduce((acc, curr) => acc + (curr.odometro || 0), 0) / data.length).toFixed(0) : 0;
-                    document.getElementById('kpi2-value').textContent = `${Number(avgKm).toLocaleString('pt-BR')} KM`;
-                } else if (tab === 'combustivel') {
-                    document.getElementById('kpi2-label').textContent = 'Total Custo Combustível';
-                    const totalCost = data.reduce((acc, curr) => acc + parseFloat(curr.valorTotal || 0), 0);
-                    document.getElementById('kpi2-value').textContent = `R$ ${totalCost.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-                } else if (tab === 'despesas') {
-                    document.getElementById('kpi2-label').textContent = 'Custo Total Despesas';
-                    const totalExp = data.reduce((acc, curr) => acc + parseFloat(curr.valor || 0), 0);
-                    document.getElementById('kpi2-value').textContent = `R$ ${totalExp.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-                } else if (tab === 'coletas') {
-                    document.getElementById('kpi2-label').textContent = 'Volume Carga Total';
-                    const totalVol = data.reduce((acc, curr) => acc + parseFloat(curr.volumeM3 || 0), 0);
-                    document.getElementById('kpi2-value').textContent = `${totalVol.toFixed(1)} m³`;
-                }
-            },
-
-            renderCharts(data) {
-                if (this.chartTrendInstance) this.chartTrendInstance.destroy();
-                if (this.chartStatusInstance) this.chartStatusInstance.destroy();
-
-                const statusCounts = {
-                    'Concluído': data.filter(d => d.status === 'Concluído').length,
-                    'Em Andamento': data.filter(d => d.status === 'Em Andamento').length,
-                    'Pendente': data.filter(d => d.status === 'Pendente').length,
-                };
-
-                const ctxStatus = document.getElementById('chartStatus').getContext('2d');
-                this.chartStatusInstance = new Chart(ctxStatus, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Concluído', 'Em Andamento', 'Pendente'],
-                        datasets: [{
-                            data: [statusCounts['Concluído'], statusCounts['Em Andamento'], statusCounts['Pendente']],
-                            backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } }
-                    }
-                });
-
-                const ctxTrend = document.getElementById('chartTrend').getContext('2d');
-                this.chartTrendInstance = new Chart(ctxTrend, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-                        datasets: [{
-                            label: 'Volume de Itens',
-                            data: [data.length > 0 ? Math.ceil(data.length * 0.15) : 0, Math.ceil(data.length * 0.2), Math.ceil(data.length * 0.25), Math.ceil(data.length * 0.18), Math.ceil(data.length * 0.12), 5, 2],
-                            backgroundColor: '#16a34a',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: { grid: { display: false }, ticks: { color: '#64748b' } },
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }
-                        },
-                        plugins: { legend: { display: false } }
-                    }
-                });
-            },
-
-            renderTable(data) {
-                const tab = FleetStore.state.activeTab;
-                const headersContainer = document.getElementById('tableHeaders');
-                const bodyContainer = document.getElementById('tableBody');
-                document.getElementById('recordCount').textContent = `${data.length} itens`;
-
-                bodyContainer.innerHTML = '';
-
-                const schemas = {
-                    operacao: ['ID', 'Placa', 'Motorista', 'Destino', 'Data Saída', 'Odômetro', 'Status'],
-                    combustivel: ['ID', 'Placa', 'Data', 'Posto', 'Combustível', 'Litros', 'Valor Total', 'Status'],
-                    despesas: ['ID', 'Placa', 'Categoria', 'Fornecedor', 'Data', 'Valor (R$)', 'Status'],
-                    coletas: ['Código', 'Placa', 'Cliente', 'Origem', 'Volume (m³)', 'Status']
-                };
-
-                headersContainer.innerHTML = schemas[tab].map(h => `<th class="px-6 py-3.5">${h}</th>`).join('');
-
-                if (data.length === 0) {
-                    bodyContainer.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-500">Nenhum registro retornado do SharePoint. Clique em "Entrar com Microsoft" ou "Sincronizar".</td></tr>`;
-                    return;
-                }
-
-                const rowsHTML = data.map(item => {
-                    let cols = '';
-                    if (tab === 'operacao') {
-                        cols = `
-                            <td class="px-6 py-4 font-mono text-slate-400">#${item.id}</td>
-                            <td class="px-6 py-4 font-bold text-white">${item.placa}</td>
-                            <td class="px-6 py-4">${item.motorista}</td>
-                            <td class="px-6 py-4">${item.destino}</td>
-                            <td class="px-6 py-4">${item.dataSaida}</td>
-                            <td class="px-6 py-4 font-mono">${item.odometro.toLocaleString()} KM</td>
-                        `;
-                    } else if (tab === 'combustivel') {
-                        cols = `
-                            <td class="px-6 py-4 font-mono text-slate-400">#${item.id}</td>
-                            <td class="px-6 py-4 font-bold text-white">${item.placa}</td>
-                            <td class="px-6 py-4">${item.data}</td>
-                            <td class="px-6 py-4">${item.posto}</td>
-                            <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">${item.tipo}</span></td>
-                            <td class="px-6 py-4 font-mono">${item.litros} L</td>
-                            <td class="px-6 py-4 font-bold text-emerald-400">R$ ${item.valorTotal}</td>
-                        `;
-                    } else if (tab === 'despesas') {
-                        cols = `
-                            <td class="px-6 py-4 font-mono text-slate-400">#${item.id}</td>
-                            <td class="px-6 py-4 font-bold text-white">${item.placa}</td>
-                            <td class="px-6 py-4">${item.categoria}</td>
-                            <td class="px-6 py-4">${item.fornecedor}</td>
-                            <td class="px-6 py-4">${item.data}</td>
-                            <td class="px-6 py-4 font-bold text-amber-400">R$ ${item.valor}</td>
-                        `;
-                    } else if (tab === 'coletas') {
-                        cols = `
-                            <td class="px-6 py-4 font-mono text-emerald-400 font-bold">${item.codigo}</td>
-                            <td class="px-6 py-4 font-bold text-white">${item.placa}</td>
-                            <td class="px-6 py-4">${item.cliente}</td>
-                            <td class="px-6 py-4">${item.origem}</td>
-                            <td class="px-6 py-4 font-mono">${item.volumeM3} m³</td>
-                        `;
-                    }
-
-                    const badgeClasses = {
-                        'Concluído': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                        'Em Andamento': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                        'Pendente': 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                    };
-                    const statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${badgeClasses[item.status] || 'bg-slate-800 text-slate-400'}">${item.status}</span>`;
-
-                    return `<tr class="hover:bg-slate-900/50 transition-colors duration-150">${cols}<td class="px-6 py-4">${statusBadge}</td></tr>`;
-                }).join('');
-
-                bodyContainer.innerHTML = rowsHTML;
-            },
-
-            exportToExcel() {
-                const data = this.getFilteredData();
-                if (!data.length) {
-                    alert('Não há dados filtrados para exportar.');
-                    return;
-                }
-
-                const worksheet = XLSX.utils.json_to_sheet(data);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, FleetStore.state.activeTab.toUpperCase());
-                
-                XLSX.writeFile(workbook, `FleetAnalytics_${FleetStore.state.activeTab}_${new Date().toISOString().slice(0,10)}.xlsx`);
-            },
-
-            debounce(func, wait) {
-                let timeout;
-                return function(...args) {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), wait);
-                };
-            }
-        };
-
-        // Inicializar aplicação ao carregar o DOM
-        document.addEventListener('DOMContentLoaded', () => AppEngine.init());
-    </script>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <div class="brand-eyebrow">CARGOVAN · SHAREPOINT</div>
+      <div class="brand-title head-font">Logs_cargo_van</div>
+      <div class="brand-sub">Registro de eventos e ações da operação</div>
+    </div>
+    <div class="auth-box">
+      <div class="status-pill"><span id="statusDot" class="dot"></span><span id="statusText">Não conectado</span></div>
+      <button id="btnLogin" class="primary small">Entrar com a conta WillTech</button>
+      <button id="btnLogout" class="ghost small" style="display:none;">Sair</button>
+    </div>
+  </div>
+
+  <!-- Formulário de entrada -->
+  <div class="panel">
+    <p class="panel-title">Novo registro</p>
+    <p class="panel-desc">Preencha os campos e envie para gravar diretamente na lista do SharePoint.</p>
+
+    <div class="grid">
+      <div class="field full">
+        <label for="fTitulo">Título</label>
+        <input type="text" id="fTitulo" placeholder="Ex.: Saída de veículo — placa OAB-1234">
+      </div>
+
+      <div class="field">
+        <label for="fEvento">Evento</label>
+        <input type="text" id="fEvento" list="eventoOptions" placeholder="Ex.: Saída, Retorno, Ocorrência">
+        <datalist id="eventoOptions">
+          <option value="Saída"></option>
+          <option value="Retorno"></option>
+          <option value="Ocorrência"></option>
+          <option value="Manutenção"></option>
+          <option value="Abastecimento"></option>
+        </datalist>
+      </div>
+
+      <div class="field">
+        <label for="fAcao">Ação</label>
+        <input type="text" id="fAcao" list="acaoOptions" placeholder="Ex.: Registrado, Aprovado, Cancelado">
+        <datalist id="acaoOptions">
+          <option value="Registrado"></option>
+          <option value="Aprovado"></option>
+          <option value="Reprovado"></option>
+          <option value="Cancelado"></option>
+          <option value="Em análise"></option>
+        </datalist>
+      </div>
+
+      <div class="field">
+        <label for="fNome">Nome</label>
+        <input type="text" id="fNome" placeholder="Preenchido automaticamente ao entrar">
+      </div>
+
+      <div class="field">
+        <label for="fIdCopy">ID_copy</label>
+        <input type="text" id="fIdCopy" placeholder="Ex.: ID de referência do item de origem">
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <span class="hint">Criação é preenchida automaticamente pelo SharePoint.</span>
+      <button id="btnSubmit" class="primary" disabled>Gravar registro</button>
+    </div>
+
+    <div id="formMsg" class="msg"></div>
+  </div>
+
+  <!-- Tabela de leitura -->
+  <div class="panel">
+    <div class="table-head">
+      <div>
+        <p class="panel-title" style="margin-bottom:2px;">Registros na lista</p>
+        <p class="panel-desc" style="margin-bottom:0;">Últimos itens de Logs_cargo_van, mais recentes primeiro.</p>
+      </div>
+      <button id="btnRefresh" class="small" disabled>Atualizar</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Evento</th>
+            <th>Ação</th>
+            <th>Criação</th>
+            <th>Nome</th>
+            <th>ID_copy</th>
+          </tr>
+        </thead>
+        <tbody id="rowsBody">
+          <tr class="empty-row"><td colspan="6">Entre com a conta WillTech para carregar os registros.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Diagnóstico de colunas -->
+  <div class="panel">
+    <div class="table-head">
+      <div>
+        <p class="panel-title" style="margin-bottom:2px;">Diagnóstico da lista</p>
+        <p class="panel-desc" style="margin-bottom:0;">Se a gravação falhar por nome de coluna, use isto para ver os nomes internos exatos.</p>
+      </div>
+      <button id="btnDiag" class="small" disabled>Ver colunas internas</button>
+    </div>
+    <div id="diagBox" class="diag"></div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURAÇÃO — ajuste aqui se algo mudar no Entra ID
+   ========================================================= */
+const CONFIG = {
+  clientId: "7937a0da-7f45-4bc6-b7e9-2a749dcda79b",   // ID do aplicativo (mesmo do FleetAnalytics Pro)
+  tenantId: "669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",   // ID do diretório (WillTech)
+  spHostname: "willtech7.sharepoint.com",
+  spSitePath: "/sites/CARGOVAN",
+  listName: "Logs_cargo_van",
+  // Escopo de escrita — precisa estar concedido (com consentimento do admin) no app registration
+  scopes: ["Sites.ReadWrite.All", "User.Read"]
+};
+
+const msalConfig = {
+  auth: {
+    clientId: CONFIG.clientId,
+    authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
+    redirectUri: window.location.origin + window.location.pathname
+  },
+  cache: { cacheLocation: "sessionStorage" }
+};
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+let account = null;
+let siteId = null;
+let listId = null;
+
+const el = (id) => document.getElementById(id);
+
+function setStatus(connected, label){
+  el("statusDot").classList.toggle("on", connected);
+  el("statusText").textContent = label;
+}
+
+function showMsg(text, kind){
+  const box = el("formMsg");
+  box.textContent = text;
+  box.className = "msg show " + kind;
+}
+
+function clearMsg(){
+  const box = el("formMsg");
+  box.className = "msg";
+}
+
+/* ---------- Autenticação ---------- */
+
+el("btnLogin").addEventListener("click", async () => {
+  try{
+    const res = await msalInstance.loginPopup({ scopes: CONFIG.scopes, prompt: "select_account" });
+    account = res.account;
+    msalInstance.setActiveAccount(account);
+    onSignedIn();
+  }catch(err){
+    console.error(err);
+    showMsg("Falha no login: " + (err && err.message ? err.message : err), "err");
+  }
+});
+
+el("btnLogout").addEventListener("click", () => {
+  msalInstance.logoutPopup();
+});
+
+async function getToken(){
+  const req = { scopes: CONFIG.scopes, account };
+  try{
+    const res = await msalInstance.acquireTokenSilent(req);
+    return res.accessToken;
+  }catch(err){
+    const res = await msalInstance.acquireTokenPopup(req);
+    return res.accessToken;
+  }
+}
+
+async function onSignedIn(){
+  setStatus(true, account.username);
+  el("btnLogin").style.display = "none";
+  el("btnLogout").style.display = "inline-block";
+  el("btnSubmit").disabled = false;
+  el("btnRefresh").disabled = false;
+  el("btnDiag").disabled = false;
+  if (!el("fNome").value) el("fNome").value = account.name || account.username;
+
+  await resolveSiteAndList();
+  await loadItems();
+}
+
+window.addEventListener("load", () => {
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length > 0){
+    account = accounts[0];
+    msalInstance.setActiveAccount(account);
+    onSignedIn();
+  }
+});
+
+/* ---------- Graph: resolver site e lista ---------- */
+
+async function graphFetch(path, options = {}){
+  const token = await getToken();
+  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok){
+    const body = await res.text();
+    throw new Error(`Graph ${res.status}: ${body}`);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+async function resolveSiteAndList(){
+  const site = await graphFetch(`/sites/${CONFIG.spHostname}:${CONFIG.spSitePath}`);
+  siteId = site.id;
+  const list = await graphFetch(`/sites/${siteId}/lists/${CONFIG.listName}`);
+  listId = list.id;
+}
+
+/* ---------- Leitura ---------- */
+
+async function loadItems(){
+  const body = el("rowsBody");
+  body.innerHTML = `<tr class="empty-row"><td colspan="6">Carregando…</td></tr>`;
+  try{
+    const data = await graphFetch(
+      `/sites/${siteId}/lists/${listId}/items?expand=fields&$orderby=fields/Created desc&$top=50`
+    );
+    const items = (data && data.value) || [];
+    if (items.length === 0){
+      body.innerHTML = `<tr class="empty-row"><td colspan="6">Nenhum registro ainda.</td></tr>`;
+      return;
+    }
+    body.innerHTML = items.map(it => {
+      const f = it.fields || {};
+      return `<tr>
+        <td class="col-title">${escapeHtml(f.Title || "")}</td>
+        <td>${escapeHtml(f.Evento || "")}</td>
+        <td>${escapeHtml(f.Acao || "")}</td>
+        <td>${escapeHtml(f.Created || f.Criacao || "")}</td>
+        <td>${escapeHtml(f.Nome || "")}</td>
+        <td>${escapeHtml(f.ID_copy || f.IDcopy || "")}</td>
+      </tr>`;
+    }).join("");
+  }catch(err){
+    console.error(err);
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">Erro ao carregar — veja o diagnóstico abaixo.</td></tr>`;
+  }
+}
+
+el("btnRefresh").addEventListener("click", loadItems);
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/* ---------- Gravação ---------- */
+
+el("btnSubmit").addEventListener("click", async () => {
+  clearMsg();
+  const fields = {
+    Title: el("fTitulo").value.trim(),
+    Evento: el("fEvento").value.trim(),
+    Acao: el("fAcao").value.trim(),
+    Nome: el("fNome").value.trim(),
+    ID_copy: el("fIdCopy").value.trim()
+  };
+
+  if (!fields.Title){
+    showMsg("Preencha ao menos o Título.", "err");
+    return;
+  }
+
+  el("btnSubmit").disabled = true;
+  el("btnSubmit").textContent = "Gravando...";
+
+  try{
+    await graphFetch(`/sites/${siteId}/lists/${listId}/items`, {
+      method: "POST",
+      body: JSON.stringify({ fields })
+    });
+    showMsg("Registro gravado com sucesso.", "ok");
+    el("fTitulo").value = "";
+    el("fEvento").value = "";
+    el("fAcao").value = "";
+    el("fIdCopy").value = "";
+    await loadItems();
+  }catch(err){
+    console.error(err);
+    showMsg("Não foi possível gravar. Verifique o diagnóstico de colunas abaixo — o nome interno de algum campo pode ser diferente do usado aqui.", "err");
+  }finally{
+    el("btnSubmit").disabled = false;
+    el("btnSubmit").textContent = "Gravar registro";
+  }
+});
+
+/* ---------- Diagnóstico de colunas ---------- */
+
+el("btnDiag").addEventListener("click", async () => {
+  const box = el("diagBox");
+  box.classList.add("show");
+  box.textContent = "Consultando colunas...";
+  try{
+    const data = await graphFetch(`/sites/${siteId}/lists/${listId}/columns`);
+    const cols = (data.value || [])
+      .filter(c => !c.readOnly)
+      .map(c => `${c.displayName}  →  nome interno: ${c.name}`)
+      .join("\n");
+    box.textContent = cols || "Nenhuma coluna editável encontrada.";
+  }catch(err){
+    box.textContent = "Erro ao consultar colunas: " + err.message;
+  }
+});
+</script>
 </body>
 </html>
