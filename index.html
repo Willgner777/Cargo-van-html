@@ -1,149 +1,381 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logs_cargo_van · Registro de Eventos</title>
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
-<style>
-  :root{
-    --bg:#0B1220;
-    --panel:#101A2E;
-    --panel-2:#0C1729;
-    --line:#22304A;
-    --line-soft:#1A2740;
-    --ink:#E7ECF6;
-    --ink-dim:#8C9AB8;
-    --amber:#F5A623;
-    --amber-dim:#8A6220;
-    --teal:#2DD4BF;
-    --red:#F0625A;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(1200px 600px at 85% -10%, rgba(245,166,35,0.07), transparent 60%),
-      var(--bg);
-    color:var(--ink);
-    font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    min-height:100vh;
-  }
-  @font-face{
-    font-family:'Space Grotesk';
-    src:local('Space Grotesk');
-  }
-  .head-font{font-family:'Space Grotesk','Segoe UI',sans-serif;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logs_cargo_van · Registro de Eventos</title>
 
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  /* Top bar */
-  .topbar{
-    display:flex;justify-content:space-between;align-items:flex-end;
-    border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:26px;
-    gap:16px;flex-wrap:wrap;
-  }
-  .brand-eyebrow{color:var(--amber);font-size:11px;letter-spacing:0.04em;margin-bottom:6px;}
-  .brand-title{font-size:26px;font-weight:600;color:var(--ink);}
-  .brand-sub{color:var(--ink-dim);font-size:12.5px;margin-top:4px;}
+  <!-- MSAL Browser SDK -->
+  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 
-  .auth-box{display:flex;align-items:center;gap:12px;}
-  .status-pill{
-    display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-dim);
-    border:1px solid var(--line);border-radius:20px;padding:6px 12px 6px 10px;
-  }
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--red);}
-  .dot.on{background:var(--teal);}
+  <style>
+    :root {
+      --bg: #090D16;
+      --panel: #111827;
+      --panel-hover: #1F2937;
+      --panel-subtle: #161F30;
+      --border: #1F293D;
+      --border-focus: #F5A623;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --amber: #F5A623;
+      --amber-hover: #D98E16;
+      --teal: #10B981;
+      --red: #EF4444;
+      --radius: 10px;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
 
-  button{
-    font-family:inherit;font-size:13px;cursor:pointer;border-radius:8px;
-    border:1px solid var(--line);background:var(--panel);color:var(--ink);
-    padding:9px 16px;transition:background .15s ease, border-color .15s ease, transform .05s ease;
-  }
-  button:hover{border-color:#374766;}
-  button:active{transform:translateY(1px);}
-  button.primary{background:var(--amber);border-color:var(--amber);color:#241802;font-weight:600;}
-  button.primary:hover{background:#ffb43c;}
-  button.primary:disabled{background:var(--amber-dim);border-color:var(--amber-dim);color:#5c4514;cursor:not-allowed;}
-  button.ghost{background:transparent;}
-  button.small{padding:6px 11px;font-size:12px;}
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    
+    body {
+      background: radial-gradient(1000px 500px at 80% -20%, rgba(245, 166, 35, 0.08), transparent 70%), var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
 
-  /* Panels */
-  .panel{
-    background:var(--panel);border:1px solid var(--line);border-radius:12px;
-    padding:22px;margin-bottom:22px;
-  }
-  .panel-title{
-    font-family:'Space Grotesk','Segoe UI',sans-serif;
-    font-size:15px;font-weight:600;color:var(--ink);margin:0 0 3px;
-  }
-  .panel-desc{color:var(--ink-dim);font-size:12.5px;margin:0 0 18px;}
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 36px 20px 80px;
+    }
 
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-  .field{display:flex;flex-direction:column;gap:6px;}
-  .field.full{grid-column:1 / -1;}
-  label{font-size:11px;color:var(--ink-dim);letter-spacing:0.02em;}
-  input[type=text], input[list], textarea, select{
-    font-family:inherit;background:var(--panel-2);border:1px solid var(--line);
-    color:var(--ink);border-radius:7px;padding:10px 11px;font-size:13.5px;
-    outline:none;
-  }
-  input:focus, select:focus, textarea:focus{border-color:var(--amber);}
-  textarea{resize:vertical;min-height:64px;}
+    /* Top bar & Header */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
 
-  .actions-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap;}
-  .hint{color:var(--ink-dim);font-size:11.5px;}
+    .brand-eyebrow {
+      color: var(--amber);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-family: var(--font-mono);
+    }
 
-  .msg{font-size:12.5px;border-radius:7px;padding:9px 12px;margin-top:14px;display:none;}
-  .msg.show{display:block;}
-  .msg.ok{background:rgba(45,212,191,0.09);border:1px solid rgba(45,212,191,0.35);color:var(--teal);}
-  .msg.err{background:rgba(240,98,90,0.09);border:1px solid rgba(240,98,90,0.35);color:var(--red);}
+    .brand-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
 
-  /* Table */
-  .table-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-  table{width:100%;border-collapse:collapse;font-size:12.5px;}
-  thead th{
-    text-align:left;color:var(--ink-dim);font-weight:500;font-size:10.5px;
-    letter-spacing:0.03em;border-bottom:1px solid var(--line);padding:0 10px 10px;
-  }
-  tbody td{padding:11px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink);}
-  tbody tr:hover{background:rgba(255,255,255,0.015);}
-  .col-title{color:var(--amber);}
-  .empty-row td{color:var(--ink-dim);text-align:center;padding:34px 10px;}
+    .brand-sub {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
 
-  .diag{
-    margin-top:10px;font-size:11.5px;color:var(--ink-dim);
-    background:var(--panel-2);border:1px solid var(--line-soft);border-radius:7px;
-    padding:12px;white-space:pre-wrap;word-break:break-word;display:none;max-height:220px;overflow:auto;
-  }
-  .diag.show{display:block;}
+    .auth-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-  @media (max-width:640px){
-    .grid{grid-template-columns:1fr;}
-    .topbar{align-items:flex-start;}
-  }
-</style>
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      background: var(--panel-subtle);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    }
+
+    .dot.on {
+      background: var(--teal);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Buttons UI */
+    button {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 10px 18px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: #374151;
+      background: var(--panel-hover);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button.primary {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #111827;
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--amber-hover);
+      border-color: var(--amber-hover);
+    }
+
+    button.primary:disabled {
+      background: rgba(245, 166, 35, 0.2);
+      border-color: transparent;
+      color: rgba(255, 255, 255, 0.3);
+      cursor: not-allowed;
+    }
+
+    button.ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--text-muted);
+    }
+
+    button.ghost:hover {
+      color: var(--text);
+      background: var(--panel-subtle);
+    }
+
+    button.small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* Cards & Form Panels */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-header {
+      margin-bottom: 20px;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 4px;
+    }
+
+    .panel-desc {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input[type=text], input[list] {
+      font-family: var(--font-sans);
+      background: var(--panel-subtle);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .msg {
+      font-size: 13px;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .msg.show { display: block; }
+    .msg.ok { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--teal); }
+    .msg.err { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--red); }
+
+    /* Table Design UI */
+    .table-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--panel-subtle);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .col-title {
+      font-weight: 500;
+      color: var(--amber);
+    }
+
+    .empty-row td {
+      color: var(--text-muted);
+      text-align: center;
+      padding: 40px 14px;
+    }
+
+    .diag {
+      margin-top: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--panel-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .diag.show { display: block; }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
+
 <div class="wrap">
 
+  <!-- Header -->
   <div class="topbar">
     <div>
-      <div class="brand-eyebrow">CARGOVAN · SHAREPOINT</div>
-      <div class="brand-title head-font">Logs_cargo_van</div>
-      <div class="brand-sub">Registro de eventos e ações da operação</div>
+      <div class="brand-eyebrow">CARGOVAN · SHAREPOINT INTEGRATION</div>
+      <div class="brand-title">Logs_cargo_van</div>
+      <div class="brand-sub">Registro de eventos e ações operacionais</div>
     </div>
     <div class="auth-box">
-      <div class="status-pill"><span id="statusDot" class="dot"></span><span id="statusText">Não conectado</span></div>
+      <div class="status-pill">
+        <span id="statusDot" class="dot"></span>
+        <span id="statusText">Não conectado</span>
+      </div>
       <button id="btnLogin" class="primary small">Entrar com a conta WillTech</button>
       <button id="btnLogout" class="ghost small" style="display:none;">Sair</button>
     </div>
   </div>
 
-  <!-- Formulário de entrada -->
+  <!-- Formulário -->
   <div class="panel">
-    <p class="panel-title">Novo registro</p>
-    <p class="panel-desc">Preencha os campos e envie para gravar diretamente na lista do SharePoint.</p>
+    <div class="panel-header">
+      <p class="panel-title">Novo Registro</p>
+      <p class="panel-desc">Preencha os campos abaixo para gravar diretamente no SharePoint.</p>
+    </div>
 
     <div class="grid">
       <div class="field full">
@@ -165,7 +397,7 @@
 
       <div class="field">
         <label for="fAcao">Ação</label>
-        <input type="text" id="fAcao" list="acaoOptions" placeholder="Ex.: Registrado, Aprovado, Cancelado">
+        <input type="text" id="fAcao" list="acaoOptions" placeholder="Ex.: Registrado, Aprovado">
         <datalist id="acaoOptions">
           <option value="Registrado"></option>
           <option value="Aprovado"></option>
@@ -176,34 +408,35 @@
       </div>
 
       <div class="field">
-        <label for="fNome">Nome</label>
-        <input type="text" id="fNome" placeholder="Preenchido automaticamente ao entrar">
+        <label for="fNome">Nome do Operador</label>
+        <input type="text" id="fNome" placeholder="Preenchido automaticamente no login">
       </div>
 
       <div class="field">
         <label for="fIdCopy">ID_copy</label>
-        <input type="text" id="fIdCopy" placeholder="Ex.: ID de referência do item de origem">
+        <input type="text" id="fIdCopy" placeholder="Ex.: ID de referência original">
       </div>
     </div>
 
     <div class="actions-row">
-      <span class="hint">Criação é preenchida automaticamente pelo SharePoint.</span>
-      <button id="btnSubmit" class="primary" disabled>Gravar registro</button>
+      <span class="hint">A data e hora de criação são registradas automaticamente.</span>
+      <button id="btnSubmit" class="primary" disabled>Gravar Registro</button>
     </div>
 
     <div id="formMsg" class="msg"></div>
   </div>
 
-  <!-- Tabela de leitura -->
+  <!-- Tabela -->
   <div class="panel">
     <div class="table-head">
       <div>
-        <p class="panel-title" style="margin-bottom:2px;">Registros na lista</p>
-        <p class="panel-desc" style="margin-bottom:0;">Últimos itens de Logs_cargo_van, mais recentes primeiro.</p>
+        <p class="panel-title">Registros da Lista</p>
+        <p class="panel-desc">Visualização dos últimos registros gravados.</p>
       </div>
-      <button id="btnRefresh" class="small" disabled>Atualizar</button>
+      <button id="btnRefresh" class="small" disabled>Atualizar Data</button>
     </div>
-    <div style="overflow-x:auto;">
+
+    <div class="table-responsive">
       <table>
         <thead>
           <tr>
@@ -216,20 +449,20 @@
           </tr>
         </thead>
         <tbody id="rowsBody">
-          <tr class="empty-row"><td colspan="6">Entre com a conta WillTech para carregar os registros.</td></tr>
+          <tr class="empty-row"><td colspan="6">Autentique-se com a conta WillTech para carregar a base.</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Diagnóstico de colunas -->
+  <!-- Diagnóstico -->
   <div class="panel">
     <div class="table-head">
       <div>
-        <p class="panel-title" style="margin-bottom:2px;">Diagnóstico da lista</p>
-        <p class="panel-desc" style="margin-bottom:0;">Se a gravação falhar por nome de coluna, use isto para ver os nomes internos exatos.</p>
+        <p class="panel-title">Diagnóstico de Colunas</p>
+        <p class="panel-desc">Caso a gravação falhe, verifique aqui os nomes internos das colunas do SharePoint.</p>
       </div>
-      <button id="btnDiag" class="small" disabled>Ver colunas internas</button>
+      <button id="btnDiag" class="small" disabled>Ver Colunas Internas</button>
     </div>
     <div id="diagBox" class="diag"></div>
   </div>
@@ -238,15 +471,14 @@
 
 <script>
 /* =========================================================
-   CONFIGURAÇÃO — ajuste aqui se algo mudar no Entra ID
+   CONFIGURAÇÃO — Microsoft Entra ID & SharePoint
    ========================================================= */
 const CONFIG = {
-  clientId: "7937a0da-7f45-4bc6-b7e9-2a749dcda79b",   // ID do aplicativo (mesmo do FleetAnalytics Pro)
-  tenantId: "669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",   // ID do diretório (WillTech)
+  clientId: "7937a0da-7f45-4bc6-b7e9-2a749dcda79b",
+  tenantId: "669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
   spHostname: "willtech7.sharepoint.com",
   spSitePath: "/sites/CARGOVAN",
   listName: "Logs_cargo_van",
-  // Escopo de escrita — precisa estar concedido (com consentimento do admin) no app registration
   scopes: ["Sites.ReadWrite.All", "User.Read"]
 };
 
@@ -282,15 +514,39 @@ function clearMsg(){
   box.className = "msg";
 }
 
-/* ---------- Autenticação ---------- */
+/* ---------- Autenticação & Inicialização Corrigida ---------- */
+
+window.addEventListener("load", async () => {
+  try {
+    // Inicialização assíncrona mandatória do MSAL v2/v3
+    await msalInstance.initialize();
+
+    const response = await msalInstance.handleRedirectPromise();
+    if (response) {
+      account = response.account;
+    } else {
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) {
+        account = accounts[0];
+      }
+    }
+
+    if (account) {
+      msalInstance.setActiveAccount(account);
+      await onSignedIn();
+    }
+  } catch (err) {
+    console.error("Erro na inicialização da autenticação:", err);
+  }
+});
 
 el("btnLogin").addEventListener("click", async () => {
-  try{
+  try {
     const res = await msalInstance.loginPopup({ scopes: CONFIG.scopes, prompt: "select_account" });
     account = res.account;
     msalInstance.setActiveAccount(account);
-    onSignedIn();
-  }catch(err){
+    await onSignedIn();
+  } catch(err) {
     console.error(err);
     showMsg("Falha no login: " + (err && err.message ? err.message : err), "err");
   }
@@ -302,10 +558,10 @@ el("btnLogout").addEventListener("click", () => {
 
 async function getToken(){
   const req = { scopes: CONFIG.scopes, account };
-  try{
+  try {
     const res = await msalInstance.acquireTokenSilent(req);
     return res.accessToken;
-  }catch(err){
+  } catch(err) {
     const res = await msalInstance.acquireTokenPopup(req);
     return res.accessToken;
   }
@@ -314,26 +570,25 @@ async function getToken(){
 async function onSignedIn(){
   setStatus(true, account.username);
   el("btnLogin").style.display = "none";
-  el("btnLogout").style.display = "inline-block";
+  el("btnLogout").style.display = "inline-flex";
   el("btnSubmit").disabled = false;
   el("btnRefresh").disabled = false;
   el("btnDiag").disabled = false;
-  if (!el("fNome").value) el("fNome").value = account.name || account.username;
+  
+  if (!el("fNome").value) {
+    el("fNome").value = account.name || account.username;
+  }
 
-  await resolveSiteAndList();
-  await loadItems();
+  try {
+    await resolveSiteAndList();
+    await loadItems();
+  } catch(err) {
+    console.error("Erro ao conectar no SharePoint:", err);
+    showMsg("Conta conectada, mas houve falha ao obter o SharePoint: " + err.message, "err");
+  }
 }
 
-window.addEventListener("load", () => {
-  const accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0){
-    account = accounts[0];
-    msalInstance.setActiveAccount(account);
-    onSignedIn();
-  }
-});
-
-/* ---------- Graph: resolver site e lista ---------- */
+/* ---------- Graph API Services ---------- */
 
 async function graphFetch(path, options = {}){
   const token = await getToken();
@@ -363,30 +618,33 @@ async function resolveSiteAndList(){
 
 async function loadItems(){
   const body = el("rowsBody");
-  body.innerHTML = `<tr class="empty-row"><td colspan="6">Carregando…</td></tr>`;
-  try{
+  body.innerHTML = `<tr class="empty-row"><td colspan="6">Carregando dados da lista…</td></tr>`;
+  try {
     const data = await graphFetch(
       `/sites/${siteId}/lists/${listId}/items?expand=fields&$orderby=fields/Created desc&$top=50`
     );
     const items = (data && data.value) || [];
     if (items.length === 0){
-      body.innerHTML = `<tr class="empty-row"><td colspan="6">Nenhum registro ainda.</td></tr>`;
+      body.innerHTML = `<tr class="empty-row"><td colspan="6">Nenhum registro encontrado.</td></tr>`;
       return;
     }
     body.innerHTML = items.map(it => {
       const f = it.fields || {};
+      const dateVal = f.Created || f.Criacao || "";
+      const formattedDate = dateVal ? new Date(dateVal).toLocaleString("pt-BR") : "";
+      
       return `<tr>
         <td class="col-title">${escapeHtml(f.Title || "")}</td>
         <td>${escapeHtml(f.Evento || "")}</td>
         <td>${escapeHtml(f.Acao || "")}</td>
-        <td>${escapeHtml(f.Created || f.Criacao || "")}</td>
+        <td>${escapeHtml(formattedDate)}</td>
         <td>${escapeHtml(f.Nome || "")}</td>
         <td>${escapeHtml(f.ID_copy || f.IDcopy || "")}</td>
       </tr>`;
     }).join("");
-  }catch(err){
+  } catch(err) {
     console.error(err);
-    body.innerHTML = `<tr class="empty-row"><td colspan="6">Erro ao carregar — veja o diagnóstico abaixo.</td></tr>`;
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">Erro ao carregar dados — consulte o diagnóstico abaixo.</td></tr>`;
   }
 }
 
@@ -394,7 +652,9 @@ el("btnRefresh").addEventListener("click", loadItems);
 
 function escapeHtml(str){
   return String(str)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 /* ---------- Gravação ---------- */
@@ -410,47 +670,47 @@ el("btnSubmit").addEventListener("click", async () => {
   };
 
   if (!fields.Title){
-    showMsg("Preencha ao menos o Título.", "err");
+    showMsg("Preencha ao menos o campo Título.", "err");
     return;
   }
 
   el("btnSubmit").disabled = true;
   el("btnSubmit").textContent = "Gravando...";
 
-  try{
+  try {
     await graphFetch(`/sites/${siteId}/lists/${listId}/items`, {
       method: "POST",
       body: JSON.stringify({ fields })
     });
-    showMsg("Registro gravado com sucesso.", "ok");
+    showMsg("Registro gravado com sucesso!", "ok");
     el("fTitulo").value = "";
     el("fEvento").value = "";
     el("fAcao").value = "";
     el("fIdCopy").value = "";
     await loadItems();
-  }catch(err){
+  } catch(err) {
     console.error(err);
-    showMsg("Não foi possível gravar. Verifique o diagnóstico de colunas abaixo — o nome interno de algum campo pode ser diferente do usado aqui.", "err");
-  }finally{
+    showMsg("Não foi possível gravar. Verifique se os nomes internos das colunas no SharePoint correspondem exatamente aos enviados.", "err");
+  } finally {
     el("btnSubmit").disabled = false;
-    el("btnSubmit").textContent = "Gravar registro";
+    el("btnSubmit").textContent = "Gravar Registro";
   }
 });
 
-/* ---------- Diagnóstico de colunas ---------- */
+/* ---------- Diagnóstico ---------- */
 
 el("btnDiag").addEventListener("click", async () => {
   const box = el("diagBox");
   box.classList.add("show");
-  box.textContent = "Consultando colunas...";
-  try{
+  box.textContent = "Consultando schema da lista...";
+  try {
     const data = await graphFetch(`/sites/${siteId}/lists/${listId}/columns`);
     const cols = (data.value || [])
       .filter(c => !c.readOnly)
       .map(c => `${c.displayName}  →  nome interno: ${c.name}`)
       .join("\n");
     box.textContent = cols || "Nenhuma coluna editável encontrada.";
-  }catch(err){
+  } catch(err) {
     box.textContent = "Erro ao consultar colunas: " + err.message;
   }
 });
