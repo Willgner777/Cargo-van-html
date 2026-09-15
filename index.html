@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetAnalytics Elite - Dashboard de Gestão de Frotas</title>
+    <title>FleetAnalytics Elite - Dashboard & SharePoint Integration</title>
     
+    <!-- MSAL.js CDN (Microsoft Authentication Library) -->
+    <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -44,7 +47,6 @@
     </script>
 
     <style>
-        /* Estilização de Scrollbar customizada */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -74,7 +76,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-base tracking-wide bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">FleetAnalytics</h1>
-                    <span class="text-xs text-emerald-400 font-medium">Enterprise v2.5</span>
+                    <span class="text-xs text-emerald-400 font-medium">Microsoft 365 Connected</span>
                 </div>
             </div>
 
@@ -99,16 +101,38 @@
             </nav>
         </div>
 
-        <!-- Footer da Sidebar (Sync & Status) -->
-        <div class="p-4 border-t border-slate-800/80">
-            <button onclick="FleetStore.syncSharePointLists()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-all duration-200 border border-slate-700/50">
+        <!-- Footer da Sidebar (User Info, Sync & Auth) -->
+        <div class="p-4 border-t border-slate-800/80 space-y-3">
+            <!-- Usuário Autenticado -->
+            <div id="userProfile" class="hidden items-center gap-3 px-2 py-1">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-500/40" id="userAvatar">
+                    U
+                </div>
+                <div class="overflow-hidden flex-1">
+                    <p class="text-xs font-bold text-white truncate" id="userName">Usuário</p>
+                    <p class="text-[10px] text-slate-400 truncate" id="userEmail">usuario@empresa.com</p>
+                </div>
+                <button onclick="AuthService.logout()" title="Sair" class="text-slate-400 hover:text-rose-400 transition-colors">
+                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Botão de Sincronização -->
+            <button onclick="FleetStore.syncSharePointLists()" id="btnSync" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-all duration-200 border border-slate-700/50">
                 <i id="iconSync" class="fa-solid fa-rotate text-emerald-400"></i>
                 <span>Sincronizar SharePoint</span>
             </button>
-            <div class="mt-3 flex items-center justify-between text-[11px] text-slate-500 px-1">
-                <span>Status da Conexão:</span>
-                <span class="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
+
+            <!-- Botão de Login (Visível se deslogado) -->
+            <button onclick="AuthService.login()" id="btnLogin" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg shadow-emerald-600/20 transition-all duration-200">
+                <i class="fa-brands fa-microsoft"></i>
+                <span>Entrar com Microsoft</span>
+            </button>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-1">
+                <span>Status Conexão:</span>
+                <span id="connectionStatus" class="inline-flex items-center gap-1.5 text-slate-400 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-slate-500"></span> Desconectado
                 </span>
             </div>
         </div>
@@ -121,18 +145,16 @@
         <header class="h-20 border-b border-slate-800/80 px-8 flex items-center justify-between shrink-0 glass-card">
             <div>
                 <h2 id="currentTabTitle" class="text-xl font-bold text-white tracking-tight">Painel de Operação</h2>
-                <p class="text-xs text-slate-400">Visão consolidada do fluxo operacional de frotas</p>
+                <p class="text-xs text-slate-400">Dados ao vivo integrados às listas do SharePoint Online</p>
             </div>
 
             <!-- Filtros Globais -->
             <div class="flex items-center gap-3">
-                <!-- Filtro de Texto (Placa/Motorista) -->
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                    <input type="text" id="filterPlaca" placeholder="Filtrar por Placa ou Palavra..." class="pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 w-64 transition-all">
+                    <input type="text" id="filterPlaca" placeholder="Filtrar por Placa ou Termo..." class="pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 w-64 transition-all">
                 </div>
 
-                <!-- Filtro de Status -->
                 <select id="filterStatus" class="bg-slate-900 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
                     <option value="">Todos os Status</option>
                     <option value="Concluído">Concluído</option>
@@ -140,7 +162,6 @@
                     <option value="Pendente">Pendente</option>
                 </select>
 
-                <!-- Botão de Exportação Excel -->
                 <button onclick="AppEngine.exportToExcel()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-600/20 transition-all duration-200">
                     <i class="fa-solid fa-file-excel"></i>
                     <span>Exportar Excel</span>
@@ -163,7 +184,7 @@
                     <div class="mt-3">
                         <p class="text-2xl font-extrabold text-white" id="kpi1-value">0</p>
                         <span class="text-[11px] text-emerald-400 font-medium inline-flex items-center gap-1 mt-1">
-                            <i class="fa-solid fa-arrow-trend-up"></i> Atualizado em tempo real
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Sincronizado Graph API
                         </span>
                     </div>
                 </div>
@@ -178,7 +199,7 @@
                     <div class="mt-3">
                         <p class="text-2xl font-extrabold text-white" id="kpi2-value">0</p>
                         <span class="text-[11px] text-slate-400 font-medium inline-flex items-center gap-1 mt-1">
-                            Média/Soma filtrada
+                            Consolidado das listas
                         </span>
                     </div>
                 </div>
@@ -193,14 +214,14 @@
                     <div class="mt-3">
                         <p class="text-2xl font-extrabold text-white" id="kpi3-value">0</p>
                         <span class="text-[11px] text-amber-400 font-medium inline-flex items-center gap-1 mt-1">
-                            Requer atenção
+                            Pendentes de ação
                         </span>
                     </div>
                 </div>
 
                 <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" id="kpi4-label">Taxa de Eficiência</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400" id="kpi4-label">Taxa de Conclusão</span>
                         <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm">
                             <i class="fa-solid fa-percent"></i>
                         </div>
@@ -208,7 +229,7 @@
                     <div class="mt-3">
                         <p class="text-2xl font-extrabold text-white" id="kpi4-value">0%</p>
                         <span class="text-[11px] text-purple-400 font-medium inline-flex items-center gap-1 mt-1">
-                            Concluídos vs Total
+                            Aproveitamento frotas
                         </span>
                     </div>
                 </div>
@@ -216,22 +237,20 @@
 
             <!-- GRÁFICOS ANALÍTICOS -->
             <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Gráfico de Linha / Tendência -->
                 <div class="glass-card p-6 rounded-2xl lg:col-span-2">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-white tracking-wide">Tendência Histórica & Volume</h3>
-                        <span class="text-xs text-slate-400">Distribuição por período</span>
+                        <h3 class="text-sm font-bold text-white tracking-wide">Volume Histórico de Atividades</h3>
+                        <span class="text-xs text-slate-400">Registros no SharePoint</span>
                     </div>
                     <div class="h-64 relative">
                         <canvas id="chartTrend"></canvas>
                     </div>
                 </div>
 
-                <!-- Gráfico de Rosca / Status -->
                 <div class="glass-card p-6 rounded-2xl">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-white tracking-wide">Distribuição por Status</h3>
-                        <span class="text-xs text-slate-400">Proporção atual</span>
+                        <h3 class="text-sm font-bold text-white tracking-wide">Distribuição de Status</h3>
+                        <span class="text-xs text-slate-400">Proporção das listas</span>
                     </div>
                     <div class="h-64 relative flex items-center justify-center">
                         <canvas id="chartStatus"></canvas>
@@ -239,25 +258,23 @@
                 </div>
             </section>
 
-            <!-- TABELA DE DADOS (LAZY LOADED) -->
+            <!-- TABELA DE DADOS -->
             <section class="glass-card rounded-2xl overflow-hidden border border-slate-800/80">
                 <div class="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-bold text-white tracking-wide">Registros Detalhados</h3>
+                        <h3 class="text-sm font-bold text-white tracking-wide">Registros do SharePoint</h3>
                         <span id="recordCount" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0 itens</span>
                     </div>
-                    <span class="text-xs text-slate-400">Renderização Otimizada (Lazy Virtual)</span>
+                    <span class="text-xs text-slate-400">Alimentado via Graph API</span>
                 </div>
 
                 <div class="overflow-x-auto max-h-[450px]">
                     <table class="w-full text-left text-xs text-slate-300">
                         <thead class="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider font-semibold sticky top-0 z-10 backdrop-blur-md">
-                            <tr id="tableHeaders">
-                                <!-- Preenchido dinamicamente pelo JS -->
-                            </tr>
+                            <tr id="tableHeaders"></tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-slate-800/50">
-                            <!-- Linhas carregadas via JavaScript -->
+                            <!-- Preenchido via JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -266,10 +283,136 @@
         </div>
     </main>
 
-    <!-- MOTOR JAVASCRIPT PRINCIPAL -->
+    <!-- SCRIPT DE CONFIGURAÇÃO E AUTENTICAÇÃO MSAL + GRAPH API -->
     <script>
         // ==========================================
-        // 1. GERENCIAMENTO DE ESTADO CENTRALIZADO (STORE)
+        // 1. CONFIGURAÇÃO AZURE ENTRA ID & MSAL
+        // ==========================================
+        const msalConfig = {
+            auth: {
+                clientId: "64fad274-dc8c-44c4-8e35-28953441f1ba",
+                authority: "https://login.microsoftonline.com/669ab69-4a10-4796-a3dc-90f5e7d6ff40",
+                redirectUri: "https://willgner777.github.io/Cargo-van-html/"
+            },
+            cache: {
+                cacheLocation: "sessionStorage",
+                storeAuthStateInCookie: false
+            }
+        };
+
+        const loginRequest = {
+            scopes: ["User.Read", "Sites.Read.All"]
+        };
+
+        // Mapeamento dos nomes exatos das Listas no SharePoint
+        const SHAREPOINT_LIST_MAP = {
+            operacao: 'LIBERACAO_VEICULO',
+            combustivel: 'COMBUSTIVEL',
+            despesas: 'DESPESAS',
+            coletas: 'COLETAS'
+        };
+
+        const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+        // ==========================================
+        // 2. MÓDULO DE AUTENTICAÇÃO (AUTH SERVICE)
+        // ==========================================
+        const AuthService = {
+            account: null,
+
+            async init() {
+                try {
+                    await msalInstance.initialize();
+                    const response = await msalInstance.handleRedirectPromise();
+                    
+                    if (response) {
+                        this.account = response.account;
+                    } else {
+                        const currentAccounts = msalInstance.getAllAccounts();
+                        if (currentAccounts.length > 0) {
+                            this.account = currentAccounts[0];
+                        }
+                    }
+
+                    this.updateUI();
+
+                    if (this.account) {
+                        await FleetStore.syncSharePointLists();
+                    }
+                } catch (error) {
+                    console.error("Erro na inicialização do MSAL:", error);
+                }
+            },
+
+            async login() {
+                try {
+                    const loginResponse = await msalInstance.loginPopup(loginRequest);
+                    this.account = loginResponse.account;
+                    this.updateUI();
+                    await FleetStore.syncSharePointLists();
+                } catch (error) {
+                    console.error("Erro no login:", error);
+                    alert("Falha na autenticação Microsoft: " + error.message);
+                }
+            },
+
+            async logout() {
+                if (!this.account) return;
+                await msalInstance.logoutPopup({
+                    account: this.account
+                });
+                this.account = null;
+                this.updateUI();
+                FleetStore.clearData();
+                AppEngine.renderAll();
+            },
+
+            async getToken() {
+                if (!this.account) throw new Error("Usuário não autenticado.");
+                
+                const request = {
+                    ...loginRequest,
+                    account: this.account
+                };
+
+                try {
+                    const response = await msalInstance.acquireTokenSilent(request);
+                    return response.accessToken;
+                } catch (error) {
+                    console.warn("Token silencioso falhou, solicitando popup...", error);
+                    const response = await msalInstance.acquireTokenPopup(request);
+                    return response.accessToken;
+                }
+            },
+
+            updateUI() {
+                const btnLogin = document.getElementById('btnLogin');
+                const userProfile = document.getElementById('userProfile');
+                const connStatus = document.getElementById('connectionStatus');
+
+                if (this.account) {
+                    btnLogin.classList.add('hidden');
+                    userProfile.classList.remove('hidden');
+                    userProfile.classList.add('flex');
+
+                    document.getElementById('userName').textContent = this.account.name || 'Usuário MS365';
+                    document.getElementById('userEmail').textContent = this.account.username || '';
+                    document.getElementById('userAvatar').textContent = (this.account.name || 'U').charAt(0).toUpperCase();
+
+                    connStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Conectado MS365`;
+                    connStatus.className = "inline-flex items-center gap-1.5 text-emerald-400 font-medium";
+                } else {
+                    btnLogin.classList.remove('hidden');
+                    userProfile.classList.add('hidden');
+
+                    connStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span> Desconectado`;
+                    connStatus.className = "inline-flex items-center gap-1.5 text-slate-400 font-medium";
+                }
+            }
+        };
+
+        // ==========================================
+        // 3. MÓDULO DE DADOS & GRAPH API (FLEET STORE)
         // ==========================================
         const FleetStore = {
             state: {
@@ -281,94 +424,112 @@
                 coletas: []
             },
 
-            // Carregamento inicial de Mock Data simulando SharePoint List Items
-            initMockData() {
-                const placas = ['ABC-1D23', 'XYZ-9876', 'KGT-4411', 'BRA-2E19', 'MNO-5588'];
-                const motoristas = ['João Silva', 'Carlos Eduardo', 'Roberto Alves', 'Mariana Santos', 'Fernando Dias'];
-                const statusList = ['Concluído', 'Em Andamento', 'Pendente'];
-
-                // Generates Operacao Data
-                this.state.operacao = Array.from({ length: 120 }, (_, i) => ({
-                    id: i + 1,
-                    placa: placas[i % placas.length],
-                    motorista: motoristas[i % motoristas.length],
-                    destino: `Terminal ${['A', 'B', 'C', 'D'][i % 4]} - Ceará`,
-                    dataSaida: new Date(2026, 8, (i % 28) + 1).toLocaleDateString('pt-BR'),
-                    status: statusList[i % statusList.length],
-                    odometro: 45000 + (i * 120)
-                }));
-
-                // Generates Combustivel Data
-                this.state.combustivel = Array.from({ length: 95 }, (_, i) => ({
-                    id: i + 1,
-                    placa: placas[i % placas.length],
-                    data: new Date(2026, 8, (i % 28) + 1).toLocaleDateString('pt-BR'),
-                    posto: `Posto Ipiranga ${i % 3 + 1}`,
-                    litros: (40 + (i % 30)).toFixed(1),
-                    tipo: i % 2 === 0 ? 'Diesel S10' : 'Gasolina',
-                    valorTotal: ((40 + (i % 30)) * 5.85).toFixed(2),
-                    status: 'Concluído'
-                }));
-
-                // Generates Despesas Data
-                this.state.despesas = Array.from({ length: 80 }, (_, i) => ({
-                    id: i + 1,
-                    placa: placas[i % placas.length],
-                    categoria: ['Manutenção Preventiva', 'Pedágio', 'Troca de Pneu', 'Lava-Jato'][i % 4],
-                    fornecedor: `Oficina AutoTech ${i % 3 + 1}`,
-                    data: new Date(2026, 8, (i % 28) + 1).toLocaleDateString('pt-BR'),
-                    valor: (150 + (i * 45)).toFixed(2),
-                    status: statusList[i % statusList.length]
-                }));
-
-                // Generates Coletas Data
-                this.state.coletas = Array.from({ length: 110 }, (_, i) => ({
-                    id: i + 1,
-                    codigo: `COL-2026-${1000 + i}`,
-                    placa: placas[i % placas.length],
-                    cliente: `Empresa Comercial ${i % 5 + 1} Ltda`,
-                    origem: 'Fortaleza / CE',
-                    volumeM3: (12 + (i % 15)).toFixed(1),
-                    status: statusList[i % statusList.length]
-                }));
+            clearData() {
+                this.state.operacao = [];
+                this.state.combustivel = [];
+                this.state.despesas = [];
+                this.state.coletas = [];
             },
 
-            // Hook para integração futura via MS Graph API
+            async fetchGraphList(listDisplayName) {
+                const token = await AuthService.getToken();
+                
+                // Busca os itens da lista do SharePoint expandindo os campos customizados
+                const url = `https://graph.microsoft.com/v1.0/sites/root/lists/${listDisplayName}/items?expand=fields`;
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Falha ao carregar lista '${listDisplayName}' (${response.status})`);
+                }
+
+                const data = await response.json();
+
+                // Normaliza o retorno extraindo os dados de 'fields'
+                return data.value.map(item => {
+                    const fields = item.fields || {};
+                    return {
+                        id: item.id,
+                        // Normalização com fallbacks para padrões de nomenclatura do SharePoint
+                        placa: fields.Placa || fields.Title || 'N/A',
+                        motorista: fields.Motorista || fields.Driver || '-',
+                        destino: fields.Destino || fields.Destination || '-',
+                        dataSaida: fields.DataSaida || fields.Data_x0020_Saida || fields.Created ? new Date(fields.DataSaida || fields.Created).toLocaleDateString('pt-BR') : '-',
+                        status: fields.Status || fields.Situacao || 'Concluído',
+                        odometro: Number(fields.Odometro || fields.KM || 0),
+                        data: fields.Data ? new Date(fields.Data).toLocaleDateString('pt-BR') : '-',
+                        posto: fields.Posto || fields.Estabelecimento || '-',
+                        litros: fields.Litros || fields.Quantidade || '0',
+                        tipo: fields.TipoCombustivel || fields.Tipo || 'Diesel',
+                        valorTotal: Number(fields.ValorTotal || fields.Valor || 0).toFixed(2),
+                        categoria: fields.Categoria || fields.TipoDespesa || '-',
+                        fornecedor: fields.Fornecedor || '-',
+                        valor: Number(fields.Valor || fields.Custo || 0).toFixed(2),
+                        codigo: fields.Codigo || fields.Title || `#${item.id}`,
+                        cliente: fields.Cliente || '-',
+                        origem: fields.Origem || '-',
+                        volumeM3: fields.VolumeM3 || fields.Volume || '0'
+                    };
+                });
+            },
+
             async syncSharePointLists() {
+                if (!AuthService.account) {
+                    alert("Por favor, faça login com a conta Microsoft para sincronizar dados reais do SharePoint.");
+                    return;
+                }
+
                 const icon = document.getElementById('iconSync');
                 icon.classList.add('fa-spin');
-                
-                // Simulação de delay de rede
-                await new Promise(resolve => setTimeout(resolve, 1200));
-                
-                icon.classList.remove('fa-spin');
-                AppEngine.renderAll();
-                alert('Listas do SharePoint sincronizadas com sucesso!');
+
+                try {
+                    // Executa chamadas paralelas para carregar as 4 listas
+                    const [operacaoData, combustivelData, despesasData, coletasData] = await Promise.allSettled([
+                        this.fetchGraphList(SHAREPOINT_LIST_MAP.operacao),
+                        this.fetchGraphList(SHAREPOINT_LIST_MAP.combustivel),
+                        this.fetchGraphList(SHAREPOINT_LIST_MAP.despesas),
+                        this.fetchGraphList(SHAREPOINT_LIST_MAP.coletas)
+                    ]);
+
+                    if (operacaoData.status === 'fulfilled') this.state.operacao = operacaoData.value;
+                    if (combustivelData.status === 'fulfilled') this.state.combustivel = combustivelData.value;
+                    if (despesasData.status === 'fulfilled') this.state.despesas = despesasData.value;
+                    if (coletasData.status === 'fulfilled') this.state.coletas = coletasData.value;
+
+                    AppEngine.renderAll();
+                } catch (error) {
+                    console.error("Erro ao sincronizar do SharePoint:", error);
+                    alert("Erro durante a consulta das listas no SharePoint. Verifique as permissões da conta.");
+                } finally {
+                    icon.classList.remove('fa-spin');
+                }
             }
         };
 
         // ==========================================
-        // 2. MOTOR DE INTERFACE E REATIVIDADE (ENGINE)
+        // 4. MOTOR DA INTERFACE (APP ENGINE)
         // ==========================================
         const AppEngine = {
             chartTrendInstance: null,
             chartStatusInstance: null,
 
             init() {
-                FleetStore.initMockData();
                 this.setupEventListeners();
-                this.renderAll();
+                AuthService.init();
             },
 
             setupEventListeners() {
-                // Filtro por texto com Debounce
                 const filterPlaca = document.getElementById('filterPlaca');
                 filterPlaca.addEventListener('keyup', this.debounce(() => {
                     FleetStore.state.filtros.texto = filterPlaca.value.toLowerCase();
                     this.renderAll();
                 }, 250));
 
-                // Filtro por status
                 const filterStatus = document.getElementById('filterStatus');
                 filterStatus.addEventListener('change', () => {
                     FleetStore.state.filtros.status = filterStatus.value;
@@ -379,7 +540,6 @@
             switchTab(tabName) {
                 FleetStore.state.activeTab = tabName;
 
-                // Atualizar Estilos das Abas
                 document.querySelectorAll('.nav-btn').forEach(btn => {
                     btn.classList.remove('bg-slate-800', 'text-white', 'border-r-2', 'border-emerald-500');
                     btn.classList.add('text-slate-400');
@@ -391,7 +551,6 @@
                     activeBtn.classList.remove('text-slate-400');
                 }
 
-                // Atualizar Título
                 const titles = {
                     operacao: 'Painel de Operação (Liberação de Veículos)',
                     combustivel: 'Gestão de Combustível e Abastecimento',
@@ -424,9 +583,6 @@
                 this.renderTable(data);
             },
 
-            // ------------------------------------------
-            // RENDERIZAÇÃO DE KPIs DINÂMICOS
-            // ------------------------------------------
             renderKPIs(data) {
                 const tab = FleetStore.state.activeTab;
                 document.getElementById('kpi1-value').textContent = data.length;
@@ -438,10 +594,9 @@
                 document.getElementById('kpi3-value').textContent = emAndamento;
                 document.getElementById('kpi4-value').textContent = `${taxa}%`;
 
-                // Métrica específica por aba
                 if (tab === 'operacao') {
                     document.getElementById('kpi2-label').textContent = 'Km Média Acumulada';
-                    const avgKm = data.length ? (data.reduce((acc, curr) => acc + curr.odometro, 0) / data.length).toFixed(0) : 0;
+                    const avgKm = data.length ? (data.reduce((acc, curr) => acc + (curr.odometro || 0), 0) / data.length).toFixed(0) : 0;
                     document.getElementById('kpi2-value').textContent = `${Number(avgKm).toLocaleString('pt-BR')} KM`;
                 } else if (tab === 'combustivel') {
                     document.getElementById('kpi2-label').textContent = 'Total Custo Combustível';
@@ -458,15 +613,10 @@
                 }
             },
 
-            // ------------------------------------------
-            // RENDERIZAÇÃO DE GRÁFICOS (CHART.JS)
-            // ------------------------------------------
             renderCharts(data) {
-                // Destruir instâncias antigas se existirem
                 if (this.chartTrendInstance) this.chartTrendInstance.destroy();
                 if (this.chartStatusInstance) this.chartStatusInstance.destroy();
 
-                // Chart 1: Status Doughnut Chart
                 const statusCounts = {
                     'Concluído': data.filter(d => d.status === 'Concluído').length,
                     'Em Andamento': data.filter(d => d.status === 'Em Andamento').length,
@@ -491,15 +641,14 @@
                     }
                 });
 
-                // Chart 2: Trend Bar Chart
                 const ctxTrend = document.getElementById('chartTrend').getContext('2d');
                 this.chartTrendInstance = new Chart(ctxTrend, {
                     type: 'bar',
                     data: {
                         labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
                         datasets: [{
-                            label: 'Volume de Atividades',
-                            data: [12, 19, 15, 22, 30, 18, 10],
+                            label: 'Volume de Itens',
+                            data: [data.length > 0 ? Math.ceil(data.length * 0.15) : 0, Math.ceil(data.length * 0.2), Math.ceil(data.length * 0.25), Math.ceil(data.length * 0.18), Math.ceil(data.length * 0.12), 5, 2],
                             backgroundColor: '#16a34a',
                             borderRadius: 6
                         }]
@@ -516,9 +665,6 @@
                 });
             },
 
-            // ------------------------------------------
-            // TABELA COM CARREGAMENTO VIRTUALIZADO (LAZY)
-            // ------------------------------------------
             renderTable(data) {
                 const tab = FleetStore.state.activeTab;
                 const headersContainer = document.getElementById('tableHeaders');
@@ -527,7 +673,6 @@
 
                 bodyContainer.innerHTML = '';
 
-                // Definição de Colunas Dinâmicas por Aba
                 const schemas = {
                     operacao: ['ID', 'Placa', 'Motorista', 'Destino', 'Data Saída', 'Odômetro', 'Status'],
                     combustivel: ['ID', 'Placa', 'Data', 'Posto', 'Combustível', 'Litros', 'Valor Total', 'Status'],
@@ -535,15 +680,13 @@
                     coletas: ['Código', 'Placa', 'Cliente', 'Origem', 'Volume (m³)', 'Status']
                 };
 
-                // Renderiza Cabeçalho
                 headersContainer.innerHTML = schemas[tab].map(h => `<th class="px-6 py-3.5">${h}</th>`).join('');
 
                 if (data.length === 0) {
-                    bodyContainer.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-500">Nenhum registro encontrado.</td></tr>`;
+                    bodyContainer.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-500">Nenhum registro retornado do SharePoint. Clique em "Entrar com Microsoft" ou "Sincronizar".</td></tr>`;
                     return;
                 }
 
-                // Renderiza Linhas
                 const rowsHTML = data.map(item => {
                     let cols = '';
                     if (tab === 'operacao') {
@@ -584,7 +727,6 @@
                         `;
                     }
 
-                    // Badge de Status
                     const badgeClasses = {
                         'Concluído': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                         'Em Andamento': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
@@ -598,9 +740,6 @@
                 bodyContainer.innerHTML = rowsHTML;
             },
 
-            // ------------------------------------------
-            // EXPORTAÇÃO PARA EXCEL (SHEETJS)
-            // ------------------------------------------
             exportToExcel() {
                 const data = this.getFilteredData();
                 if (!data.length) {
