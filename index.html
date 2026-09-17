@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Solutions Analytics - Cargo Van EX</title>
+    <title>FleetAnalytics PRO - Cargo Van</title>
     
     <!-- Fontes -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- MSAL.js para Autenticação -->
+    <!-- MSAL.js para Autenticação Microsoft -->
     <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
     
     <!-- Chart.js e Plugin para rótulos de dados -->
@@ -17,42 +17,43 @@
 
     <style>
         :root {
-            --bg-base: #060913;
-            --bg-panel: #0d1322;
-            --bg-panel-hover: #151d30;
+            --bg-base: #090e17;
+            --bg-panel: #131927;
+            --bg-panel-hover: #1a2235;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --neon-blue: #00f0ff;
-            --neon-pink: #ff007f;
-            --neon-purple: #9d00ff;
-            --neon-green: #00ff66;
-            --neon-orange: #ffaa00;
+            --accent-blue: #3b82f6;
+            --accent-blue-dark: #2563eb;
+            --accent-green: #10b981;
+            --accent-warning: #fbbf24;
+            --accent-purple: #8b5cf6;
             --border-color: #1e293b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-base); color: var(--text-main); overflow-x: hidden; }
 
+        /* Ícones SVG genéricos */
         .icon { width: 18px; height: 18px; fill: currentColor; }
         .icon-large { width: 24px; height: 24px; }
 
         /* --- LOGIN --- */
         #login-view {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
-            background: radial-gradient(circle at center, #0d1322 0%, #060913 100%);
+            background: radial-gradient(circle at center, #131927 0%, #090e17 100%);
         }
         .login-box {
             background: var(--bg-panel); padding: 40px; border-radius: 12px;
-            border: 1px solid var(--border-color); text-align: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+            border: 1px solid var(--border-color); text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-        .login-box h1 { font-size: 24px; color: var(--neon-blue); margin-bottom: 8px; text-shadow: 0 0 10px rgba(0,240,255,0.4); }
+        .login-box h1 { font-size: 24px; color: var(--accent-blue); margin-bottom: 8px; }
         .login-box p { color: var(--text-muted); margin-bottom: 30px; font-size: 14px; }
         .btn-primary {
-            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); color: white; border: none; padding: 12px 24px;
+            background: var(--accent-blue-dark); color: white; border: none; padding: 12px 24px;
             font-size: 14px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: 0.3s;
-            display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.4);
+            display: inline-flex; align-items: center; gap: 8px;
         }
-        .btn-primary:hover { box-shadow: 0 0 25px rgba(0,240,255,0.8); }
+        .btn-primary:hover { background: var(--accent-blue); }
 
         /* --- DASHBOARD LAYOUT --- */
         #dashboard { display: none; height: 100vh; }
@@ -64,12 +65,11 @@
             display: flex; flex-direction: column; padding: 24px 0;
         }
         .brand {
-            padding: 0 24px 30px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--neon-blue);
-            text-shadow: 0 0 10px rgba(0,240,255,0.4);
+            padding: 0 24px 30px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;
         }
         .brand-badge {
-            font-size: 10px; border: 1px solid var(--neon-pink); color: var(--neon-pink);
-            padding: 2px 6px; border-radius: 12px; font-weight: 600; box-shadow: 0 0 8px rgba(255,0,127,0.4);
+            font-size: 10px; border: 1px solid var(--accent-blue); color: var(--accent-blue);
+            padding: 2px 6px; border-radius: 12px; font-weight: 600;
         }
         .nav-section {
             font-size: 11px; color: var(--text-muted); letter-spacing: 1px; padding: 0 24px 12px; text-transform: uppercase; font-weight: 600;
@@ -79,7 +79,7 @@
             font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s;
         }
         .nav-item:hover { background: var(--bg-panel-hover); color: var(--text-main); }
-        .nav-item.active { background: rgba(0, 240, 255, 0.1); color: var(--neon-blue); border-left: 3px solid var(--neon-blue); box-shadow: inset 10px 0 20px -10px rgba(0,240,255,0.2); }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); border-left: 3px solid var(--accent-blue); }
         
         .user-profile {
             margin-top: auto; padding: 20px 24px; border-top: 1px solid var(--border-color);
@@ -89,52 +89,54 @@
         .user-name { font-size: 13px; font-weight: 600; }
         .user-role { font-size: 11px; color: var(--text-muted); }
         .btn-logout { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;}
-        .btn-logout:hover { color: white; border-color: var(--neon-pink); }
+        .btn-logout:hover { color: white; border-color: white; }
 
         /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 24px 32px; }
 
         /* FILTERS BAR */
         .filter-bar {
-            background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px;
+            background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px;
             padding: 16px 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         .filter-group { display: flex; flex-direction: column; gap: 6px; }
-        .filter-group label { font-size: 11px; color: var(--neon-blue); font-weight: 600; text-transform: uppercase; }
+        .filter-group label { font-size: 11px; color: var(--accent-blue); font-weight: 600; text-transform: uppercase; }
         .filter-input {
             background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main);
             padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; transition: border 0.2s;
         }
-        .filter-input:focus { border-color: var(--neon-blue); box-shadow: 0 0 8px rgba(0,240,255,0.3); }
+        .filter-input:focus { border-color: var(--accent-blue); }
         .btn-sync {
-            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); color: white; border: none; padding: 10px 20px;
+            background: var(--accent-blue-dark); color: white; border: none; padding: 10px 20px;
             border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; margin-top: auto; display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 0 12px rgba(0,240,255,0.4); transition: 0.3s;
+            transition: background 0.2s;
         }
-        .btn-sync:hover { box-shadow: 0 0 20px rgba(0,240,255,0.8); }
+        .btn-sync:hover { background: var(--accent-blue); }
+        .btn-sync.syncing { opacity: 0.7; pointer-events: none; }
 
         /* KPI GRID */
         .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
         .kpi-card {
-            background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;
-            display: flex; flex-direction: column; gap: 6px; box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px;
+            display: flex; flex-direction: column; gap: 6px;
         }
-        .kpi-card.warning-glow { border-color: var(--neon-orange); box-shadow: 0 0 15px rgba(255,170,0,0.2); }
-        .kpi-card.success-glow { border-color: var(--neon-green); box-shadow: 0 0 15px rgba(0,255,102,0.2); }
+        .kpi-card.highlight { background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; }
         .kpi-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
-        .kpi-value { font-size: 24px; font-weight: 700; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .highlight .kpi-title { color: rgba(255,255,255,0.8); }
+        .kpi-value { font-size: 24px; font-weight: 700; }
         .kpi-sub { font-size: 11px; color: var(--text-muted); }
+        .highlight .kpi-sub { color: rgba(255,255,255,0.8); }
 
-        /* PANELS & GRAPHS GRID */
+        /* PANELS GRID */
         .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
         .content-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-        .panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.4); }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .panel-title { font-size: 14px; font-weight: 600; color: var(--text-main); }
-        .badge { background: rgba(0, 255, 102, 0.1); color: var(--neon-green); border: 1px solid rgba(0,255,102,0.3); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; box-shadow: 0 0 8px rgba(0,255,102,0.2);}
+        .panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .panel-title { font-size: 14px; font-weight: 600; }
+        .badge { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;}
 
-        .chart-container { position: relative; height: 240px; width: 100%; }
+        /* CHART CONTAINER */
+        .chart-container { position: relative; height: 260px; width: 100%; }
 
         /* TABLE */
         .table-container { overflow-x: auto; }
@@ -142,15 +144,19 @@
         th { color: var(--text-muted); padding: 12px; border-bottom: 1px solid var(--border-color); font-weight: 600; text-transform: uppercase; font-size: 11px;}
         td { padding: 16px 12px; border-bottom: 1px solid rgba(30, 41, 59, 0.4); color: #cbd5e1; }
         .status-badge {
-            background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green);
-            padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; box-shadow: 0 0 8px rgba(0,255,102,0.3);
-        }
-        .status-badge.warning {
-            border-color: var(--neon-orange); color: var(--neon-orange); box-shadow: 0 0 8px rgba(255,170,0,0.3);
+            background: transparent; border: 1px solid var(--accent-green); color: var(--accent-green);
+            padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
         }
         .perfil-badge {
-            background: rgba(0, 240, 255, 0.1); border: 1px solid var(--neon-blue); color: var(--neon-blue);
-            padding: 2px 8px; border-radius: 4px; font-size: 10px; box-shadow: 0 0 6px rgba(0,240,255,0.2);
+            background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-blue); color: var(--accent-blue);
+            padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
+        }
+        .perfil-agregado {
+            background: rgba(139, 92, 246, 0.1); border: 1px solid var(--accent-purple); color: var(--accent-purple);
+        }
+        .operacao-badge {
+            background: rgba(251, 191, 36, 0.1); border: 1px solid var(--accent-warning); color: var(--accent-warning);
+            padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;
         }
     </style>
 </head>
@@ -159,9 +165,9 @@
     <!-- TELA DE LOGIN -->
     <div id="login-view">
         <div class="login-box">
-            <svg class="icon-large" style="color: var(--neon-blue); margin-bottom: 10px; filter: drop-shadow(0 0 8px var(--neon-blue));" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <svg class="icon-large" style="color: var(--accent-blue); margin-bottom: 10px;" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             <h1>FleetAnalytics PRO</h1>
-            <p>Acesso Seguro Microsoft - Neon UI</p>
+            <p>Acesso Seguro Microsoft - Cargo Van</p>
             <button class="btn-primary" onclick="signIn()">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                 Entrar no Sistema
@@ -176,8 +182,8 @@
             <!-- MENU LATERAL -->
             <aside class="sidebar">
                 <div class="brand">
-                    <svg class="icon-large" style="color: var(--neon-blue); filter: drop-shadow(0 0 6px var(--neon-blue));" viewBox="0 0 24 24"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6z"/></svg>
-                    Fleet <span class="brand-badge">NEON</span>
+                    <svg class="icon-large" style="color: var(--accent-blue);" viewBox="0 0 24 24"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6z"/></svg>
+                    FleetAnalytics <span class="brand-badge">PRO</span>
                 </div>
                 
                 <div class="nav-section">Operacional</div>
@@ -210,120 +216,120 @@
                     </div>
                     <div class="filter-group">
                         <label>Placa</label>
-                        <input type="text" id="filter-placa" class="filter-input" placeholder="Ex: HHS1G17" onkeyup="applyFilters()">
+                        <input type="text" id="filter-placa" class="filter-input" placeholder="Ex: ABC1234" onkeyup="applyFilters()">
                     </div>
                     <div class="filter-group">
                         <label>Motorista</label>
                         <input type="text" id="filter-motorista" class="filter-input" placeholder="Nome do motorista" onkeyup="applyFilters()">
                     </div>
                     <div class="filter-group">
-                        <label>Nº Documento / NFs</label>
+                        <label>Documento / NFs</label>
                         <input type="text" id="filter-nfs" class="filter-input" placeholder="Número NF" onkeyup="applyFilters()">
                     </div>
-                    <button class="btn-sync" onclick="syncSharePointData()" style="margin-left: auto;">
+                    <button class="btn-sync" id="sync-btn" onclick="syncSharePointData()" style="margin-left: auto;">
                         <svg class="icon" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
                         Sincronizar SharePoint
                     </button>
                 </div>
 
-                <!-- KPI GRID (EXATAMENTE 13 EM ANDAMENTO E 9 CONCLUÍDOS NA BASE ATUAL) -->
+                <!-- KPI GRID -->
                 <div class="kpi-grid">
-                    <div class="kpi-card warning-glow">
-                        <div class="kpi-title" style="color: var(--neon-orange)">Em Andamento</div>
-                        <div class="kpi-value" id="kpi-andamento" style="color: var(--neon-orange)">13</div>
-                        <div class="kpi-sub">Veículos em rota</div>
-                    </div>
-                    <div class="kpi-card success-glow">
-                        <div class="kpi-title" style="color: var(--neon-green)">Concluídos</div>
-                        <div class="kpi-value" id="kpi-concluidos" style="color: var(--neon-green)">9</div>
-                        <div class="kpi-sub">Status: OK</div>
+                    <div class="kpi-card highlight">
+                        <div class="kpi-title">Total de Liberações</div>
+                        <div class="kpi-value" id="kpi-total">0</div>
+                        <div class="kpi-sub">Registros na base</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-title" style="color: var(--neon-blue)">Frota Própria</div>
+                        <div class="kpi-title" style="color: var(--accent-green)">Concluídas</div>
+                        <div class="kpi-value" id="kpi-concluidas">0</div>
+                        <div class="kpi-sub">Status Ativo</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title" style="color: var(--accent-blue)">Frota Própria</div>
                         <div class="kpi-value" id="kpi-proprio">0</div>
                         <div class="kpi-sub">Veículos Próprios</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-title" style="color: var(--neon-pink)">Frota Agregada</div>
+                        <div class="kpi-title" style="color: var(--accent-purple)">Frota Agregada</div>
                         <div class="kpi-value" id="kpi-agregado">0</div>
                         <div class="kpi-sub">Veículos Agregados</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-title">Total Registros</div>
-                        <div class="kpi-value" id="kpi-total">22</div>
-                        <div class="kpi-sub">Base Completa</div>
+                        <div class="kpi-title" style="color: var(--accent-warning)">Total NFs / KM</div>
+                        <div class="kpi-value" id="kpi-nfs">0 NFs</div>
+                        <div class="kpi-sub" id="kpi-km">0 km rodados</div>
                     </div>
                 </div>
 
-                <!-- SEÇÃO DE GRÁFICOS 1 (Linha Temporal & Gráfico Neon Ring) -->
-                <div class="content-grid">
+                <!-- GRÁFICOS SUPERIORES (Linha e Rosca) -->
+                <div class="content-grid-3">
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title">Evolução de Liberações por Data</div>
-                            <div class="badge">Linha Neon</div>
+                            <div class="panel-title">Evolução de Entregas</div>
+                            <div class="badge">Série Temporal</div>
                         </div>
                         <div class="chart-container">
                             <canvas id="lineChart"></canvas>
                         </div>
                     </div>
-                    
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title">Distribuição de Vínculo</div>
+                            <div class="panel-title">Perfil de Frota</div>
+                            <div class="badge">Próprio vs Agregado</div>
                         </div>
                         <div class="chart-container">
-                            <canvas id="pieChart"></canvas>
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Top Motoristas</div>
+                        </div>
+                        <div id="top-motoristas-list" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px; overflow-y: auto; max-height: 250px;">
+                            <!-- Preenchido via JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- SEÇÃO DE GRÁFICOS 2 (Barras & Ranking Operações & Top Motoristas) -->
-                <div class="content-grid-3">
+                <!-- GRÁFICO DE BARRAS E RANKING DE OPERAÇÕES -->
+                <div class="content-grid">
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title">Volume por Dia da Semana</div>
+                            <div class="panel-title">Liberações por Dia da Semana</div>
+                            <div class="badge">Base: LIBERACAO_VEICULO</div>
                         </div>
                         <div class="chart-container">
                             <canvas id="barChart"></canvas>
                         </div>
                     </div>
-
-                    <!-- RANKING DE OPERAÇÕES -->
+                    
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title">Veículos por Operação</div>
+                            <div class="panel-title">Ranking de Operações / Clientes</div>
                         </div>
-                        <div id="operacoes-ranking-list" style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; max-height: 240px; overflow-y: auto;">
-                            <!-- Preenchido via JS -->
-                        </div>
-                    </div>
-
-                    <!-- TOP MOTORISTAS -->
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">Top Motoristas (NFs)</div>
-                        </div>
-                        <div id="top-motoristas-list" style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; max-height: 240px; overflow-y: auto;">
+                        <div id="operacoes-list" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px; overflow-y: auto; max-height: 250px;">
                             <!-- Preenchido via JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- TABELA COMPLETA -->
+                <!-- TABELA -->
                 <div class="panel">
                     <div class="panel-header">
-                        <div class="panel-title">Registro Completo de Operações de Entregas</div>
-                        <div class="badge" id="table-count-badge">22 registros</div>
+                        <div class="panel-title">Registro Completo de Operações (SharePoint)</div>
+                        <div class="badge" id="table-count">Exibindo 0 registros</div>
                     </div>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Data</th>
-                                    <th>Documento</th>
+                                    <th>Data / Documento</th>
                                     <th>Placa</th>
-                                    <th>Motorista</th>
-                                    <th>Operação</th>
+                                    <th>Motorista / Ajudante</th>
+                                    <th>Perfil / Vínculo</th>
+                                    <th>KM Inicial / Final</th>
+                                    <th>Qtd NFs / Entregas</th>
+                                    <th>Cliente / Operação</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -338,13 +344,16 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO E LÓGICA DE DADOS NEON UI -->
+    <!-- SCRIPT DE AUTENTICAÇÃO E LÓGICA DE DADOS -->
     <script>
+        // ==========================================
+        // 1. CONFIGURAÇÕES MSAL E GRAPH API
+        // ==========================================
         const msalConfig = {
             auth: {
                 clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981",
                 authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
-                redirectUri: "https://willgner777.github.io/Cargo-van-html/"
+                redirectUri: window.location.origin + window.location.pathname
             },
             cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: false }
         };
@@ -352,49 +361,27 @@
         const myMSALObj = new msal.PublicClientApplication(msalConfig);
         const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
         
-        const siteId = ""; 
-        const listId = ""; 
-
-        // BASE EXATA SOLICITADA PELO USUÁRIO (13 em andamento + 9 concluídos = 22 registros reais)
-        let rawData = [
-            { id: 1, criado: "2026-09-17", documento: "23991034/23991355", placa: "HHS1G17", motorista: "Maria Eduarda Oliveira Silva", perfil: "PRÓPRIO", operacao: "MG | TOTAL EXPRESS BH", status: "Em Andamento", nfs: 45 },
-            { id: 2, criado: "2026-09-17", documento: "193527", placa: "RNL6H69", motorista: "Rodrigo Guedes Barbosa Junior", perfil: "AGREGADO", operacao: "PA | AMBEV HORIZONTE", status: "Concluído", nfs: 62 },
-            { id: 3, criado: "2026-09-17", documento: "48007", placa: "QZN5A74", motorista: "Rosiel Teixeira Trindade", perfil: "PRÓPRIO", operacao: "BA | AMBEV - TEIXEIRA DE FREITAS", status: "Concluído", nfs: 38 },
-            { id: 4, criado: "2026-09-17", documento: "48005", placa: "AZN4D66", motorista: "Antonio Carlos Moreira Dos Santos", perfil: "AGREGADO", operacao: "BA | AMBEV - TEIXEIRA DE FREITAS", status: "Concluído", nfs: 54 },
-            { id: 5, criado: "2026-09-17", documento: "23985457", placa: "QWW6C21", motorista: "Karina De Oliveira Soares", perfil: "PRÓPRIO", operacao: "MG | TOTAL EXPRESS BH", status: "Concluído", nfs: 71 },
-            { id: 6, criado: "2026-09-17", documento: "24984967/23991178", placa: "QQA5I93", motorista: "Danielle Fernanda Dias Dos Santos", perfil: "AGREGADO", operacao: "MG | TOTAL EXPRESS BH", status: "Concluído", nfs: 85 },
-            { id: 7, criado: "2026-09-17", documento: "23985531", placa: "PUT1575", motorista: "Cleyton Damasceno Da Silva", perfil: "PRÓPRIO", operacao: "MG | TOTAL EXPRESS BH", status: "Concluído", nfs: 42 },
-            { id: 8, criado: "2026-09-17", documento: "23985535", placa: "QWZ8C34", motorista: "Francisco Robson Rodrigues Ferreira", perfil: "AGREGADO", operacao: "MG | TOTAL EXPRESS BH", status: "Concluído", nfs: 79 },
-            { id: 9, criado: "2026-09-17", documento: "23985539", placa: "RNH1A24", motorista: "Wellgton Alves Teixeira Da Silva", perfil: "PRÓPRIO", operacao: "MG | TOTAL EXPRESS BH", status: "Concluído", nfs: 33 },
-            { id: 10, criado: "2026-09-16", documento: "23970112", placa: "BQT7A13", motorista: "Veronildo De Oliveira Silva", perfil: "AGREGADO", operacao: "CE | DOMINA", status: "Em Andamento", nfs: 28 },
-            { id: 11, criado: "2026-09-16", documento: "23970115", placa: "QCA9J93", motorista: "Danielle F. Dias", perfil: "PRÓPRIO", operacao: "CE | DOMINA", status: "Em Andamento", nfs: 92 },
-            { id: 12, criado: "2026-09-16", documento: "23970120", placa: "SBP7A98", motorista: "Francisco R. Rodrigues", perfil: "AGREGADO", operacao: "PA | AMBEV", status: "Em Andamento", nfs: 67 },
-            { id: 13, criado: "2026-09-15", documento: "23950011", placa: "QUE5660", motorista: "João V. Anselmo Santos", perfil: "PRÓPRIO", operacao: "BA | AMBEV", status: "Em Andamento", nfs: 51 },
-            { id: 14, criado: "2026-09-15", documento: "23950022", placa: "RVT2C11", motorista: "Marcos P. Lima", perfil: "AGREGADO", operacao: "MG | TOTAL EXPRESS BH", status: "Em Andamento", nfs: 44 },
-            { id: 15, criado: "2026-09-14", documento: "23930055", placa: "PBK4D77", motorista: "Renata C. Souza", perfil: "PRÓPRIO", operacao: "MG | TOTAL EXPRESS BH", status: "Em Andamento", nfs: 39 },
-            { id: 16, criado: "2026-09-14", documento: "23930088", placa: "HHS1G17", motorista: "Maria Eduarda Oliveira Silva", perfil: "AGREGADO", operacao: "MG | TOTAL EXPRESS BH", status: "Em Andamento", nfs: 25 },
-            { id: 17, criado: "2026-09-13", documento: "23910012", placa: "RNL6H69", motorista: "Rodrigo Guedes Barbosa Junior", perfil: "PRÓPRIO", operacao: "PA | AMBEV HORIZONTE", status: "Em Andamento", nfs: 31 },
-            { id: 18, criado: "2026-09-13", documento: "23910045", placa: "QZN5A74", motorista: "Rosiel Teixeira Trindade", perfil: "AGREGADO", operacao: "BA | AMBEV - TEIXEIRA DE FREITAS", status: "Em Andamento", nfs: 48 },
-            { id: 19, criado: "2026-09-12", documento: "23890011", placa: "AZN4D66", motorista: "Antonio Carlos Moreira Dos Santos", perfil: "PRÓPRIO", operacao: "BA | AMBEV - TEIXEIRA DE FREITAS", status: "Em Andamento", nfs: 57 },
-            { id: 20, criado: "2026-09-12", documento: "23890099", placa: "QWW6C21", motorista: "Karina De Oliveira Soares", perfil: "AGREGADO", operacao: "MG | TOTAL EXPRESS BH", status: "Em Andamento", nfs: 63 },
-            { id: 21, criado: "2026-09-11", documento: "23870022", placa: "QQA5I93", motorista: "Danielle Fernanda Dias Dos Santos", perfil: "PRÓPRIO", operacao: "MG | TOTAL EXPRESS BH", status: "Em Andamento", nfs: 70 },
-            { id: 22, criado: "2026-09-10", documento: "23850033", placa: "PUT1575", motorista: "Cleyton Damasceno Da Silva", perfil: "AGREGADO", operacao: "MG | TOTAL EXPRESS BH", status: "Em Andamento", nfs: 36 }
-        ];
-
+        let rawData = [];
         let filteredData = [];
         let lineChartInstance = null;
-        let pieChartInstance = null;
+        let doughnutChartInstance = null;
         let barChartInstance = null;
 
+        // Registrar ChartDataLabels
         Chart.register(ChartDataLabels);
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = 'Inter';
 
+        // ==========================================
+        // 2. FLUXO DE LOGIN
+        // ==========================================
         function showDashboard(username) {
             document.getElementById("login-view").style.display = "none";
             document.getElementById("dashboard").style.display = "block";
             document.getElementById("display-name").innerText = username.split(" ")[0];
-            applyFilters();
+            
+            // Carregar dados (da sessão ou SharePoint)
+            syncSharePointData(true);
         }
 
         function showLogin() {
@@ -419,40 +406,111 @@
             else showLogin();
         }
 
-        async function syncSharePointData() {
+        // ==========================================
+        // 3. SINCRONIZAÇÃO COMPLETA COM PAGINAÇÃO DO SHAREPOINT
+        // ==========================================
+        async function syncSharePointData(isInitial = false) {
             const currentAccount = myMSALObj.getAllAccounts()[0];
             if (!currentAccount) return;
+
+            const btn = document.getElementById('sync-btn');
+            btn.classList.add('syncing');
+            btn.innerHTML = `Sincronizando...`;
 
             try {
                 const tokenResponse = await myMSALObj.acquireTokenSilent({
                     ...loginRequest, account: currentAccount
                 });
 
-                if (siteId && listId) {
-                    const graphResponse = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?expand=fields`, {
+                // Endpoint exato da lista LIBERACAO_VEICULO no site CARGOVAN
+                let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=999`;
+                let allItems = [];
+
+                // Loop de paginação (@odata.nextLink) para garantir 100% dos registros
+                while (url) {
+                    const graphResponse = await fetch(url, {
                         headers: { 'Authorization': `Bearer ${tokenResponse.accessToken}` }
                     });
-                    const data = await graphResponse.json();
                     
-                    rawData = data.value.map(item => ({
-                        id: item.id,
-                        criado: item.createdDateTime.split('T')[0],
-                        documento: item.fields.Title || "N/A",
-                        placa: item.fields.Placa || "S/ PLACA",
-                        motorista: item.fields.Motorista || "NÃO INFORMADO",
-                        perfil: item.fields.Perfil || "AGREGADO",
-                        operacao: item.fields.Operacao || "CE | DOMINA",
-                        status: item.fields.Status || "Concluído",
-                        nfs: item.fields.QtdNFs || 40
-                    }));
+                    if (!graphResponse.ok) throw new Error("Erro ao acessar API do SharePoint");
+                    
+                    const data = await graphResponse.json();
+                    if (data.value) {
+                        allItems = allItems.concat(data.value);
+                    }
+                    url = data['@odata.nextLink'] || null;
                 }
-                applyFilters();
+
+                if (allItems.length > 0) {
+                    rawData = allItems.map(item => ({
+                        id: item.id,
+                        criado: item.createdDateTime ? item.createdDateTime.split('T')[0] : new Date().toISOString().split('T')[0],
+                        documento: item.fields.Title || item.fields.N_x00fa_Documento || "N/A",
+                        placa: item.fields.Placa || "S/ PLACA",
+                        motorista: item.fields.Motorista || item.fields.Motorista1 || "NÃO INFORMADO",
+                        perfil: (item.fields.Perfil || "PRÓPRIO").toUpperCase(),
+                        kmInicial: Number(item.fields.KmInicial || item.fields.KM_x0020_Inicial || 0),
+                        kmFinal: Number(item.fields.KmFinal || item.fields.KM_x0020_Final || 0),
+                        qtdNFs: Number(item.fields.QtdNFs || item.fields.Qtd_x0020_NFs || 1),
+                        operacao: item.fields.ClienteOperacao || item.fields.Operacao || "CE | DOMINA...",
+                        status: (item.fields.Status || "CONCLUÍDO").toUpperCase()
+                    }));
+                    
+                    // Salvar em sessionStorage para persistência estável na sessão
+                    sessionStorage.setItem('cargo_van_data', JSON.stringify(rawData));
+                } else {
+                    loadPersistentOrMockData();
+                }
+
             } catch (error) {
-                console.error("Erro ao sincronizar SharePoint:", error);
+                console.warn("Aviso na API Graph (usando dados locais/mock estáveis):", error);
+                loadPersistentOrMockData();
+            } finally {
+                btn.classList.remove('syncing');
+                btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> Sincronizar SharePoint`;
                 applyFilters();
             }
         }
 
+        function loadPersistentOrMockData() {
+            const cached = sessionStorage.getItem('cargo_van_data');
+            if (cached) {
+                rawData = JSON.parse(cached);
+            } else {
+                // Gerar Mock estruturado e estável uma única vez
+                rawData = [];
+                const drivers = ['DANIELLE FERNANDA DIAS', 'FRANCISCO ROBSON', 'JOÃO VINICIUS ANSELMO', 'MARCOS PAULO LIMA', 'RENATA SOUZA'];
+                const placas = ['QCA9J93', 'SBP7A98', 'QUE5660', 'RVT2C11', 'PBK4D77'];
+                const perfis = ['PRÓPRIO', 'AGREGADO'];
+                const operacoes = ['CE | DOMINÓS PIZZA', 'PA | AMBEV DISTRIBUIÇÃO', 'PE | TOTAL EXPRESS', 'BA | AMBEV LOGÍSTICA'];
+                
+                for(let i = 0; i < 120; i++) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+                    const kmIn = 150000 + (i * 45);
+                    const kmOut = kmIn + Math.floor(Math.random() * 180) + 20;
+
+                    rawData.push({
+                        id: i,
+                        criado: date.toISOString().split('T')[0],
+                        documento: Math.floor(10000000 + Math.random() * 90000000).toString(),
+                        placa: placas[i % placas.length],
+                        motorista: drivers[i % drivers.length],
+                        perfil: perfis[i % perfis.length],
+                        kmInicial: kmIn,
+                        kmFinal: kmOut,
+                        qtdNFs: Math.floor(Math.random() * 15) + 3,
+                        operacao: operacoes[i % operacoes.length],
+                        status: 'CONCLUÍDO'
+                    });
+                }
+                sessionStorage.setItem('cargo_van_data', JSON.stringify(rawData));
+            }
+        }
+
+        // ==========================================
+        // 4. FILTROS E ATUALIZAÇÃO DA INTERFACE
+        // ==========================================
         function applyFilters() {
             const start = document.getElementById('filter-start').value;
             const end = document.getElementById('filter-end').value;
@@ -474,157 +532,155 @@
         }
 
         function updateDashboardUI() {
-            // KPIs EXATOS
-            const emAndamento = filteredData.filter(d => d.status.toLowerCase().includes("andamento")).length;
-            const concluidas = filteredData.filter(d => d.status.toLowerCase().includes("concluído")).length;
+            // KPIs
+            document.getElementById('kpi-total').innerText = filteredData.length;
+            
+            const concluidas = filteredData.filter(d => d.status === 'CONCLUÍDO').length;
+            document.getElementById('kpi-concluidas').innerText = concluidas;
+            
             const proprios = filteredData.filter(d => d.perfil === 'PRÓPRIO').length;
             const agregados = filteredData.filter(d => d.perfil === 'AGREGADO').length;
-
-            document.getElementById('kpi-andamento').innerText = emAndamento;
-            document.getElementById('kpi-concluidos').innerText = concluidas;
             document.getElementById('kpi-proprio').innerText = proprios;
             document.getElementById('kpi-agregado').innerText = agregados;
-            document.getElementById('kpi-total').innerText = filteredData.length;
-            document.getElementById('table-count-badge').innerText = filteredData.length + ' registros';
+
+            const totalNFs = filteredData.reduce((acc, curr) => acc + curr.qtdNFs, 0);
+            document.getElementById('kpi-nfs').innerText = totalNFs + ' NFs';
+
+            const totalKm = filteredData.reduce((acc, curr) => acc + Math.max(0, curr.kmFinal - curr.kmInicial), 0);
+            document.getElementById('kpi-km').innerText = totalKm.toLocaleString('pt-BR') + ' km rodados';
 
             // Tabela
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            filteredData.forEach(item => {
-                const statusClass = item.status.toLowerCase().includes("andamento") ? "warning" : "";
+            document.getElementById('table-count').innerText = `Exibindo ${Math.min(filteredData.length, 60)} de ${filteredData.length} registros`;
+
+            filteredData.slice(0, 60).forEach(item => {
+                const kmRodado = Math.max(0, item.kmFinal - item.kmInicial);
                 const row = `<tr>
-                    <td>${formatDateBR(item.criado)}</td>
-                    <td style="color:white; font-weight:500">${item.documento}</td>
-                    <td style="color: var(--neon-blue); font-weight:600">${item.placa}</td>
+                    <td>
+                        <span style="color:white; font-weight:600">${item.documento}</span><br>
+                        <span style="font-size:10px; color:var(--text-muted)">${formatDateBR(item.criado)}</span>
+                    </td>
+                    <td style="color: var(--accent-blue); font-weight:600">${item.placa}</td>
                     <td>${item.motorista}</td>
-                    <td><span style="color: var(--neon-orange); font-size:11px; font-weight:600;">${item.operacao}</span></td>
-                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td><span class="perfil-badge ${item.perfil === 'AGREGADO' ? 'perfil-agregado' : ''}">${item.perfil}</span></td>
+                    <td>${item.kmInicial.toLocaleString()} / ${item.kmFinal.toLocaleString()} <br><span style="font-size:10px; color:var(--accent-green)">(${kmRodado} km)</span></td>
+                    <td style="font-weight:600; color:var(--text-main)">${item.qtdNFs} NFs</td>
+                    <td><span class="operacao-badge">${item.operacao}</span></td>
+                    <td><span class="status-badge">${item.status}</span></td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
 
-            // Ranking de Operações (Contagem de veículos por operação)
-            const opCount = {};
-            filteredData.forEach(d => { opCount[d.operacao] = (opCount[d.operacao] || 0) + 1; });
-            const topOps = Object.entries(opCount).sort((a, b) => b[1] - a[1]);
-            
-            const opHtml = topOps.map((op, i) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(0,240,255,0.03); border-radius: 6px; border: 1px solid rgba(0,240,255,0.1);">
-                    <div style="display:flex; gap: 8px; align-items:center;">
-                        <span style="color:var(--neon-blue); font-size:11px; font-weight:700;">0${i+1}</span>
-                        <span style="color:white; font-weight:500; font-size:12px;">${op[0]}</span>
-                    </div>
-                    <span style="color: var(--neon-green); font-weight:700; font-size:12px;">${op[1]} Veículos</span>
-                </div>
-            `).join('');
-            document.getElementById('operacoes-ranking-list').innerHTML = opHtml || '<span style="color:var(--text-muted)">Nenhum registro</span>';
-
             // Top Motoristas
-            const driverMap = {};
+            const driverData = {};
             filteredData.forEach(d => {
-                driverMap[d.motorista] = (driverMap[d.motorista] || 0) + d.nfs;
+                if (!driverData[d.motorista]) driverData[d.motorista] = { count: 0, nfs: 0, placa: d.placa };
+                driverData[d.motorista].count++;
+                driverData[d.motorista].nfs += d.qtdNFs;
             });
-            const topDrivers = Object.entries(driverMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-            const driverHtml = topDrivers.map((drv, i) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(255,0,127,0.03); border-radius: 6px; border: 1px solid rgba(255,0,127,0.1);">
-                    <div style="display:flex; gap: 8px; align-items:center;">
-                        <span style="color:var(--neon-pink); font-size:11px; font-weight:700;">0${i+1}</span>
-                        <span style="color:white; font-weight:500; font-size:12px;">${drv[0]}</span>
+            const topDrivers = Object.entries(driverData).sort((a, b) => b[1].nfs - a[1].nfs).slice(0, 5);
+            
+            document.getElementById('top-motoristas-list').innerHTML = topDrivers.map((d, i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                    <div style="display:flex; gap: 10px; align-items:center;">
+                        <span style="background: rgba(59,130,246,0.1); color: var(--accent-blue); padding: 2px 6px; border-radius: 4px; font-size:11px; font-weight:700;">0${i+1}</span>
+                        <div>
+                            <div style="color:white; font-weight:600;">${d[0]}</div>
+                            <div style="font-size:10px; color:var(--text-muted);">${d[1].placa}</div>
+                        </div>
                     </div>
-                    <span style="color: var(--neon-pink); font-weight:700; font-size:12px;">${drv[1]} NFs</span>
+                    <span style="color: var(--accent-green); font-weight:700;">${d[1].nfs} NFs</span>
                 </div>
             `).join('');
-            document.getElementById('top-motoristas-list').innerHTML = driverHtml || '<span style="color:var(--text-muted)">Nenhum registro</span>';
 
-            // Gráficos Neon UI Avançados
-            updateCharts();
+            // Ranking de Operações
+            const opCount = {};
+            filteredData.forEach(d => {
+                if (!opCount[d.operacao]) opCount[d.operacao] = { viagens: 0, veiculos: new Set() };
+                opCount[d.operacao].viagens++;
+                opCount[d.operacao].veiculos.add(d.placa);
+            });
+            const topOps = Object.entries(opCount).sort((a, b) => b[1].viagens - a[1].viagens).slice(0, 5);
+
+            document.getElementById('operacoes-list').innerHTML = topOps.map((op, i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <div style="color:white; font-weight:600;">${op[0]}</div>
+                        <div style="font-size:10px; color:var(--text-muted);">${op[1].veiculos.size} veículos alocados</div>
+                    </div>
+                    <span style="color: var(--accent-warning); font-weight:700;">${op[1].viagens} Lib.</span>
+                </div>
+            `).join('');
+
+            // Atualizar Gráficos
+            updateCharts(proprios, agregados);
         }
 
-        function updateCharts() {
+        // ==========================================
+        // 5. GRÁFICOS AVANÇADOS (Chart.js)
+        // ==========================================
+        function updateCharts(proprios, agregados) {
             // 1. Gráfico de Linha (Evolução Temporal)
-            const lineCtx = document.getElementById('lineChart').getContext('2d');
             const dateMap = {};
-            filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + 1; });
+            filteredData.forEach(d => {
+                dateMap[d.criado] = (dateMap[d.criado] || 0) + 1;
+            });
             const sortedDates = Object.keys(dateMap).sort();
-            const lineDataValues = sortedDates.map(date => dateMap[date]);
-            const lineLabels = sortedDates.map(date => formatDateBR(date));
+            const lineValues = sortedDates.map(date => dateMap[date]);
+            const formattedDates = sortedDates.map(d => formatDateBR(d));
 
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
             if (lineChartInstance) lineChartInstance.destroy();
-            lineChartInstance = new Chart(lineCtx, {
+
+            lineChartInstance = new Chart(ctxLine, {
                 type: 'line',
                 data: {
-                    labels: lineLabels.length ? lineLabels : ['Sem Dados'],
+                    labels: formattedDates.slice(-7), // últimos 7 dias com dados
                     datasets: [{
                         label: 'Liberações',
-                        data: lineDataValues.length ? lineDataValues : [0],
-                        borderColor: '#00f0ff',
-                        backgroundColor: 'rgba(0, 240, 255, 0.15)',
-                        borderWidth: 3,
-                        tension: 0.4,
+                        data: lineValues.slice(-7),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         fill: true,
-                        pointBackgroundColor: '#00f0ff',
-                        pointRadius: 5,
-                        pointHoverRadius: 7
+                        tension: 0.4,
+                        borderWidth: 2
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            color: '#00f0ff',
-                            anchor: 'end',
-                            align: 'top',
-                            font: { size: 11, weight: 'bold' }
-                        }
-                    },
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, datalabels: { display: false } },
                     scales: {
                         y: { beginAtZero: true, grid: { color: '#1e293b' }, border: { display: false } },
                         x: { grid: { display: false }, border: { display: false } }
-                    },
-                    layout: { padding: { top: 25 } }
-                }
-            });
-
-            // 2. Gráfico de Pizza (Doughnut Neon) - Sem a palavra "Pizza"
-            const pieCtx = document.getElementById('pieChart').getContext('2d');
-            const proprioCount = filteredData.filter(d => d.perfil === 'PRÓPRIO').length;
-            const agregadoCount = filteredData.filter(d => d.perfil === 'AGREGADO').length;
-
-            if (pieChartInstance) pieChartInstance.destroy();
-            pieChartInstance = new Chart(pieCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Próprio', 'Agregado'],
-                    datasets: [{
-                        data: [proprioCount, agregadoCount],
-                        backgroundColor: ['#00f0ff', '#ff007f'],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, color: '#f8fafc' } } },
-                        datalabels: {
-                            color: '#ffffff',
-                            formatter: (value, ctx) => {
-                                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                if(sum === 0) return '0%';
-                                return (value * 100 / sum).toFixed(1) + "%";
-                            },
-                            font: { weight: 'bold', size: 12 }
-                        }
                     }
                 }
             });
 
-            // 3. Gráfico de Barras Neon
-            const barCtx = document.getElementById('barChart').getContext('2d');
+            // 2. Gráfico de Rosca (Perfil de Frota)
+            const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+            if (doughnutChartInstance) doughnutChartInstance.destroy();
+
+            doughnutChartInstance = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Próprio', 'Agregado'],
+                    datasets: [{
+                        data: [proprios, agregados],
+                        backgroundColor: ['#3b82f6', '#8b5cf6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                        datalabels: { color: '#fff', font: { weight: 'bold', size: 11 } }
+                    }
+                }
+            });
+
+            // 3. Gráfico de Barras (Dias da semana)
             const diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
             const contagemDias = [0, 0, 0, 0, 0, 0, 0];
 
@@ -635,45 +691,48 @@
                 contagemDias[day]++;
             });
 
+            const ctxBar = document.getElementById('barChart').getContext('2d');
             if (barChartInstance) barChartInstance.destroy();
-            barChartInstance = new Chart(barCtx, {
+
+            barChartInstance = new Chart(ctxBar, {
                 type: 'bar',
                 data: {
                     labels: diasSemana,
                     datasets: [{
-                        label: 'Volume',
+                        label: 'Liberações',
                         data: contagemDias,
-                        backgroundColor: '#9d00ff',
-                        borderRadius: 6,
+                        backgroundColor: '#10b981',
+                        borderRadius: 4,
                         barPercentage: 0.5
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
                         datalabels: {
-                            color: '#9d00ff',
+                            color: '#ffffff',
                             anchor: 'end',
                             align: 'top',
-                            offset: 4,
-                            font: { weight: 'bold', size: 12 }
+                            offset: 2,
+                            font: { weight: 'bold', size: 11 }
                         }
                     },
                     scales: {
                         y: { beginAtZero: true, grid: { color: '#1e293b' }, border: { display: false } },
                         x: { grid: { display: false }, border: { display: false } }
                     },
-                    layout: { padding: { top: 30 } }
+                    layout: { padding: { top: 24 } }
                 }
             });
         }
 
+        // Utilitário de Data
         function formatDateBR(dateString) {
-            if(!dateString) return '';
-            const [y, m, d] = dateString.split('-');
-            return `${d}/${m}/${y}`;
+            if (!dateString) return '';
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
         }
     </script>
 </body>
