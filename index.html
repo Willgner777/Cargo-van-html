@@ -136,16 +136,47 @@ tr:hover td{background:rgba(255,255,255,.02)}
 </div>
 <div id="toast"></div>
 <script>
-const msalConfig={auth:{clientId:"3b29c3bc-e828-4835-a7bf-1f035ae7c981",authority:"https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage"}};
+const msalConfig={
+  auth:{
+    clientId:"3b29c3bc-e828-4835-a7bf-1f035ae7c981",
+    authority:"https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
+    redirectUri:window.location.origin+window.location.pathname
+  },
+  cache:{cacheLocation:"sessionStorage"}
+};
 const myMSALObj=new msal.PublicClientApplication(msalConfig);
 const loginRequest={scopes:["User.Read","Sites.Read.All"]};
 let rawData=[],filteredData=[],lineChartInstance=null,doughnutChartInstance=null,barChartInstance=null;
 Chart.register(ChartDataLabels);
 Chart.defaults.color='#94a3b8';
 Chart.defaults.font.family='Inter';
+
+async function initMSAL() {
+  try {
+    await myMSALObj.initialize();
+  } catch (err) {
+    console.error("Erro ao inicializar MSAL:", err);
+  }
+}
+
 function showDashboard(name){document.getElementById("login-view").style.display="none";document.getElementById("dashboard").style.display="block";document.getElementById("display-name").innerText=name.split(" ")[0];syncSharePointData();}
 function showLogin(){document.getElementById("login-view").style.display="flex";document.getElementById("dashboard").style.display="none";}
-function signIn(){myMSALObj.loginPopup(loginRequest).then(r=>showDashboard(r.account.name)).catch(e=>console.error(e));}
+
+async function signIn(){
+  try {
+    const response = await myMSALObj.loginPopup(loginRequest);
+    showDashboard(response.account.name);
+  } catch(e) {
+    console.error("Erro no login popup:", e);
+    try {
+      await myMSALObj.loginRedirect(loginRequest);
+    } catch(err) {
+      console.error("Erro no login redirect:", err);
+      showToast("Erro ao autenticar com a Microsoft", "error");
+    }
+  }
+}
+
 function signOut(){myMSALObj.logoutPopup({account:myMSALObj.getAllAccounts()[0]}).then(()=>showLogin());}
 function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
@@ -157,7 +188,36 @@ const data=await res.json();if(data.value)all=all.concat(data.value);url=data['@
 if(all.length){document.getElementById('debug-panel').style.display='block';document.getElementById('debug-content').innerText=JSON.stringify(all[0].fields,null,2);
 rawData=all.map(it=>{const f=it.fields||{};return{id:it.id,criado:(f.Created||it.createdDateTime||new Date().toISOString()).split('T')[0],documento:getField(f,['Title','N_x00fa_Documento','Documento','NumeroDocumento','NFe'])||'N/A',placa:getField(f,['Placa','Veiculo','Vehicle'])||'S/ PLACA',motorista:getField(f,['Motorista','Driver','Condutor','Motorista1'])||'NÃO INFORMADO',perfil:String(getField(f,['Perfil','Vinculo','TipoFrota'])||'PRÓPRIO').toUpperCase(),kmInicial:Number(getField(f,['KmInicial','KM_x0020_Inicial','Km_Inicial','KMIniciado'])||0),kmFinal:Number(getField(f,['KmFinal','KM_x0020_Final','Km_Final','KMFinalizado'])||0),qtdNFs:Number(getField(f,['QtdNFs','Qtd_x0020_NFs','QuantidadeNFs','NFs'])||1),operacao:getField(f,['ClienteOperacao','Operacao','Cliente','Cliente_x0020_Operacao'])||'OPERAÇÃO GERAL',status:String(getField(f,['Status','Situacao'])||'CONCLUÍDO').toUpperCase()});});
 const ts=new Date().toISOString();sessionStorage.setItem('cargo_van_real_data',JSON.stringify({data:rawData,syncTime:ts}));localStorage.setItem('cargo_van_real_data_cache',JSON.stringify({data:rawData,syncTime:ts}));showToast(`✅ ${all.length} registros sincronizados`);}else{rawData=[];showToast('Lista vazia no SharePoint','info');} }catch(e){console.error(e);showToast('Erro ao conectar: '+e.message,'info');const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;showToast(`Usando cache (${rawData.length} registros)`);}}}finally{btn.classList.remove('syncing');btn.innerText='Sincronizar SharePoint';applyFilters();}}
-window.onload=()=>{const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;console.log('Cache carregado',rawData.length);}}const acc=myMSALObj.getAllAccounts();if(acc.length>0)showDashboard(acc[0].name);else showLogin();document.getElementById('filter-start').addEventListener('change',applyFilters);document.getElementById('filter-end').addEventListener('change',applyFilters);document.getElementById('filter-placa').addEventListener('keyup',debounce(applyFilters,300));document.getElementById('filter-motorista').addEventListener('keyup',debounce(applyFilters,300));};
+
+window.onload = async () => {
+  await initMSAL();
+  const c=localStorage.getItem('cargo_van_real_data_cache');
+  if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;console.log('Cache carregado',rawData.length);}}
+  
+  try {
+    const acc=myMSALObj.getAllAccounts();
+    if(acc.length>0) {
+      showDashboard(acc[0].name);
+    } else {
+      // Tratar o retorno de redirect caso tenha sido usado
+      const response = await myMSALObj.handleRedirectPromise();
+      if (response && response.account) {
+        showDashboard(response.account.name);
+      } else {
+        showLogin();
+      }
+    }
+  } catch (err) {
+    console.error("Erro no handleRedirectPromise:", err);
+    showLogin();
+  }
+
+  document.getElementById('filter-start').addEventListener('change',applyFilters);
+  document.getElementById('filter-end').addEventListener('change',applyFilters);
+  document.getElementById('filter-placa').addEventListener('keyup',debounce(applyFilters,300));
+  document.getElementById('filter-motorista').addEventListener('keyup',debounce(applyFilters,300));
+};
+
 function applyFilters(){const s=document.getElementById('filter-start').value;const e=document.getElementById('filter-end').value;const p=document.getElementById('filter-placa').value.toLowerCase();const m=document.getElementById('filter-motorista').value.toLowerCase();filteredData=rawData.filter(it=>{let ok=true;if(s&&it.criado<s)ok=false;if(e&&it.criado>e)ok=false;if(p&&!it.placa.toLowerCase().includes(p))ok=false;if(m&&!it.motorista.toLowerCase().includes(m))ok=false;return ok;});updateDashboardUI();}
 function formatDateBR(d){const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
 function updateDashboardUI(){document.getElementById('kpi-total').innerText=filteredData.length.toLocaleString('pt-BR');document.getElementById('kpi-concluidas').innerText=filteredData.filter(d=>/CONCLU|ATIV/i.test(d.status)).length.toLocaleString('pt-BR');
@@ -167,7 +227,7 @@ const totalKm=filteredData.reduce((a,c)=>a+Math.max(0,c.kmFinal-c.kmInicial),0);
 const tbody=document.getElementById('table-body');tbody.innerHTML='';document.getElementById('table-count').innerText=`Exibindo ${Math.min(filteredData.length,100)} de ${filteredData.length} registros`;
 filteredData.slice(0,100).forEach(it=>{const km=Math.max(0,it.kmFinal-it.kmInicial);const tr=document.createElement('tr');tr.innerHTML=`<td><span style="color:white;font-weight:700">${it.documento}</span><br><span style="font-size:10px;color:var(--text-muted)">${formatDateBR(it.criado)}</span></td><td style="color:var(--accent-blue);font-weight:700">${it.placa}</td><td>${it.motorista}</td><td><span class="perfil-badge ${/AGREG/i.test(it.perfil)?'perfil-agregado':''}">${it.perfil}</span></td><td>${it.kmInicial.toLocaleString('pt-BR')}/${it.kmFinal.toLocaleString('pt-BR')}<br><span style="font-size:10px;color:var(--accent-green)">(${km} km)</span></td><td style="font-weight:700">${it.qtdNFs} NFs</td><td><span class="operacao-badge">${it.operacao}</span></td><td><span class="status-badge">${it.status}</span></td>`;tbody.appendChild(tr);});
 const driver={};filteredData.forEach(d=>{if(!driver[d.motorista])driver[d.motorista]={nfs:0,placa:d.placa};driver[d.motorista].nfs+=d.qtdNFs;});const topDrivers=Object.entries(driver).sort((a,b)=>b[1].nfs-a[1].nfs).slice(0,5);document.getElementById('top-motoristas-list').innerHTML='';topDrivers.forEach((d,i)=>{const div=document.createElement('div');div.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid var(--border)';div.innerHTML=`<div style="display:flex;gap:10px;align-items:center"><span style="background:rgba(59,130,246,.12);color:var(--accent-blue);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800">0${i+1}</span><div><div style="color:white;font-weight:700">${d[0]}</div><div style="font-size:10px;color:var(--text-muted)">${d[1].placa}</div></div></div><span style="color:var(--accent-green);font-weight:800">${d[1].nfs} NFs</span>`;document.getElementById('top-motoristas-list').appendChild(div);});
-const ops={};filteredData.forEach(d=>{if(!ops[d.operacao])ops[d.operacao]={viagens:0,veiculos:new Set()};ops[d.operacao].viagens++;ops[d.operacao].veiculos.add(d.placa);});const list=document.getElementById('operacoes-list');list.innerHTML='';Object.entries(ops).sort((a,b)=>b[1].viagens-a[1].viagens).slice(0,5).forEach((op,val)=>{const div=document.createElement('div');div.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid var(--border)';div.innerHTML=`<div><div style="color:white;font-weight:700">${op}</div><div style="font-size:10px;color:var(--text-muted)">${val.veiculos.size} veículos</div></div><span style="color:var(--accent-warning);font-weight:800">${val.viagens} Lib.</span>`;list.appendChild(div);});updateCharts(proprios,agregados);}
+const ops={};filteredData.forEach(d=>{if(!ops[d.operacao])ops[d.operacao]={viagens:0,veiculos:new Set()};ops[d.operacao].viagens++;ops[d.operacao].veiculos.add(d.placa);});const list=document.getElementById('operacoes-list');list.innerHTML='';Object.entries(ops).sort((a,b)=>b[1].viagens-a[1].viagens).slice(0,5).forEach(([op,val])=>{const div=document.createElement('div');div.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid var(--border)';div.innerHTML=`<div><div style="color:white;font-weight:700">${op}</div><div style="font-size:10px;color:var(--text-muted)">${val.veiculos.size} veículos</div></div><span style="color:var(--accent-warning);font-weight:800">${val.viagens} Lib.</span>`;list.appendChild(div);});updateCharts(proprios,agregados);}
 function updateCharts(proprios,agregados){const map={};filteredData.forEach(d=>{map[d.criado]=(map[d.criado]||0)+1;});const dates=Object.keys(map).sort();const vals=dates.map(d=>map[d]);const fmt=dates.map(d=>formatDateBR(d)).slice(-14);const vals7=vals.slice(-14);const ctxL=document.getElementById('lineChart').getContext('2d');if(lineChartInstance)lineChartInstance.destroy();const gradL=ctxL.createLinearGradient(0,0,0,280);gradL.addColorStop(0,'rgba(59,130,246,.35)');gradL.addColorStop(1,'rgba(59,130,246,0)');lineChartInstance=new Chart(ctxL,{type:'line',data:{labels:fmt,datasets:[{data:vals7,borderColor:'#3b82f6',backgroundColor:gradL,fill:true,tension:.42,borderWidth:2.5,pointRadius:0,pointHoverRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',titleColor:'#e2e8f0',bodyColor:'#cbd5e1'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
 const ctxD=document.getElementById('doughnutChart').getContext('2d');if(doughnutChartInstance)doughnutChartInstance.destroy();doughnutChartInstance=new Chart(ctxD,{type:'doughnut',data:{labels:['Próprio','Agregado'],datasets:[{data:[proprios,agregados],backgroundColor:['#3b82f6','#8b5cf6'],borderWidth:0,hoverOffset:12}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}},datalabels:{color:'#fff',font:{weight:'bold',size:11}}}}});
 const dias=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];const cnt=[0,0,0,0,0,0,0];filteredData.forEach(it=>{let day=new Date(it.criado+'T00:00:00').getDay()-1;if(day===-1)day=6;cnt[day]++;});const ctxB=document.getElementById('barChart').getContext('2d');if(barChartInstance)barChartInstance.destroy();const gradB=ctxB.createLinearGradient(0,0,0,280);gradB.addColorStop(0,'#22c55e');gradB.addColorStop(1,'#16a34a');barChartInstance=new Chart(ctxB,{type:'bar',data:{labels:dias,datasets:[{data:cnt,backgroundColor:gradB,borderRadius:8,barPercentage:.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:true,color:'#fff',anchor:'end',align:'top',formatter:v=>v}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
