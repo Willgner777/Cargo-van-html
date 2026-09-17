@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetAnalytics PRO - Cargo Van (Fidelidade Real)</title>
+    <title>FleetAnalytics PRO - Cargo Van (Fidelidade Total)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
@@ -27,9 +27,6 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-base); color: var(--text-main); overflow-x: hidden; }
-
-        .icon { width: 18px; height: 18px; fill: currentColor; }
-        .icon-large { width: 24px; height: 24px; }
 
         #login-view {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
@@ -99,7 +96,6 @@
         .btn-sync:hover { background: var(--accent-blue); }
         .btn-sync.syncing { opacity: 0.7; pointer-events: none; }
 
-        /* Painel de Diagnóstico do SharePoint */
         #debug-panel {
             background: #0f172a; border: 1px dashed var(--accent-purple); padding: 12px 16px; border-radius: 8px;
             margin-bottom: 20px; font-family: monospace; font-size: 11px; color: #cbd5e1; display: none;
@@ -164,9 +160,8 @@
             </aside>
 
             <main class="main-content">
-                <!-- PAINEL DE DIAGNÓSTICO DO SHAREPOINT -->
                 <div id="debug-panel">
-                    <strong>🔍 Diagnóstico do SharePoint (Campos do 1º Registro):</strong>
+                    <strong>🔍 Inspetor de Campos do SharePoint (1º Registro Bruto):</strong>
                     <div id="debug-content" style="margin-top: 6px; white-space: pre-wrap;"></div>
                 </div>
 
@@ -214,8 +209,8 @@
                         <div class="kpi-sub">Veículos Agregados</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-title" style="color: var(--accent-warning)">Total NFs / KM</div>
-                        <div class="kpi-value" id="kpi-nfs">0 NFs</div>
+                        <div class="kpi-title" style="color: var(--accent-warning)">Total Entregas / KM</div>
+                        <div class="kpi-value" id="kpi-nfs">0 Entregas</div>
                         <div class="kpi-sub" id="kpi-km">0 km rodados</div>
                     </div>
                 </div>
@@ -269,7 +264,7 @@
                                     <th>Motorista</th>
                                     <th>Perfil</th>
                                     <th>KM Inicial / Final</th>
-                                    <th>NFs</th>
+                                    <th>Entregas</th>
                                     <th>Operação / Cliente</th>
                                     <th>Status</th>
                                 </tr>
@@ -331,13 +326,23 @@
             else showLogin();
         }
 
-        // Função auxiliar robusta para buscar valor ignorando maiúsculas/minúsculas e variações de colunas do SP
-        function getField(fields, keys) {
-            for (let key of keys) {
-                // Busca exata ou case-insensitive
-                const foundKey = Object.keys(fields).find(k => k.toLowerCase() === key.toLowerCase() || k.toLowerCase().replace(/_x[0-9a-f]{4}_/g, '') === key.toLowerCase());
-                if (foundKey !== undefined && fields[foundKey] !== null && fields[foundKey] !== undefined) {
-                    return fields[foundKey];
+        // Função normalizadora para lidar com acentos, maiúsculas e códigos internos do SharePoint (_x0020_, _x00ba_, etc.)
+        function normalizeKey(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        }
+
+        function getField(fields, possibleKeys) {
+            // Cria um dicionário normalizado das chaves do SharePoint retornadas
+            const normalizedFields = {};
+            for (let k of Object.keys(fields)) {
+                const cleanKey = k.replace(/_x[0-9a-fA-F]{4}_/g, '');
+                normalizedFields[normalizeKey(cleanKey)] = fields[k];
+            }
+
+            for (let key of possibleKeys) {
+                const normTarget = normalizeKey(key);
+                if (normalizedFields[normTarget] !== undefined && normalizedFields[normTarget] !== null) {
+                    return normalizedFields[normTarget];
                 }
             }
             return null;
@@ -354,7 +359,6 @@
             try {
                 const tokenResponse = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
 
-                // Endpoint exato da lista LIBERACAO_VEICULO no site CARGOVAN
                 let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=999`;
                 let allItems = [];
 
@@ -369,7 +373,6 @@
                     url = data['@odata.nextLink'] || null;
                 }
 
-                // Exibir painel de diagnóstico com o primeiro item retornado para conferência exata dos campos
                 if (allItems.length > 0) {
                     document.getElementById('debug-panel').style.display = 'block';
                     document.getElementById('debug-content').innerText = JSON.stringify(allItems[0].fields, null, 2);
@@ -378,16 +381,16 @@
                         const f = item.fields || {};
                         return {
                             id: item.id,
-                            criado: (f.Created || item.createdDateTime || new Date().toISOString()).split('T')[0],
-                            documento: getField(f, ['Title', 'N_x00fa_Documento', 'Documento', 'NumeroDocumento', 'NFe']) || "N/A",
-                            placa: getField(f, ['Placa', 'Veiculo', 'Vehicle']) || "S/ PLACA",
-                            motorista: getField(f, ['Motorista', 'Driver', 'Condutor', 'Motorista1']) || "NÃO INFORMADO",
-                            perfil: String(getField(f, ['Perfil', 'Vinculo', 'TipoFrota']) || "PRÓPRIO").toUpperCase(),
-                            kmInicial: Number(getField(f, ['KmInicial', 'KM_x0020_Inicial', 'Km_Inicial', 'KMIniciado']) || 0),
-                            kmFinal: Number(getField(f, ['KmFinal', 'KM_x0020_Final', 'Km_Final', 'KMFinalizado']) || 0),
-                            qtdNFs: Number(getField(f, ['QtdNFs', 'Qtd_x0020_NFs', 'QuantidadeNFs', 'NFs']) || 1),
-                            operacao: getField(f, ['ClienteOperacao', 'Operacao', 'Cliente', 'Cliente_x0020_Operacao']) || "OPERAÇÃO GERAL",
-                            status: String(getField(f, ['Status', 'Situacao']) || "CONCLUÍDO").toUpperCase()
+                            criado: String(getField(f, ['Criado', 'Created']) || item.createdDateTime || new Date().toISOString()).split('T')[0],
+                            documento: String(getField(f, ['Nº DOCUMENTO', 'N_DOCUMENTO', 'Documento', 'Title']) || "N/A"),
+                            placa: String(getField(f, ['PLACA', 'Placa', 'Veiculo', 'Vehicle']) || "S/ PLACA").trim(),
+                            motorista: String(getField(f, ['NOME', 'Motorista', 'Condutor', 'Motorista1']) || "NÃO INFORMADO").trim(),
+                            perfil: String(getField(f, ['PRÓPRIO OU AGREGADO', 'PROPRIO OU AGREGADO', 'Perfil', 'Vinculo', 'TipoFrota']) || "PRÓPRIO").toUpperCase(),
+                            kmInicial: Number(getField(f, ['KM INICIAL', 'KM_INICIAL', 'KmInicial']) || 0),
+                            kmFinal: Number(getField(f, ['KM FINAL', 'KM_FINAL', 'KmFinal']) || 0),
+                            qtdNFs: Number(getField(f, ['QNTD DE ENTREGA', 'QTD ENTREGAS FINALIZADAS', 'QuantidadeNFs', 'NFs']) || 1),
+                            operacao: String(getField(f, ['CLIENTE | OPERAÇÃO', 'CLIENTE OPERACAO', 'Operacao', 'Cliente']) || "OPERAÇÃO GERAL"),
+                            status: String(getField(f, ['STATUS', 'Situacao']) || "CONCLUÍDO").toUpperCase()
                         };
                     });
                     
@@ -401,7 +404,6 @@
                 console.error("Erro na sincronização:", error);
                 alert("Erro ao conectar com SharePoint:\n" + error.message);
                 
-                // Tenta carregar cache anterior se houver
                 const cached = sessionStorage.getItem('cargo_van_real_data');
                 if (cached) rawData = JSON.parse(cached);
             } finally {
@@ -433,19 +435,18 @@
             document.getElementById('kpi-total').innerText = filteredData.length;
             document.getElementById('kpi-concluidas').innerText = filteredData.filter(d => d.status.includes('CONCLU') || d.status.includes('ATIV')).length;
             
-            const proprios = filteredData.filter(d => d.perfil.includes('PRÓPR') || d.perfil.includes('PROPRIO')).length;
+            const proprios = filteredData.filter(d => d.perfil.includes('PROPRIO') || d.perfil.includes('PRÓPRIO')).length;
             const agregados = filteredData.filter(d => d.perfil.includes('AGREG') || d.perfil.includes('TERC')).length;
             
             document.getElementById('kpi-proprio').innerText = proprios;
             document.getElementById('kpi-agregado').innerText = agregados;
 
             const totalNFs = filteredData.reduce((acc, curr) => acc + curr.qtdNFs, 0);
-            document.getElementById('kpi-nfs').innerText = totalNFs + ' NFs';
+            document.getElementById('kpi-nfs').innerText = totalNFs + ' Entregas';
 
             const totalKm = filteredData.reduce((acc, curr) => acc + Math.max(0, curr.kmFinal - curr.kmInicial), 0);
             document.getElementById('kpi-km').innerText = totalKm.toLocaleString('pt-BR') + ' km rodados';
 
-            // Tabela
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
             document.getElementById('table-count').innerText = `Exibindo ${Math.min(filteredData.length, 100)} de ${filteredData.length} registros`;
@@ -458,13 +459,12 @@
                     <td>${item.motorista}</td>
                     <td><span class="perfil-badge ${item.perfil.includes('AGREG') ? 'perfil-agregado' : ''}">${item.perfil}</span></td>
                     <td>${item.kmInicial.toLocaleString()} / ${item.kmFinal.toLocaleString()} <br><span style="font-size:10px; color:var(--accent-green)">(${kmRodado} km)</span></td>
-                    <td style="font-weight:600; color:var(--text-main)">${item.qtdNFs} NFs</td>
+                    <td style="font-weight:600; color:var(--text-main)">${item.qtdNFs} Entregas</td>
                     <td><span class="operacao-badge">${item.operacao}</span></td>
                     <td><span class="status-badge">${item.status}</span></td>
                 </tr>`;
             });
 
-            // Top Motoristas
             const driverData = {};
             filteredData.forEach(d => {
                 if (!driverData[d.motorista]) driverData[d.motorista] = { nfs: 0, placa: d.placa };
@@ -481,11 +481,10 @@
                             <div style="font-size:10px; color:var(--text-muted);">${d[1].placa}</div>
                         </div>
                     </div>
-                    <span style="color: var(--accent-green); font-weight:700;">${d[1].nfs} NFs</span>
+                    <span style="color: var(--accent-green); font-weight:700;">${d[1].nfs} Entregas</span>
                 </div>
             `).join('');
 
-            // Ranking de Operações
             const opCount = {};
             filteredData.forEach(d => {
                 if (!opCount[d.operacao]) opCount[d.operacao] = { viagens: 0, veiculos: new Set() };
@@ -535,7 +534,7 @@
 
             const diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
             const contagemDias = [0, 0, 0, 0, 0, 0, 0];
-            filteredData.forEach(item => {
+            filteredData.execute = filteredData.forEach(item => {
                 const date = new Date(item.criado + "T00:00:00");
                 let day = date.getDay() - 1;
                 if(day === -1) day = 6;
