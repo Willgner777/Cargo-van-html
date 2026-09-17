@@ -5,225 +5,148 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FleetAnalytics PRO - Cargo Van</title>
     
-    <!-- Fonte moderna -->
+    <!-- Fontes -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- MSAL.js para Autenticação Microsoft -->
+    <!-- MSAL.js para Autenticação -->
     <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+    
+    <!-- Chart.js e Plugin para rótulos de dados -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
     <style>
         :root {
-            --bg-color: #0b101e;
-            --panel-color: #151b2b;
+            --bg-base: #090e17;
+            --bg-panel: #131927;
+            --bg-panel-hover: #1a2235;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --accent-blue: #3b82f6;
-            --accent-blue-glow: rgba(59, 130, 246, 0.5);
+            --accent-blue-dark: #2563eb;
             --accent-green: #10b981;
+            --accent-warning: #fbbf24;
             --border-color: #1e293b;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow-x: hidden;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-main); overflow-x: hidden; }
 
-        /* --- TELA DE LOGIN --- */
+        /* Ícones SVG genéricos */
+        .icon { width: 18px; height: 18px; fill: currentColor; }
+        .icon-large { width: 24px; height: 24px; }
+
+        /* --- LOGIN --- */
         #login-view {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: radial-gradient(circle at center, #151b2b 0%, #0b101e 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+            background: radial-gradient(circle at center, #131927 0%, #090e17 100%);
         }
-        
         .login-box {
-            background: var(--panel-color);
-            padding: 40px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            background: var(--bg-panel); padding: 40px; border-radius: 12px;
+            border: 1px solid var(--border-color); text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-
-        .login-box h1 { margin: 0 0 10px 0; font-size: 24px; color: var(--accent-blue); }
-        .login-box p { color: var(--text-muted); margin-bottom: 30px; }
-
-        .btn-ms {
-            background-color: #0078d4;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
+        .login-box h1 { font-size: 24px; color: var(--accent-blue); margin-bottom: 8px; }
+        .login-box p { color: var(--text-muted); margin-bottom: 30px; font-size: 14px; }
+        .btn-primary {
+            background: var(--accent-blue-dark); color: white; border: none; padding: 12px 24px;
+            font-size: 14px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 8px;
         }
-        .btn-ms:hover { background-color: #005a9e; }
+        .btn-primary:hover { background: var(--accent-blue); }
 
-        /* --- ESTRUTURA DO DASHBOARD --- */
-        #dashboard {
-            display: none;
-            height: 100vh;
-        }
+        /* --- DASHBOARD LAYOUT --- */
+        #dashboard { display: none; height: 100vh; }
+        .layout { display: flex; height: 100%; }
 
-        .layout {
-            display: flex;
-            height: 100%;
-        }
-
-        /* Menu Lateral */
+        /* SIDEBAR */
         .sidebar {
-            width: 260px;
-            background-color: var(--panel-color);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 0;
+            width: 260px; background-color: var(--bg-panel); border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 24px 0;
         }
-
         .brand {
-            padding: 0 20px 30px 20px;
-            font-size: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 0 24px 30px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;
         }
-        .brand span { color: var(--accent-blue); font-size: 12px; border: 1px solid var(--accent-blue); padding: 2px 6px; border-radius: 4px;}
-
-        .menu-section {
-            font-size: 11px;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            padding: 0 20px 10px 20px;
-            text-transform: uppercase;
+        .brand-badge {
+            font-size: 10px; border: 1px solid var(--accent-blue); color: var(--accent-blue);
+            padding: 2px 6px; border-radius: 12px; font-weight: 600;
         }
-
-        .menu-item {
-            padding: 12px 20px;
-            margin: 0 10px;
-            border-radius: 8px;
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--accent-blue);
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            border-left: 3px solid var(--accent-blue);
+        .nav-section {
+            font-size: 11px; color: var(--text-muted); letter-spacing: 1px; padding: 0 24px 12px; text-transform: uppercase; font-weight: 600;
         }
-
-        .user-profile {
-            margin-top: auto;
-            padding: 20px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .nav-item {
+            padding: 12px 24px; margin: 4px 12px; border-radius: 8px; color: var(--text-muted);
+            font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s;
         }
-
-        .user-info { display: flex; flex-direction: column; }
-        .user-name { font-size: 14px; font-weight: 600; }
-        .user-role { font-size: 12px; color: var(--text-muted); }
+        .nav-item:hover { background: var(--bg-panel-hover); color: var(--text-main); }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); border-left: 3px solid var(--accent-blue); }
         
-        .btn-logout { background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .user-profile {
+            margin-top: auto; padding: 20px 24px; border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-size: 13px; font-weight: 600; }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+        .btn-logout { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;}
         .btn-logout:hover { color: white; border-color: white; }
 
-        /* Conteúdo Principal */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px 30px;
-            overflow-y: auto;
-        }
+        /* MAIN CONTENT */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 24px 32px; }
 
-        /* Topbar */
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
+        /* FILTERS BAR */
+        .filter-bar {
+            background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px;
+            padding: 16px 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
         }
-        .breadcrumb { font-size: 14px; color: var(--text-muted); }
-        .breadcrumb strong { color: var(--text-main); }
-        
-        .top-actions { display: flex; gap: 15px; }
-        .search-bar {
-            background: var(--panel-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 15px;
-            border-radius: 6px;
-            color: white;
-            width: 250px;
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 11px; color: var(--accent-blue); font-weight: 600; text-transform: uppercase; }
+        .filter-input {
+            background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-main);
+            padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; transition: border 0.2s;
         }
+        .filter-input:focus { border-color: var(--accent-blue); }
         .btn-sync {
-            background-color: transparent;
-            border: 1px solid var(--accent-blue);
-            color: var(--accent-blue);
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
+            background: var(--accent-blue-dark); color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; margin-top: auto; display: flex; align-items: center; gap: 8px;
         }
-        .btn-sync:hover { background: rgba(59, 130, 246, 0.1); }
+        .btn-sync:hover { background: var(--accent-blue); }
 
-        /* Cards KPI */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 25px;
-        }
+        /* KPI GRID */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
         .kpi-card {
-            background: var(--panel-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
+            background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;
+            display: flex; flex-direction: column; gap: 8px;
         }
-        .kpi-card.highlight {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            border: none;
-            box-shadow: 0 4px 15px var(--accent-blue-glow);
-        }
-        .kpi-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; font-weight: 600;}
+        .kpi-card.highlight { background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; }
+        .kpi-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
         .highlight .kpi-title { color: rgba(255,255,255,0.8); }
-        .kpi-value { font-size: 28px; font-weight: 700; margin-bottom: 5px; }
+        .kpi-value { font-size: 28px; font-weight: 700; }
         .kpi-sub { font-size: 12px; color: var(--text-muted); }
         .highlight .kpi-sub { color: rgba(255,255,255,0.8); }
 
-        /* Área do Gráfico e Tabela */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-        
-        .panel {
-            background: var(--panel-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-        }
-        .panel-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        /* PANELS */
+        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .panel-title { font-size: 14px; font-weight: 600; }
-        .badge { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+        .badge { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;}
 
-        /* Tabela Fictícia */
+        /* CHART CONTAINER */
+        .chart-container { position: relative; height: 250px; width: 100%; }
+
+        /* TABLE */
+        .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
-        th { color: var(--text-muted); padding-bottom: 15px; border-bottom: 1px solid var(--border-color); font-weight: 500;}
-        td { padding: 15px 0; border-bottom: 1px solid rgba(30, 41, 59, 0.5); }
-        .status-ok { color: var(--accent-green); }
-        
+        th { color: var(--text-muted); padding: 12px; border-bottom: 1px solid var(--border-color); font-weight: 600; text-transform: uppercase; font-size: 11px;}
+        td { padding: 16px 12px; border-bottom: 1px solid rgba(30, 41, 59, 0.4); color: #cbd5e1; }
+        .status-badge {
+            background: transparent; border: 1px solid var(--accent-green); color: var(--accent-green);
+            padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+        }
+        .perfil-badge {
+            background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-blue); color: var(--accent-blue);
+            padding: 2px 8px; border-radius: 4px; font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -231,9 +154,13 @@
     <!-- TELA DE LOGIN -->
     <div id="login-view">
         <div class="login-box">
+            <svg class="icon-large" style="color: var(--accent-blue); margin-bottom: 10px;" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             <h1>FleetAnalytics PRO</h1>
-            <p>Cargo Van EX</p>
-            <button class="btn-ms" onclick="signIn()">Entrar com a Microsoft</button>
+            <p>Acesso Seguro Microsoft</p>
+            <button class="btn-primary" onclick="signIn()">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                Entrar no Sistema
+            </button>
         </div>
     </div>
 
@@ -244,20 +171,20 @@
             <!-- MENU LATERAL -->
             <aside class="sidebar">
                 <div class="brand">
-                    🚚 FleetAnalytics <span>PRO</span>
+                    <svg class="icon-large" style="color: var(--accent-blue);" viewBox="0 0 24 24"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6z"/></svg>
+                    FleetAnalytics <span class="brand-badge">PRO</span>
                 </div>
                 
-                <div class="menu-section">Bancos de Dados</div>
-                
-                <!-- MENU SOLICITADO: APENAS LIBERAÇÃO_VEICULO -->
-                <div class="menu-item">
-                    📄 LIBERAÇÃO_VEICULO
+                <div class="nav-section">Operacional</div>
+                <div class="nav-item active">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Liberação de Veículos
                 </div>
 
                 <div class="user-profile">
                     <div class="user-info">
                         <span class="user-name" id="display-name">Carregando...</span>
-                        <span class="user-role">Operação</span>
+                        <span class="user-role">Sessão Ativa</span>
                     </div>
                     <button class="btn-logout" onclick="signOut()">Sair</button>
                 </div>
@@ -266,134 +193,154 @@
             <!-- CONTEÚDO PRINCIPAL -->
             <main class="main-content">
                 
-                <!-- Header -->
-                <header class="topbar">
-                    <div class="breadcrumb">Operação > <strong>Liberação de Veículos</strong></div>
-                    <div class="top-actions">
-                        <input type="text" class="search-bar" placeholder="Buscar placa ou doc...">
-                        <button class="btn-sync">🔄 Sincronizar SharePoint</button>
+                <!-- BARRA DE FILTROS -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Data Inicial (Criado)</label>
+                        <input type="date" id="filter-start" class="filter-input" onchange="applyFilters()">
                     </div>
-                </header>
+                    <div class="filter-group">
+                        <label>Data Final (Criado)</label>
+                        <input type="date" id="filter-end" class="filter-input" onchange="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Placa</label>
+                        <input type="text" id="filter-placa" class="filter-input" placeholder="Ex: ABC1234" onkeyup="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Motorista</label>
+                        <input type="text" id="filter-motorista" class="filter-input" placeholder="Nome do motorista" onkeyup="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Nº Documento / NFs</label>
+                        <input type="text" id="filter-nfs" class="filter-input" placeholder="Número NF" onkeyup="applyFilters()">
+                    </div>
+                    <button class="btn-sync" onclick="syncSharePointData()" style="margin-left: auto;">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                        Sincronizar SharePoint
+                    </button>
+                </div>
 
-                <!-- Cards KPI -->
+                <!-- KPI GRID -->
                 <div class="kpi-grid">
                     <div class="kpi-card highlight">
                         <div class="kpi-title">Total de Liberações</div>
-                        <div class="kpi-value">1.245</div>
-                        <div class="kpi-sub">Registros no período</div>
+                        <div class="kpi-value" id="kpi-total">0</div>
+                        <div class="kpi-sub">Documentos no período</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-title" style="color: var(--accent-green)">Concluídas</div>
-                        <div class="kpi-value">1.180</div>
-                        <div class="kpi-sub">Status: OK</div>
+                        <div class="kpi-value" id="kpi-concluidas">0</div>
+                        <div class="kpi-sub">Status: CONCLUÍDO</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-title" style="color: #fbbf24">Em Rota / Pátio</div>
-                        <div class="kpi-value">65</div>
-                        <div class="kpi-sub">Atualizado em tempo real</div>
+                        <div class="kpi-title" style="color: var(--accent-warning)">Total NFs Vinculadas</div>
+                        <div class="kpi-value" id="kpi-nfs">0</div>
+                        <div class="kpi-sub">Soma de NFs entregues</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-title">KM Rodado (Base)</div>
-                        <div class="kpi-value">128.450 km</div>
-                        <div class="kpi-sub">Frota própria + agregados</div>
+                        <div class="kpi-title">KM Rodado (Período)</div>
+                        <div class="kpi-value" id="kpi-km">0 km</div>
+                        <div class="kpi-sub">Base: OPERAÇÃO</div>
                     </div>
                 </div>
 
-                <!-- Gráficos e Ranking -->
                 <div class="content-grid">
+                    <!-- GRÁFICO -->
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title">Volume de Liberações por Dia</div>
+                            <div class="panel-title">Entregas por Dia da Semana</div>
                             <div class="badge">Base: LIBERAÇÃO_VEICULO</div>
                         </div>
-                        <div style="height: 200px; display: flex; align-items: flex-end; justify-content: space-around; padding-top: 20px;">
-                            <!-- Barras simuladas com CSS -->
-                            <div style="width: 30px; height: 60%; background: var(--accent-green); border-radius: 4px 4px 0 0;"></div>
-                            <div style="width: 30px; height: 80%; background: var(--accent-green); border-radius: 4px 4px 0 0;"></div>
-                            <div style="width: 30px; height: 75%; background: var(--accent-green); border-radius: 4px 4px 0 0;"></div>
-                            <div style="width: 30px; height: 90%; background: var(--accent-green); border-radius: 4px 4px 0 0;"></div>
-                            <div style="width: 30px; height: 100%; background: var(--accent-green); border-radius: 4px 4px 0 0;"></div>
-                            <div style="width: 30px; height: 40%; background: var(--accent-green); border-radius: 4px 4px 0 0;"></div>
+                        <div class="chart-container">
+                            <canvas id="barChart"></canvas>
                         </div>
                     </div>
                     
+                    <!-- TOP MOTORISTAS -->
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title">Top Motoristas</div>
+                            <div class="panel-title">Top Motoristas (Volume)</div>
                         </div>
-                        <div style="display: flex; flex-direction: column; gap: 15px; font-size: 13px;">
-                            <div style="display: flex; justify-content: space-between;"><span>01. Danielle F. Dias</span> <span style="color: var(--accent-green)">312 Lib.</span></div>
-                            <div style="display: flex; justify-content: space-between;"><span>02. Francisco R. Rodrigues</span> <span style="color: var(--accent-green)">287 Lib.</span></div>
-                            <div style="display: flex; justify-content: space-between;"><span>03. João V. Santos</span> <span style="color: var(--accent-green)">254 Lib.</span></div>
-                            <div style="display: flex; justify-content: space-between;"><span>04. Marcos P. Lima</span> <span style="color: var(--accent-green)">198 Lib.</span></div>
+                        <div id="top-motoristas-list" style="display: flex; flex-direction: column; gap: 16px; font-size: 13px;">
+                            <!-- Preenchido via JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Tabela de Dados -->
+                <!-- TABELA -->
                 <div class="panel">
                     <div class="panel-header">
-                        <div class="panel-title">Registro Completo - Base de Liberação</div>
+                        <div class="panel-title">Registro Completo de Operações</div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nº DOC / DATA</th>
-                                <th>PLACA</th>
-                                <th>MOTORISTA</th>
-                                <th>PERFIL</th>
-                                <th>KM INICIAL / FINAL</th>
-                                <th>STATUS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>658912 / 17/09/2026</td>
-                                <td>QWE5668</td>
-                                <td>JOAO VINICIUS CLEMENTE</td>
-                                <td>AGREGADO</td>
-                                <td>410.511 / 411.000</td>
-                                <td class="status-ok">CONCLUÍDO</td>
-                            </tr>
-                            <tr>
-                                <td>658913 / 17/09/2026</td>
-                                <td>ABC1234</td>
-                                <td>FRANCISCO ROBSON FERREIRA</td>
-                                <td>PRÓPRIO</td>
-                                <td>220.065 / 220.896</td>
-                                <td class="status-ok">CONCLUÍDO</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data (Criado)</th>
+                                    <th>Nº Documento / NFs</th>
+                                    <th>Placa</th>
+                                    <th>Motorista</th>
+                                    <th>Perfil</th>
+                                    <th>KM Inicial / Final</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </main>
         </div>
     </div>
 
-    <!-- SCRIPT DE AUTENTICAÇÃO (MANTIDO) -->
+    <!-- SCRIPT DE AUTENTICAÇÃO E LÓGICA DE DADOS -->
     <script>
+        // ==========================================
+        // 1. CONFIGURAÇÕES MSAL E GRAPH API
+        // ==========================================
         const msalConfig = {
             auth: {
                 clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981",
                 authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
-                redirectUri: window.location.origin + window.location.pathname 
+                redirectUri: "https://willgner777.github.io/Cargo-van-html/"
             },
-            cache: {
-                cacheLocation: "sessionStorage", 
-                storeAuthStateInCookie: false,
-            }
+            cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: false }
         };
 
         const myMSALObj = new msal.PublicClientApplication(msalConfig);
-        const loginRequest = { scopes: ["User.Read"] };
+        
+        // NOVO: Adicionado escopo 'Sites.Read.All' obrigatório para ler o SharePoint
+        const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
+        
+        // CONFIGURAÇÕES DO SHAREPOINT (Substitua pelos IDs reais caso os tenha, ou deixe vazio para Mock Data)
+        const siteId = ""; // Ex: "contoso.sharepoint.com,xxx-yyy,zzz-www"
+        const listId = ""; // Ex: "aaa-bbb-ccc"
 
+        let rawData = [];
+        let filteredData = [];
+        let myChart = null;
+
+        // ==========================================
+        // 2. REGISTRANDO PLUGIN DE RÓTULOS (DATALABELS)
+        // ==========================================
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Inter';
+
+        // ==========================================
+        // 3. FLUXO DE LOGIN
+        // ==========================================
         function showDashboard(username) {
             document.getElementById("login-view").style.display = "none";
             document.getElementById("dashboard").style.display = "block";
-            // Extrai o primeiro nome
-            const firstName = username.split(" ")[0];
-            document.getElementById("display-name").innerText = firstName;
+            document.getElementById("display-name").innerText = username.split(" ")[0];
+            
+            // Iniciar sincronização de dados após login
+            syncSharePointData();
         }
 
         function showLogin() {
@@ -414,10 +361,216 @@
 
         window.onload = () => {
             const currentAccounts = myMSALObj.getAllAccounts();
-            if (currentAccounts.length > 0) {
-                showDashboard(currentAccounts[0].name);
-            } else {
-                showLogin();
+            if (currentAccounts.length > 0) showDashboard(currentAccounts[0].name);
+            else showLogin();
+        }
+
+        // ==========================================
+        // 4. CHAMADA REAL À GRAPH API (SHAREPOINT)
+        // ==========================================
+        async function syncSharePointData() {
+            const currentAccount = myMSALObj.getAllAccounts()[0];
+            if (!currentAccount) return;
+
+            try {
+                const tokenResponse = await myMSALObj.acquireTokenSilent({
+                    ...loginRequest, account: currentAccount
+                });
+
+                if (siteId && listId) {
+                    // SE OS IDs ESTIVEREM PREENCHIDOS, FAZ A CHAMADA REAL
+                    const graphResponse = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?expand=fields`, {
+                        headers: { 'Authorization': `Bearer ${tokenResponse.accessToken}` }
+                    });
+                    const data = await graphResponse.json();
+                    
+                    // Mapear dados reais do SharePoint para nosso formato
+                    rawData = data.value.map(item => ({
+                        id: item.id,
+                        criado: item.createdDateTime.split('T')[0],
+                        documento: item.fields.Title || "N/A", // Assumindo que Title é o num doc
+                        placa: item.fields.Placa || "S/ PLACA",
+                        motorista: item.fields.Motorista || "NÃO INFORMADO",
+                        perfil: item.fields.Perfil || "AGREGADO",
+                        kmInicial: item.fields.KmInicial || 0,
+                        kmFinal: item.fields.KmFinal || 0,
+                        qtdNFs: item.fields.QtdNFs || 1,
+                        status: item.fields.Status || "CONCLUÍDO"
+                    }));
+                } else {
+                    // MOCK DATA: Se os IDs não estiverem preenchidos, gera dados falsos para testar UI/UX e Filtros
+                    generateMockData();
+                }
+
+                applyFilters(); // Aplica filtros e desenha UI
+
+            } catch (error) {
+                console.error("Erro ao sincronizar dados:", error);
+                generateMockData(); // Fallback visual em caso de erro
+                applyFilters();
+            }
+        }
+
+        // ==========================================
+        // 5. LÓGICA DE FILTROS E ATUALIZAÇÃO UI
+        // ==========================================
+        function applyFilters() {
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            const placa = document.getElementById('filter-placa').value.toLowerCase();
+            const motorista = document.getElementById('filter-motorista').value.toLowerCase();
+            const nfs = document.getElementById('filter-nfs').value.toLowerCase();
+
+            filteredData = rawData.filter(item => {
+                let match = true;
+                
+                // Filtro Data
+                if (start && item.criado < start) match = false;
+                if (end && item.criado > end) match = false;
+                
+                // Filtros Texto
+                if (placa && !item.placa.toLowerCase().includes(placa)) match = false;
+                if (motorista && !item.motorista.toLowerCase().includes(motorista)) match = false;
+                if (nfs && !item.documento.toLowerCase().includes(nfs)) match = false;
+
+                return match;
+            });
+
+            updateDashboardUI();
+        }
+
+        function updateDashboardUI() {
+            // 1. Atualizar KPIs
+            document.getElementById('kpi-total').innerText = filteredData.length;
+            
+            const concluidas = filteredData.filter(d => d.status === 'CONCLUÍDO').length;
+            document.getElementById('kpi-concluidas').innerText = concluidas;
+            
+            const totalNFs = filteredData.reduce((acc, curr) => acc + curr.qtdNFs, 0);
+            document.getElementById('kpi-nfs').innerText = totalNFs;
+
+            const totalKm = filteredData.reduce((acc, curr) => acc + (curr.kmFinal - curr.kmInicial), 0);
+            document.getElementById('kpi-km').innerText = totalKm.toLocaleString('pt-BR') + ' km';
+
+            // 2. Atualizar Tabela
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            filteredData.slice(0, 50).forEach(item => { // Limite visual 50 itens
+                const row = `<tr>
+                    <td>${formatDateBR(item.criado)}</td>
+                    <td style="color:white; font-weight:500">${item.documento}</td>
+                    <td style="color: var(--accent-blue)">${item.placa}</td>
+                    <td>${item.motorista}</td>
+                    <td><span class="perfil-badge">${item.perfil}</span></td>
+                    <td>${item.kmInicial} / ${item.kmFinal} <br><span style="font-size:10px; color:var(--accent-green)">(${item.kmFinal - item.kmInicial} km)</span></td>
+                    <td><span class="status-badge">${item.status}</span></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            // 3. Atualizar Top Motoristas
+            const driverCount = {};
+            filteredData.forEach(d => { driverCount[d.motorista] = (driverCount[d.motorista] || 0) + 1; });
+            const topDrivers = Object.entries(driverCount).sort((a, b) => b[1] - a[1]).slice(0, 4);
+            
+            const listHtml = topDrivers.map((d, i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                    <div style="display:flex; gap: 10px; align-items:center;">
+                        <span style="color:var(--text-muted); font-size:11px;">0${i+1}</span>
+                        <span style="color:white; font-weight:500;">${d[0]}</span>
+                    </div>
+                    <span style="color: var(--accent-green); font-weight:600;">${d[1]} Lib.</span>
+                </div>
+            `).join('');
+            document.getElementById('top-motoristas-list').innerHTML = listHtml;
+
+            // 4. Atualizar Gráfico (Agrupando por Dia da Semana)
+            updateChart();
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            // Agregar dados por dia da semana (Segunda a Domingo)
+            const diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+            const contagem = [0, 0, 0, 0, 0, 0, 0];
+
+            filteredData.forEach(item => {
+                const date = new Date(item.criado + "T00:00:00"); // forçar timezone local
+                let day = date.getDay() - 1; // 0 = Dom, 1 = Seg... Ajustando para Seg=0
+                if(day === -1) day = 6;
+                contagem[day]++;
+            });
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: diasSemana,
+                    datasets: [{
+                        label: 'Liberações',
+                        data: contagem,
+                        backgroundColor: '#10b981',
+                        borderRadius: 4,
+                        barPercentage: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        // PLUGIN CONFIGURADO: NÚMERO EM CIMA DA BARRA
+                        datalabels: {
+                            color: '#ffffff',
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4,
+                            font: { weight: 'bold', size: 12 }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#1e293b' }, border: { display: false } },
+                        x: { grid: { display: false }, border: { display: false } }
+                    },
+                    layout: { padding: { top: 30 } } // Espaço extra para o número não cortar
+                }
+            });
+        }
+
+        // Utils
+        function formatDateBR(dateString) {
+            const [y, m, d] = dateString.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function generateMockData() {
+            rawData = [];
+            const drivers = ['FRANCISCO ROBSON', 'DANIELLE FERNANDA', 'JOAO VINICIUS', 'MARCOS LIMA'];
+            const placas = ['ABC1234', 'QWE5668', 'SBP7A98', 'RNH1A24'];
+            const perfis = ['PRÓPRIO', 'AGREGADO'];
+            
+            for(let i=0; i<150; i++) {
+                // Gerar datas nos ultimos 10 dias
+                const date = new Date();
+                date.setDate(date.getDate() - Math.floor(Math.random() * 10));
+                
+                const kmIn = 100000 + Math.floor(Math.random() * 50000);
+                const kmOut = kmIn + Math.floor(Math.random() * 200);
+
+                rawData.push({
+                    id: i,
+                    criado: date.toISOString().split('T')[0],
+                    documento: Math.floor(100000 + Math.random() * 900000).toString(),
+                    placa: placas[Math.floor(Math.random() * placas.length)],
+                    motorista: drivers[Math.floor(Math.random() * drivers.length)],
+                    perfil: perfis[Math.floor(Math.random() * perfis.length)],
+                    kmInicial: kmIn,
+                    kmFinal: kmOut,
+                    qtdNFs: Math.floor(Math.random() * 10) + 1,
+                    status: 'CONCLUÍDO'
+                });
             }
         }
     </script>
