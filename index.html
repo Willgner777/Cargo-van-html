@@ -79,9 +79,10 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
     padding: 24px 0; z-index: 5;
 }
 .brand { padding: 0 24px 24px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #fff; border-bottom: 1px solid var(--border); }
-.brand span { color: var(--accent-blue); }
+.brand svg { width: 24px; height: 24px; fill: var(--accent-blue); }
 .sidebar-menu { padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 10px; transition: .2s; }
+.sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: .2s; cursor: pointer; }
+.sidebar-item svg { width: 18px; height: 18px; fill: currentColor; }
 .sidebar-item:hover, .sidebar-item.active { background: var(--bg-panel-hover); color: #fff; }
 .user-profile { padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
 .user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -101,7 +102,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 }
 .filter-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
 
-/* KPIs */
+/* KPIS */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
 .kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
 .kpi-card.highlight { background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; }
@@ -145,7 +146,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
         <h1 class="hero-text">A Logística Completa<br>na sua Mão.</h1>
         <p class="hero-subtext">Gerencie sua frota com controle, eficiência e dados oficiais do SharePoint em tempo real.</p>
         <button class="btn-connect" onclick="iniciarLogin()">
-            <svg class="icon" viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
             Conectar com Microsoft 365
         </button>
     </div>
@@ -154,17 +155,26 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 <!-- TELA DE CARREGAMENTO -->
 <div id="loading-screen">
     <div class="spinner"></div>
-    <div class="loading-text">Sincronizando dados com o SharePoint...</div>
+    <div class="loading-text" id="loading-msg">Sincronizando dados com o SharePoint...</div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard">
     <div class="layout">
         <aside class="sidebar">
-            <div class="brand"><span>⚡</span> FleetAnalytics</div>
+            <div class="brand">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                FleetAnalytics
+            </div>
             <div class="sidebar-menu">
-                <a href="#" class="sidebar-item active">📊 Visão Geral</a>
-                <a href="#" class="sidebar-item" onclick="syncSharePointData()">🔄 Sincronizar Dados</a>
+                <a href="#" class="sidebar-item active">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Visão Geral
+                </a>
+                <a class="sidebar-item" onclick="syncSharePointData()">
+                    <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                    Sincronizar Dados
+                </a>
             </div>
             <div class="user-profile">
                 <div class="user-name" id="display-name">Carregando...</div>
@@ -172,7 +182,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
         </aside>
         
         <main class="main-content">
-            <!-- BARRA DE FILTROS OTIMIZADA -->
+            <!-- BARRA DE FILTROS -->
             <div class="filter-bar">
                 <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
                 <div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
@@ -278,6 +288,9 @@ async function syncSharePointData(account) {
     if(!account) account = myMSALObj.getAllAccounts()[0];
     if(!account) { iniciarLogin(); return; }
 
+    document.getElementById("loading-screen").style.display = "flex";
+    document.getElementById("loading-msg").innerText = "Sincronizando dados com o SharePoint...";
+
     try {
         const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
         let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
@@ -297,12 +310,18 @@ async function syncSharePointData(account) {
             rawData = all.map(it => {
                 const f = it.fields || {};
                 const perfilStr = String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
+                
+                // Limpeza rigorosa para evitar valores absurdos ou misturados com ID de documento
+                let qNfs = Number(f.QNTDDEENTREGA || 0);
+                if(qNfs > 500) qNfs = Number(f.QTDENTREGASFINALIZADAS || 0);
+                if(qNfs > 500) qNfs = 0;
+
                 return {
                     id: it.id,
                     criado: (f.Created || new Date().toISOString()).split('T')[0],
-                    documento: String(f.N_x00ba_DOCUMENTO || 'N/A'),
+                    documento: String(f.N_x00ba_DOCUMENTO || 'N/A'), // Tratado estritamente como String/Texto
                     motorista: padronizarNome(f.NOME),
-                    qtdNFs: Number(f.QNTDDEENTREGA || 0),
+                    qtdNFs: qNfs,
                     kmInicial: Number(f.KMINICIAL || 0),
                     kmFinal: Number(f.KMFINAL || 0),
                     kmRodados: Number(f.KMRODADOS || 0),
@@ -313,7 +332,7 @@ async function syncSharePointData(account) {
                 };
             });
             popularFiltrosDinamicos();
-            showToast(`✅ ${all.length} registros sincronizados!`);
+            showToast(`✅ ${all.length} registros sincronizados com sucesso!`);
         }
     } catch(e) {
         console.error(e);
