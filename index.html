@@ -3,276 +3,530 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FleetAnalytics PRO - Cargo Van Elite</title>
+<title>Cargo Van Express - Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <style>
-:root{
---bg-base:#070b14;--bg-panel:#0f1524;--bg-panel-hover:#141c30;--bg-glass:rgba(15,21,36,.7);
---text-main:#e6edf3;--text-muted:#8b9bb8;--accent-blue:#3b82f6;--accent-blue-dark:#2563eb;
---accent-green:#10b981;--accent-warning:#f59e0b;--accent-purple:#8b5cf6;--border:#1e293b;
---radius:14px;--shadow:0 10px 30px rgba(0,0,0,.35);
+:root {
+    --bg-base: #070b14;
+    --bg-panel: #0f1524;
+    --bg-panel-hover: #141c30;
+    --bg-glass: rgba(15,21,36,.7);
+    --text-main: #e6edf3;
+    --text-muted: #8b9bb8;
+    --accent-blue: #3b82f6;
+    --accent-blue-dark: #2563eb;
+    --accent-green: #10b981;
+    --accent-warning: #f59e0b;
+    --accent-purple: #8b5cf6;
+    --accent-red: #ef4444;
+    --border: #1e293b;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    
+    /* Cores do Login (Inspirado na imagem) */
+    --login-bg: #163C92;
+    --login-red: #FF3B30;
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-body{background:radial-gradient(1200px 600px at 20% -10%,#111b2e 0%,transparent 60%),radial-gradient(800px 400px at 90% 0%,#1a1f35 0%,transparent 55%),var(--bg-base);color:var(--text-main);overflow-x:hidden}
-.icon{width:18px;height:18px;fill:currentColor}
-#login-view{display:flex;align-items:center;justify-content:center;height:100vh;background:radial-gradient(circle at center,#131927 0%,#090e17 100%)}
-.login-box{background:var(--bg-panel);padding:48px 40px;border-radius:var(--radius);border:1px solid var(--border);text-align:center;box-shadow:var(--shadow);backdrop-filter:blur(12px);max-width:420px}
-.login-box h1{font-size:28px;color:var(--accent-blue);margin-bottom:8px;font-weight:800;letter-spacing:.2px}
-.login-box p{color:var(--text-muted);margin-bottom:32px;font-size:14px}
-.btn-primary{background:linear-gradient(135deg,var(--accent-blue-dark),var(--accent-blue));color:#fff;border:none;padding:14px 26px;font-size:14px;font-weight:700;border-radius:10px;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:10px;box-shadow:0 6px 16px rgba(59,130,246,.35)}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(59,130,246,.45)}
-#dashboard{display:none;height:100vh}
-.layout{display:flex;height:100%}
-.sidebar{width:280px;background:linear-gradient(180deg,rgba(15,21,36,.9),rgba(15,21,36,.6));border-right:1px solid var(--border);display:flex;flex-direction:column;padding:26px 0;position:sticky;top:0;height:100vh;backdrop-filter:blur(10px)}
-.brand{padding:0 26px 32px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:10px}
-.brand-badge{font-size:10px;border:1px solid var(--accent-blue);color:var(--accent-blue);padding:3px 8px;border-radius:999px;font-weight:700;background:rgba(59,130,246,.08)}
-.nav-section{font-size:11px;color:var(--text-muted);letter-spacing:1.2px;padding:0 26px 12px;text-transform:uppercase;font-weight:700}
-.nav-item{padding:12px 26px;margin:4px 14px;border-radius:10px;color:var(--text-muted);font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s}
-.nav-item:hover{background:var(--bg-panel-hover);color:var(--text-main)}
-.nav-item.active{background:rgba(59,130,246,.12);color:var(--accent-blue);border-left:3px solid var(--accent-blue)}
-.user-profile{margin-top:auto;padding:18px 26px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.15)}
-.user-name{font-size:13px;font-weight:700}
-.user-role{font-size:11px;color:var(--text-muted)}
-.btn-logout{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;transition:.2s}
-.btn-logout:hover{border-color:var(--accent-blue);color:var(--accent-blue)}
-.main-content{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding:28px 32px;gap:22px}
-.filter-bar{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:4px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(10px)}
-.filter-group{display:flex;flex-direction:column;gap:6px}
-.filter-group label{font-size:11px;color:var(--accent-blue);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.filter-input{background:rgba(7,11,20,.7);border:1px solid var(--border);color:var(--text-main);padding:9px 12px;border-radius:8px;font-size:13px;outline:none;transition:.2s}
-.filter-input:focus{border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
-.btn-sync{background:linear-gradient(135deg,var(--accent-blue-dark),var(--accent-blue));color:#fff;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;margin-left:auto;display:flex;align-items:center;gap:8px;transition:.25s;box-shadow:0 6px 16px rgba(59,130,246,.3)}
-.btn-sync:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(59,130,246,.45)}
-.btn-sync.syncing{opacity:.7;pointer-events:none}
-#debug-panel{background:#0b1120;border:1px dashed var(--accent-purple);padding:12px 16px;border-radius:10px;margin-bottom:10px;font-family:ui-monospace,monospace;font-size:11px;color:#cbd5e1;display:none}
-.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
-@media(max-width:1400px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:640px){.kpi-grid{grid-template-columns:1fr}}
-.kpi-card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;transition:.25s;position:relative;overflow:hidden}
-.kpi-card:hover{transform:translateY(-2px);border-color:#2a3a5a;box-shadow:0 12px 30px rgba(0,0,0,.35)}
-.kpi-card.highlight{background:linear-gradient(135deg,#1f3a8a,#2563eb);border:none;color:#fff}
-.kpi-title{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:700}
-.highlight .kpi-title{color:rgba(255,255,255,.85)}
-.kpi-value{font-size:28px;font-weight:800;letter-spacing:.2px}
-.kpi-sub{font-size:11px;color:var(--text-muted)}
-.highlight .kpi-sub{color:rgba(255,255,255,.9)}
-.content-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
-.content-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:1200px){.content-grid{grid-template-columns:1fr}.content-grid-3{grid-template-columns:1fr 1fr} }
-@media(max-width:800px){.content-grid-3{grid-template-columns:1fr}}
-.panel{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.2)}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.panel-title{font-size:15px;font-weight:700;letter-spacing:.2px}
-.badge{background:rgba(16,185,129,.12);color:var(--accent-green);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid rgba(16,185,129,.25)}
-.chart-container{position:relative;height:280px;width:100%}
-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-th{color:var(--text-muted);padding:12px;border-bottom:1px solid var(--border);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.4px;position:sticky;top:0;background:var(--bg-panel)}
-td{padding:14px 12px;border-bottom:1px solid rgba(30,41,59,.5);color:#cbd5e1;vertical-align:middle}
-tr:hover td{background:rgba(255,255,255,.02)}
-.status-badge{border:1px solid var(--accent-green);color:var(--accent-green);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(16,185,129,.08)}
-.perfil-badge{background:rgba(59,130,246,.1);border:1px solid var(--accent-blue);color:var(--accent-blue);padding:3px 9px;border-radius:6px;font-size:10.5px;font-weight:700}
-.perfil-agregado{background:rgba(139,92,246,.1);border-color:var(--accent-purple);color:var(--accent-purple)}
-.operacao-badge{background:rgba(251,191,36,.1);border:1px solid var(--accent-warning);color:var(--accent-warning);padding:3px 9px;border-radius:6px;font-size:10.5px;font-weight:600}
-#toast{position:fixed;bottom:20px;right:20px;background:#0f172a;border:1px solid var(--border);color:#e2e8f0;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.3s;z-index:9999}
-#toast.show{opacity:1;transform:translateY(0)}
-::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-thumb{background:#1e293b;border-radius:8px}
-::-webkit-scrollbar-track{background:transparent}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+/* =========================================
+   TELA DE LOGIN (Baseada na image_9ab9a5.jpg)
+   ========================================= */
+#login-view {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--login-bg);
+    padding: 10%;
+    position: relative;
+    overflow: hidden;
+    z-index: 10;
+}
+
+#login-view::before, #login-view::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    z-index: 0;
+}
+#login-view::before { width: 800px; height: 800px; top: -200px; right: -200px; }
+#login-view::after { width: 400px; height: 400px; bottom: -100px; right: 20%; }
+
+.login-content { position: relative; z-index: 1; max-width: 800px; }
+.brand-title { color: #FFFFFF; font-size: 2.5rem; font-weight: 800; letter-spacing: 2px; margin-bottom: 2px; }
+.brand-subtitle { color: var(--login-red); font-size: 1rem; font-weight: 800; letter-spacing: 5px; margin-bottom: 60px; text-transform: uppercase; }
+.hero-text { color: #FFFFFF; font-size: 3.5rem; font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+.hero-subtext { color: #A5C0FA; font-size: 1.2rem; margin-bottom: 50px; font-weight: 500; }
+
+.btn-connect {
+    background-color: #FFFFFF;
+    color: var(--login-bg);
+    padding: 16px 36px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.btn-connect:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.25); background-color: #f8f9fa; }
+
+/* =========================================
+   TELA DE CARREGAMENTO (UI/UX)
+   ========================================= */
+#loading-screen {
+    display: none;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--bg-base);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    position: fixed;
+    top: 0; left: 0;
+}
+
+.spinner {
+    width: 65px;
+    height: 65px;
+    border: 4px solid rgba(59, 130, 246, 0.15);
+    border-left-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 24px;
+}
+.loading-text { color: var(--text-main); font-size: 1.2rem; font-weight: 600; animation: pulse 1.5s infinite ease-in-out; letter-spacing: 0.5px; }
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* =========================================
+   DASHBOARD PRINCIPAL
+   ========================================= */
+#dashboard { display: none; height: 100vh; }
+.layout { display: flex; height: 100%; }
+
+/* Sidebar Limpa */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, rgba(15,21,36,.9), rgba(15,21,36,.6));
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 26px 0;
+    backdrop-filter: blur(10px);
+}
+.brand { padding: 0 26px 32px; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; color: #fff; }
+.user-profile { margin-top: auto; padding: 20px 26px; border-top: 1px solid var(--border); background: rgba(0,0,0,.15); }
+.user-name { font-size: 14px; font-weight: 700; color: #fff; }
+
+.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 28px 32px; gap: 22px; background: radial-gradient(1200px 600px at 20% -10%, #111b2e 0%, transparent 60%), var(--bg-base); }
+
+/* Filtros */
+.filter-bar { background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; backdrop-filter: blur(10px); }
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-group label { font-size: 11px; color: var(--accent-blue); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+.filter-input { background: rgba(7,11,20,.7); border: 1px solid var(--border); color: var(--text-main); padding: 9px 12px; border-radius: 8px; font-size: 13px; outline: none; transition: .2s; }
+.filter-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+
+/* KPIs */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px; transition: .25s; }
+.kpi-card:hover { transform: translateY(-3px); border-color: #2a3a5a; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+.kpi-card.highlight { background: linear-gradient(135deg, #1f3a8a, #2563eb); border: none; }
+.kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); font-weight: 700; }
+.highlight .kpi-title, .highlight .kpi-sub { color: rgba(255,255,255,.85); }
+.kpi-value { font-size: 28px; font-weight: 800; letter-spacing: .2px; color: #fff; }
+.kpi-sub { font-size: 11px; color: var(--text-muted); }
+
+/* Painéis e Gráficos */
+.content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+.content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media(max-width:1200px) { .content-grid, .content-grid-3 { grid-template-columns: 1fr; } }
+
+.panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.panel-title { font-size: 15px; font-weight: 700; color: #fff; }
+.chart-container { position: relative; height: 280px; width: 100%; }
+
+/* Progress Bars (Status) */
+.progress-container { display: flex; flex-direction: column; gap: 18px; margin-top: 10px; }
+.progress-item { display: flex; flex-direction: column; gap: 8px; }
+.progress-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+.progress-bar-bg { width: 100%; height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 10px; transition: width 1s ease-in-out; }
+
+/* Tabela */
+.table-container { overflow-x: auto; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+th { color: var(--text-muted); padding: 14px 12px; border-bottom: 1px solid var(--border); font-weight: 700; text-transform: uppercase; font-size: 11px; text-align: left; }
+td { padding: 14px 12px; border-bottom: 1px solid rgba(30,41,59,.5); color: #cbd5e1; vertical-align: middle; }
+.status-badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+
+#toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
+#toast.show { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
+
+<!-- TELA DE LOGIN -->
 <div id="login-view">
-<div class="login-box">
-<h1>FleetAnalytics PRO</h1>
-<p>Conexão Direta & Fiel ao SharePoint • CARGOVAN</p>
-<button class="btn-primary" onclick="signIn()">Entrar com Microsoft 365</button>
-</div>
+    <div class="login-content">
+        <div class="brand-title">CARGO VAN</div>
+        <div class="brand-subtitle">EXPRESS</div>
+        
+        <h1 class="hero-text">A Logística Completa<br>na sua Mão.</h1>
+        <p class="hero-subtext">Gerencie sua frota com controle, eficiência e dados oficiais do SharePoint em tempo real.</p>
+        
+        <button class="btn-connect" onclick="iniciarLogin()">
+            <svg class="icon" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Conectar com Microsoft 365
+        </button>
+    </div>
 </div>
 
+<!-- TELA DE CARREGAMENTO -->
+<div id="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-text">Sincronizando dados com o SharePoint...</div>
+</div>
+
+<!-- DASHBOARD -->
 <div id="dashboard">
-<div class="layout">
-<aside class="sidebar">
-<div class="brand">FleetAnalytics <span class="brand-badge">ELITE</span></div>
-<div class="nav-section">Operacional</div>
-<div class="nav-item active">Liberação de Veículos</div>
-<div class="user-profile">
-<div class="user-info">
-<div class="user-name" id="display-name">Carregando...</div>
-<div class="user-role">Conectado ao SharePoint</div>
-</div>
-<button class="btn-logout" onclick="signOut()">Sair</button>
-</div>
-</aside>
-<main class="main-content">
-<div id="debug-panel"><strong>🔍 Diagnóstico do SharePoint</strong><div id="debug-content" style="margin-top:6px;white-space:pre-wrap"></div></div>
-<div class="filter-bar">
-<div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
-<div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
-<div class="filter-group"><label>Placa</label><input type="text" id="filter-placa" class="filter-input" placeholder="Placa"></div>
-<div class="filter-group"><label>Motorista</label><input type="text" id="filter-motorista" class="filter-input" placeholder="Motorista"></div>
-<button class="btn-sync" id="sync-btn" onclick="syncSharePointData()">Sincronizar SharePoint</button>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">FleetAnalytics</div>
+            <div class="user-profile">
+                <div class="user-name" id="display-name">Carregando...</div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <div class="filter-bar">
+                <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
+                <div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
+                <div class="filter-group"><label>Operação/Cliente</label><input type="text" id="filter-operacao" class="filter-input" placeholder="Buscar Cliente"></div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card highlight"><div class="kpi-title">Total Entregas</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Registros Oficiais</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">NFs Faturadas</div><div class="kpi-value" id="kpi-nfs">0</div><div class="kpi-sub">Volume Total</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Frota Própria</div><div class="kpi-value" id="kpi-proprio">0</div><div class="kpi-sub">Veículos Ativos</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">Veículos Terceiros</div></div>
+            </div>
+
+            <div class="content-grid-3">
+                <!-- Gráfico de Linha Suave com Loop -->
+                <div class="panel" style="grid-column: span 2;">
+                    <div class="panel-header"><div class="panel-title">Evolução de Entregas (NFs)</div></div>
+                    <div class="chart-container"><canvas id="lineChart"></canvas></div>
+                </div>
+                
+                <!-- Status Progress Bars -->
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Status Operacional</div></div>
+                    <div class="progress-container" id="status-progress">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <!-- Gráfico de Barras Arredondadas -->
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Volume por Cliente / Operação</div></div>
+                    <div class="chart-container"><canvas id="barChart"></canvas></div>
+                </div>
+                
+                <!-- Gráfico Polar (Pizza UI) -->
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Mix de Frota (Próprio vs Agregado)</div></div>
+                    <div class="chart-container"><canvas id="polarChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:12px;color:var(--text-muted);"></span></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Documento</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Ini/Fin)</th><th>NFs</th><th>Status</th></tr></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
 </div>
 
-<div class="kpi-grid">
-<div class="kpi-card highlight"><div class="kpi-title">Total de Registros</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Base LIBERACAO_VEICULO</div></div>
-<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">Concluídas</div><div class="kpi-value" id="kpi-concluidas">0</div><div class="kpi-sub">Status Ativo</div></div>
-<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Frota Própria</div><div class="kpi-value" id="kpi-proprio">0</div><div class="kpi-sub">Veículos Próprios</div></div>
-<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Frota Agregada</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">Veículos Agregados</div></div>
-<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-warning)">NFs / KM</div><div class="kpi-value" id="kpi-nfs">0 NFs</div><div class="kpi-sub" id="kpi-km">0 km rodados</div></div>
-</div>
-
-<div class="content-grid-3">
-<div class="panel">
-<div class="panel-header"><div class="panel-title">Evolução de Entregas</div><div class="badge">7 dias</div></div>
-<div class="chart-container"><canvas id="lineChart"></canvas></div>
-</div>
-<div class="panel">
-<div class="panel-header"><div class="panel-title">Perfil de Frota</div><div class="badge">Mix</div></div>
-<div class="chart-container"><canvas id="doughnutChart"></canvas></div>
-</div>
-<div class="panel">
-<div class="panel-header"><div class="panel-title">Top Motoristas</div></div>
-<div id="top-motoristas-list" style="display:flex;flex-direction:column;gap:12px;font-size:13px;overflow-y:auto;max-height:260px"></div>
-</div>
-</div>
-
-<div class="content-grid">
-<div class="panel">
-<div class="panel-header"><div class="panel-title">Liberações por Dia da Semana</div><div class="badge">Base Real</div></div>
-<div class="chart-container"><canvas id="barChart"></canvas></div>
-</div>
-<div class="panel">
-<div class="panel-header"><div class="panel-title">Ranking de Operações / Clientes</div></div>
-<div id="operacoes-list" style="display:flex;flex-direction:column;gap:12px;font-size:13px;overflow-y:auto;max-height:260px"></div>
-</div>
-</div>
-
-<div class="panel">
-<div class="panel-header"><div class="panel-title">Registros Oficiais do SharePoint</div><div class="badge" id="table-count">Exibindo 0 registros</div></div>
-<div class="table-container"><table><thead><tr><th>Data / Documento</th><th>Placa</th><th>Motorista</th><th>Perfil</th><th>KM Inicial / Final</th><th>NFs</th><th>Operação / Cliente</th><th>Status</th></tr></thead><tbody id="table-body"></tbody></table></div>
-</div>
-</main>
-</div>
-</div>
 <div id="toast"></div>
+
 <script>
-const msalConfig={auth:{clientId:"3b29c3bc-e828-4835-a7bf-1f035ae7c981",authority:"https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage"}};
-const myMSALObj=new msal.PublicClientApplication(msalConfig);
-const loginRequest={scopes:["User.Read","Sites.Read.All"]};
-let rawData=[],filteredData=[],lineChartInstance=null,doughnutChartInstance=null,barChartInstance=null;
+// Configurações do Microsoft Authentication Library (MSAL)
+const msalConfig = {
+    auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.origin + window.location.pathname },
+    cache: { cacheLocation: "sessionStorage" }
+};
+const myMSALObj = new msal.PublicClientApplication(msalConfig);
+const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
+
+let rawData = [], filteredData = [];
+let lineChartInstance = null, barChartInstance = null, polarChartInstance = null;
+
+// Configurações Globais do Chart.js para design moderno
 Chart.register(ChartDataLabels);
-Chart.defaults.color='#94a3b8';Chart.defaults.font.family='Inter';
+Chart.defaults.color = '#8b9bb8';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.plugins.tooltip.backgroundColor = '#0f172a';
+Chart.defaults.plugins.tooltip.padding = 12;
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+Chart.defaults.scale.grid.color = 'rgba(30, 41, 59, 0.5)';
 
-function showDashboard(name){document.getElementById("login-view").style.display="none";document.getElementById("dashboard").style.display="block";document.getElementById("display-name").innerText=name.split(" ")[0];syncSharePointData();}
-function showLogin(){document.getElementById("login-view").style.display="flex";document.getElementById("dashboard").style.display="none";}
-function signIn(){myMSALObj.loginPopup(loginRequest).then(r=>showDashboard(r.account.name)).catch(e=>console.error(e));}
-function signOut(){myMSALObj.logoutPopup({account:myMSALObj.getAllAccounts()[0]}).then(()=>showLogin());}
-function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
-function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
-
-function normalizeSharePointKey(k){return String(k).toLowerCase().replace(/_x0020_/g,' ').replace(/_x003a_/g,':').replace(/_x0026_/g,'&').replace(/_x002D_/g,'-');}
-function getField(fields,keys){if(!fields)return null;for(let key of keys){const f=Object.keys(fields).find(k=>k.toLowerCase()===key.toLowerCase());if(f&&fields[f]!=null)return fields[f];}
-for(let key of keys){const nk=normalizeSharePointKey(key);const f=Object.keys(fields).find(k=>normalizeSharePointKey(k)===nk);if(f&&fields[f]!=null)return fields[f];}
-const lowerKeys=keys.map(k=>k.toLowerCase());Object.keys(fields).forEach(k=>{const lk=k.toLowerCase();lowerKeys.forEach(lk2=>{if(lk.includes(lk2)||lk2.includes(lk))return fields[k];})});return null;}
-
-async function syncSharePointData(){
-const account=myMSALObj.getAllAccounts()[0];if(!account)return;
-const btn=document.getElementById('sync-btn');btn.classList.add('syncing');btn.innerHTML='Sincronizando...';
-try{
-const token=await myMSALObj.acquireTokenSilent({...loginRequest,account});
-let url=`https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
-let all=[];let pages=0;const maxPages=20;
-while(url&&pages<maxPages){pages++;const res=await fetch(url,{headers:{'Authorization':`Bearer ${token.accessToken}`}});
-if(res.status===429){const r=res.headers.get('Retry-After')||'30';await new Promise(r=>setTimeout(r,parseInt(r)*1000));continue;}
-if(!res.ok){const err=await res.text();throw new Error(`Graph ${res.status}: ${err}`);}
-const data=await res.json();if(data.value)all=all.concat(data.value);url=data['@odata.nextLink']||null;}
-if(all.length){document.getElementById('debug-panel').style.display='block';document.getElementById('debug-content').innerText=JSON.stringify(all[0].fields,null,2);
-rawData=all.map(it=>{const f=it.fields||{};return{id:it.id,criado:(f.Created||it.createdDateTime||new Date().toISOString()).split('T')[0],documento:getField(f,['Title','N_x00fa_Documento','Documento','NumeroDocumento','NFe'])||'N/A',placa:getField(f,['Placa','Veiculo','Vehicle'])||'S/ PLACA',motorista:getField(f,['Motorista','Driver','Condutor','Motorista1'])||'NÃO INFORMADO',perfil:String(getField(f,['Perfil','Vinculo','TipoFrota'])||'PRÓPRIO').toUpperCase(),kmInicial:Number(getField(f,['KmInicial','KM_x0020_Inicial','Km_Inicial','KMIniciado'])||0),kmFinal:Number(getField(f,['KmFinal','KM_x0020_Final','Km_Final','KMFinalizado'])||0),qtdNFs:Number(getField(f,['QtdNFs','Qtd_x0020_NFs','QuantidadeNFs','NFs'])||1),operacao:getField(f,['ClienteOperacao','Operacao','Cliente','Cliente_x0020_Operacao'])||'OPERAÇÃO GERAL',status:String(getField(f,['Status','Situacao'])||'CONCLUÍDO').toUpperCase()};});const ts=new Date().toISOString();sessionStorage.setItem('cargo_van_real_data',JSON.stringify({data:rawData,syncTime:ts}));localStorage.setItem('cargo_van_real_data_cache',JSON.stringify({data:rawData,syncTime:ts}));showToast(`✅ ${all.length} registros sincronizados`);}else{rawData=[];showToast('Lista vazia no SharePoint','info');}
-}catch(e){console.error(e);showToast('Erro ao sincronizar: '+e.message,'info');const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;showToast(`Usando cache (${rawData.length} registros)`);}}}
-finally{btn.classList.remove('syncing');btn.innerHTML='Sincronizar SharePoint';applyFilters();}}
-
-window.onload=()=>{const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;console.log('Cache carregado',rawData.length);} }const acc=myMSALObj.getAllAccounts();if(acc.length>0)showDashboard(acc[0].name);else showLogin();document.getElementById('filter-start').addEventListener('change',applyFilters);document.getElementById('filter-end').addEventListener('change',applyFilters);document.getElementById('filter-placa').addEventListener('keyup',debounce(applyFilters,300));document.getElementById('filter-motorista').addEventListener('keyup',debounce(applyFilters,300));};
-
-function applyFilters(){const s=document.getElementById('filter-start').value;const e=document.getElementById('filter-end').value;const p=document.getElementById('filter-placa').value.toLowerCase();const m=document.getElementById('filter-motorista').value.toLowerCase();filteredData=rawData.filter(it=>{let ok=true;if(s&&it.criado<s)ok=false;if(e&&it.criado>e)ok=false;if(p&&!it.placa.toLowerCase().includes(p))ok=false;if(m&&!it.motorista.toLowerCase().includes(m))ok=false;return ok;});updateDashboardUI();}
-
-function formatDateBR(d){const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
-
-function updateDashboardUI(){
-  document.getElementById('kpi-total').innerText=filteredData.length.toLocaleString('pt-BR');
-  document.getElementById('kpi-concluidas').innerText=filteredData.filter(d=>/CONCLU|ATIV/i.test(d.status)).length.toLocaleString('pt-BR');
-  
-  const proprios=filteredData.filter(d=>/PRÓPR|PROPRIO/i.test(d.perfil)).length;
-  const agregados=filteredData.filter(d=>/AGREG|TERC/i.test(d.perfil)).length;
-  document.getElementById('kpi-proprio').innerText=proprios.toLocaleString('pt-BR');
-  document.getElementById('kpi-agregado').innerText=agregados.toLocaleString('pt-BR');
-  
-  const totalNFs=filteredData.reduce((a,c)=>a+c.qtdNFs,0);
-  document.getElementById('kpi-nfs').innerText=`${totalNFs.toLocaleString('pt-BR')} NFs`;
-  
-  const totalKm=filteredData.reduce((a,c)=>a+Math.max(0,c.kmFinal-c.kmInicial),0);
-  document.getElementById('kpi-km').innerText=`${totalKm.toLocaleString('pt-BR')} km`;
-  
-  const tbody=document.getElementById('table-body');
-  tbody.innerHTML='';
-  document.getElementById('table-count').innerText=`Exibindo ${Math.min(filteredData.length,100)} de ${filteredData.length} registros`;
-  
-  filteredData.slice(0,100).forEach(it=>{
-    const km=Math.max(0,it.kmFinal-it.kmInicial);
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td><span style="color:white;font-weight:700">${it.documento}</span><br><span style="font-size:10px;color:var(--text-muted)">${formatDateBR(it.criado)}</span></td><td style="color:var(--accent-blue);font-weight:700">${it.placa}</td><td>${it.motorista}</td><td><span class="perfil-badge ${/AGREG/i.test(it.perfil)?'perfil-agregado':''}">${it.perfil}</span></td><td>${it.kmInicial.toLocaleString('pt-BR')}/${it.kmFinal.toLocaleString('pt-BR')}<br><span style="font-size:10px;color:var(--accent-green)">(${km} km)</span></td><td style="font-weight:700">${it.qtdNFs} NFs</td><td><span class="operacao-badge">${it.operacao}</span></td><td><span class="status-badge">${it.status}</span></td>`;
-    tbody.appendChild(tr);
-  });
-  
-  // Ranking de Motoristas
-  const driver={};
-  filteredData.forEach(d=>{driver[d.motorista]=(driver[d.motorista]||0)+1;});
-  const sortedDrivers=Object.entries(driver).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const driverListEl=document.getElementById('top-motoristas-list');
-  driverListEl.innerHTML=sortedDrivers.length?sortedDrivers.map(([name,val])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px"><span style="font-weight:600">${name}</span><span class="badge">${val} viagens</span></div>`).join(''):'<div style="color:var(--text-muted);text-align:center">Nenhum dado</div>';
-
-  // Ranking de Operações
-  const ops={};
-  filteredData.forEach(d=>{ops[d.operacao]=(ops[d.operacao]||0)+1;});
-  const sortedOps=Object.entries(ops).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const opsListEl=document.getElementById('operacoes-list');
-  opsListEl.innerHTML=sortedOps.length?sortedOps.map(([name,val])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px"><span style="font-weight:600">${name}</span><span class="badge" style="background:rgba(251,191,36,.1);color:var(--accent-warning);border-color:rgba(251,191,36,.25)">${val} reg.</span></div>`).join(''):'<div style="color:var(--text-muted);text-align:center">Nenhum dado</div>';
-
-  updateCharts(proprios, agregados);
+function iniciarLogin() {
+    // Esconde a view de login e mostra o loading de imediato
+    document.getElementById("login-view").style.display = "none";
+    document.getElementById("loading-screen").style.display = "flex";
+    
+    myMSALObj.loginPopup(loginRequest)
+        .then(response => {
+            document.getElementById("display-name").innerText = response.account.name;
+            syncSharePointData(response.account);
+        })
+        .catch(error => {
+            console.error(error);
+            document.getElementById("loading-screen").style.display = "none";
+            document.getElementById("login-view").style.display = "flex";
+            showToast("Erro ao conectar. Tente novamente.");
+        });
 }
 
-function updateCharts(proprios,agregados){
-  const map={};
-  filteredData.forEach(d=>{map[d.criado]=(map[d.criado]||0)+1;});
-  const dates=Object.keys(map).sort();
-  const vals=dates.map(d=>map[d]);
-  const fmt=dates.map(d=>formatDateBR(d)).slice(-14);
-  const vals7=vals.slice(-14);
-  
-  const ctxL=document.getElementById('lineChart').getContext('2d');
-  if(lineChartInstance)lineChartInstance.destroy();
-  const gradL=ctxL.createLinearGradient(0,0,0,280);
-  gradL.addColorStop(0,'rgba(59,130,246,.35)');
-  gradL.addColorStop(1,'rgba(59,130,246,0)');
-  lineChartInstance=new Chart(ctxL,{type:'line',data:{labels:fmt,datasets:[{data:vals7,borderColor:'#3b82f6',backgroundColor:gradL,fill:true,tension:.42,borderWidth:2.5,pointRadius:0,pointHoverRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',titleColor:'#e2e8f0',bodyColor:'#cbd5e1'}}},scales:{x:{grid:{display:false},ticks:{maxRotation:0}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
 
-  const ctxD=document.getElementById('doughnutChart').getContext('2d');
-  if(doughnutChartInstance)doughnutChartInstance.destroy();
-  doughnutChartInstance=new Chart(ctxD,{type:'doughnut',data:{labels:['Próprio','Agregado'],datasets:[{data:[proprios,agregados],backgroundColor:['#3b82f6','#8b5cf6'],borderWidth:0,hoverOffset:12}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}},tooltip:{backgroundColor:'#0f172a'}}}});
+// ---------------------------------------------------------
+// SINCRONIZAÇÃO FIDEDIGNA COM SHAREPOINT (Nomes Reais)
+// ---------------------------------------------------------
+async function syncSharePointData(account) {
+    try {
+        const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+        let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
+        let all = []; 
+        let pages = 0; 
+        
+        while(url && pages < 10) {
+            pages++;
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
+            if (!res.ok) throw new Error(`Graph Erro: ${res.status}`);
+            const data = await res.json();
+            if (data.value) all = all.concat(data.value);
+            url = data['@odata.nextLink'] || null;
+        }
 
-  const dias=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-  const cnt=[0,0,0,0,0,0,0];
-  filteredData.forEach(it=>{let day=new Date(it.criado+'T00:00:00').getDay()-1;if(day===-1)day=6;cnt[day]++;});
-  
-  const ctxB=document.getElementById('barChart').getContext('2d');
-  if(barChartInstance)barChartInstance.destroy();
-  const gradB=ctxB.createLinearGradient(0,0,0,280);
-  gradB.addColorStop(0,'#22c55e');
-  gradB.addColorStop(1,'#16a34a');
-  barChartInstance=new Chart(ctxB,{type:'bar',data:{labels:dias,datasets:[{data:cnt,backgroundColor:gradB,borderRadius:8,barPercentage:.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:true,color:'#fff',anchor:'end',align:'top',formatter:v=>v},tooltip:{backgroundColor:'#0f172a'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
+        if (all.length > 0) {
+            // Mapeamento EXATO usando as chaves fornecidas
+            rawData = all.map(it => {
+                const f = it.fields || {};
+                return {
+                    id: it.id,
+                    criado: (f.Created || new Date().toISOString()).split('T')[0],
+                    documento: f.N_x00ba_DOCUMENTO || 'N/A',
+                    motorista: f.NOME || 'NÃO INFORMADO',
+                    qtdNFs: Number(f.QNTDDEENTREGA || 0),
+                    kmInicial: Number(f.KMINICIAL || 0),
+                    kmFinal: Number(f.KMFINAL || 0),
+                    kmRodados: Number(f.KMRODADOS || 0),
+                    status: String(f.STATUS || 'CONCLUÍDO').toUpperCase(),
+                    perfil: String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase(),
+                    operacao: f.CLIENTE_x007c_OPERA_x00c7__x00c3 || 'NÃO INFORMADA',
+                    faturado: f.FATURADO_x0028_SIM_x002f_N_x00c3 || 'NÃO'
+                };
+            });
+            showToast(`✅ ${all.length} registros processados do SharePoint`);
+        } else {
+            rawData = [];
+        }
+    } catch(e) {
+        console.error(e);
+        showToast('Falha na sincronização. Mostrando dados em branco.');
+    } finally {
+        // Transição: Remove o Loading e mostra o Dashboard
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        applyFilters();
+    }
+}
+
+// ---------------------------------------------------------
+// FILTROS E ATUALIZAÇÃO DA UI
+// ---------------------------------------------------------
+function applyFilters() {
+    const s = document.getElementById('filter-start').value;
+    const e = document.getElementById('filter-end').value;
+    const op = document.getElementById('filter-operacao').value.toLowerCase();
+    
+    filteredData = rawData.filter(it => {
+        if(s && it.criado < s) return false;
+        if(e && it.criado > e) return false;
+        if(op && !it.operacao.toLowerCase().includes(op)) return false;
+        return true;
+    });
+    
+    updateDashboardUI();
+}
+
+document.getElementById('filter-start').addEventListener('change', applyFilters);
+document.getElementById('filter-end').addEventListener('change', applyFilters);
+document.getElementById('filter-operacao').addEventListener('keyup', () => { setTimeout(applyFilters, 300) });
+
+function updateDashboardUI() {
+    // Atualiza KPIs
+    document.getElementById('kpi-total').innerText = filteredData.length.toLocaleString('pt-BR');
+    
+    const totalNFs = filteredData.reduce((acc, curr) => acc + curr.qtdNFs, 0);
+    document.getElementById('kpi-nfs').innerText = totalNFs.toLocaleString('pt-BR');
+    
+    const proprios = filteredData.filter(d => d.perfil.includes('PRÓPRIO') || d.perfil.includes('PROPRIO')).length;
+    const agregados = filteredData.filter(d => d.perfil.includes('AGREGADO')).length;
+    document.getElementById('kpi-proprio').innerText = proprios.toLocaleString('pt-BR');
+    document.getElementById('kpi-agregado').innerText = agregados.toLocaleString('pt-BR');
+
+    // Atualiza Tabela
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+    document.getElementById('table-count').innerText = `Mostrando últimos 50 registros`;
+    
+    filteredData.slice(0, 50).forEach(it => {
+        let statusColor = it.status.includes('CONCLUÍDO') ? 'var(--accent-green)' : (it.status.includes('ANDAMENTO') ? 'var(--accent-blue)' : 'var(--accent-red)');
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong style="color:#fff">${it.documento}</strong><br><small>${it.criado.split('-').reverse().join('/')}</small></td>
+            <td>${it.motorista}</td>
+            <td style="color:var(--accent-warning)">${it.operacao}</td>
+            <td><span style="background:rgba(255,255,255,0.1);padding:4px 8px;border-radius:6px;font-size:11px">${it.perfil}</span></td>
+            <td>${it.kmInicial} / ${it.kmFinal}<br><small style="color:var(--accent-green)">${it.kmRodados} km rodados</small></td>
+            <td><strong>${it.qtdNFs}</strong></td>
+            <td><span style="border:1px solid ${statusColor};color:${statusColor};padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(0,0,0,0.2)">${it.status}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    renderStatusProgress();
+    updateCharts(proprios, agregados);
+}
+
+function renderStatusProgress() {
+    const statusCount = {};
+    filteredData.forEach(d => { statusCount[d.status] = (statusCount[d.status] || 0) + 1; });
+    const total = filteredData.length || 1;
+    
+    const colors = { 'CONCLUÍDO': 'var(--accent-green)', 'EM ANDAMENTO': 'var(--accent-blue)', 'CANCELADO': 'var(--accent-red)' };
+    const container = document.getElementById('status-progress');
+    container.innerHTML = '';
+
+    Object.entries(statusCount).sort((a,b)=>b[1]-a[1]).slice(0,4).forEach(([status, count]) => {
+        const pct = Math.round((count / total) * 100);
+        const color = colors[status] || 'var(--accent-purple)';
+        
+        container.innerHTML += `
+            <div class="progress-item">
+                <div class="progress-header">
+                    <span style="color:#cbd5e1">${status}</span>
+                    <span style="color:${color}">${pct}% (${count})</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: ${pct}%; background-color: ${color}"></div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// ---------------------------------------------------------
+// GRÁFICOS MODERNOS (Chart.js Arredondados & Animações)
+// ---------------------------------------------------------
+function updateCharts(proprios, agregados) {
+    // Preparar dados temporais para a Linha
+    const dateMap = {};
+    filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+    const lineLabels = dates.map(d => d.split('-').slice(1,3).reverse().join('/'));
+
+    // 1. Gráfico de Linhas Suaves (com Efeito Loop na interação)
+    const ctxL = document.getElementById('lineChart').getContext('2d');
+    if(lineChartInstance) lineChartInstance.destroy();
+    
+    let gradL = ctxL.createLinearGradient(0,0,0,300);
+    gradL.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+    gradL.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+    lineChartInstance = new Chart(ctxL, {
+        type: 'line',
+        data: { labels: lineLabels, datasets: [{ data: lineData, borderColor: '#3b82f6', backgroundColor: gradL, borderWidth: 4, fill: true, tension: 0.45, pointRadius: 2 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animations: {
+                radius: { duration: 400, easing: 'linear', loop: (context) => context.active } // Efeito Loop exigido
+            },
+            hoverRadius: 10,
+            hoverBackgroundColor: '#60a5fa',
+            plugins: { legend: { display: false }, datalabels: { display: false } },
+            scales: { x: { grid: { display: false } }, y: { beginAtZero: true, border: { display: false } } }
+        }
+    });
+
+    // Preparar dados para Gráfico de Barras (Operações)
+    const opMap = {};
+    filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
+    const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+    // 2. Gráfico de Barras (Totalmente Arredondado)
+    const ctxB = document.getElementById('barChart').getContext('2d');
+    if(barChartInstance) barChartInstance.destroy();
+    
+    barChartInstance = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+            labels: sortedOps.map(i => i[0]),
+            datasets: [{ data: sortedOps.map(i => i[1]), backgroundColor: '#f59e0b', borderRadius: 12, borderSkipped: false, barThickness: 35 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold' } } },
+            scales: { x: { grid: { display: false } }, y: { display: false, beginAtZero: true } }
+        }
+    });
+
+    // 3. Gráfico Polar/Pizza UI (Mix de Frota)
+    const ctxP = document.getElementById('polarChart').getContext('2d');
+    if(polarChartInstance) polarChartInstance.destroy();
+
+    polarChartInstance = new Chart(ctxP, {
+        type: 'polarArea', // Visual moderno alternativo à pizza clássica
+        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(139, 92, 246, 0.8)'], borderWidth: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } },
+            plugins: { legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 20 } }, datalabels: { display: false } }
+        }
+    });
 }
 </script>
 </body>
