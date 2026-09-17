@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FleetAnalytics PRO - Cargo Van (Fidelidade Total)</title>
+    <title>FleetAnalytics PRO - Cargo Van (Fidelidade Absoluta)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
@@ -109,7 +109,7 @@
         .kpi-card.highlight { background: linear-gradient(135deg, #2563eb, #3b82f6); border: none; }
         .kpi-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
         .highlight .kpi-title { color: rgba(255,255,255,0.8); }
-        .kpi-value { font-size: 24px; font-weight: 700; }
+        .kpi-value { font-size: 22px; font-weight: 700; }
         .kpi-sub { font-size: 11px; color: var(--text-muted); }
         .highlight .kpi-sub { color: rgba(255,255,255,0.8); }
 
@@ -161,7 +161,7 @@
 
             <main class="main-content">
                 <div id="debug-panel">
-                    <strong>🔍 Inspetor de Campos do SharePoint (1º Registro Bruto):</strong>
+                    <strong>🔍 Inspetor de Campos do SharePoint (1º Registro Decodificado):</strong>
                     <div id="debug-content" style="margin-top: 6px; white-space: pre-wrap;"></div>
                 </div>
 
@@ -326,23 +326,24 @@
             else showLogin();
         }
 
-        // Função normalizadora para lidar com acentos, maiúsculas e códigos internos do SharePoint (_x0020_, _x00ba_, etc.)
-        function normalizeKey(str) {
-            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        // Decodificador de campos codificados do SharePoint (ex: _x00ba_ -> º, _x007C_ -> |)
+        function decodeSPKey(key) {
+            return key.replace(/_x([0-9a-fA-F]{4})_/g, (match, grp) => String.fromCharCode(parseInt(grp, 16)));
         }
 
-        function getField(fields, possibleKeys) {
-            // Cria um dicionário normalizado das chaves do SharePoint retornadas
-            const normalizedFields = {};
+        function getField(fields, targets) {
+            // Cria um dicionário decodificado e normalizado
+            const decodedFields = {};
             for (let k of Object.keys(fields)) {
-                const cleanKey = k.replace(/_x[0-9a-fA-F]{4}_/g, '');
-                normalizedFields[normalizeKey(cleanKey)] = fields[k];
+                const decKey = decodeSPKey(k);
+                const normKey = decKey.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                decodedFields[normKey] = fields[k];
             }
 
-            for (let key of possibleKeys) {
-                const normTarget = normalizeKey(key);
-                if (normalizedFields[normTarget] !== undefined && normalizedFields[normTarget] !== null) {
-                    return normalizedFields[normTarget];
+            for (let target of targets) {
+                const normTarget = target.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                if (decodedFields[normTarget] !== undefined && decodedFields[normTarget] !== null) {
+                    return decodedFields[normTarget];
                 }
             }
             return null;
@@ -374,21 +375,26 @@
                 }
 
                 if (allItems.length > 0) {
+                    // Exibir painel com chaves decodificadas para conferência
+                    const sampleDecoded = {};
+                    for (let k in allItems[0].fields) {
+                        sampleDecoded[decodeSPKey(k)] = allItems[0].fields[k];
+                    }
                     document.getElementById('debug-panel').style.display = 'block';
-                    document.getElementById('debug-content').innerText = JSON.stringify(allItems[0].fields, null, 2);
+                    document.getElementById('debug-content').innerText = JSON.stringify(sampleDecoded, null, 2);
 
                     rawData = allItems.map(item => {
                         const f = item.fields || {};
                         return {
                             id: item.id,
                             criado: String(getField(f, ['Criado', 'Created']) || item.createdDateTime || new Date().toISOString()).split('T')[0],
-                            documento: String(getField(f, ['Nº DOCUMENTO', 'N_DOCUMENTO', 'Documento', 'Title']) || "N/A"),
+                            documento: String(getField(f, ['Nº DOCUMENTO', 'N DOCUMENTO', 'Documento', 'Title']) || "N/A"),
                             placa: String(getField(f, ['PLACA', 'Placa', 'Veiculo', 'Vehicle']) || "S/ PLACA").trim(),
                             motorista: String(getField(f, ['NOME', 'Motorista', 'Condutor', 'Motorista1']) || "NÃO INFORMADO").trim(),
                             perfil: String(getField(f, ['PRÓPRIO OU AGREGADO', 'PROPRIO OU AGREGADO', 'Perfil', 'Vinculo', 'TipoFrota']) || "PRÓPRIO").toUpperCase(),
-                            kmInicial: Number(getField(f, ['KM INICIAL', 'KM_INICIAL', 'KmInicial']) || 0),
-                            kmFinal: Number(getField(f, ['KM FINAL', 'KM_FINAL', 'KmFinal']) || 0),
-                            qtdNFs: Number(getField(f, ['QNTD DE ENTREGA', 'QTD ENTREGAS FINALIZADAS', 'QuantidadeNFs', 'NFs']) || 1),
+                            kmInicial: Number(getField(f, ['KM INICIAL', 'KM_INICIAL', 'KmInicial', 'KMINICIAL']) || 0),
+                            kmFinal: Number(getField(f, ['KM FINAL', 'KM_FINAL', 'KmFinal', 'KMFINAL']) || 0),
+                            qtdEntregas: Number(getField(f, ['QNTD DE ENTREGA', 'QTD ENTREGAS FINALIZADAS', 'QNTDDEENTREGA', 'QuantidadeNFs']) || 0),
                             operacao: String(getField(f, ['CLIENTE | OPERAÇÃO', 'CLIENTE OPERACAO', 'Operacao', 'Cliente']) || "OPERAÇÃO GERAL"),
                             status: String(getField(f, ['STATUS', 'Situacao']) || "CONCLUÍDO").toUpperCase()
                         };
@@ -435,14 +441,14 @@
             document.getElementById('kpi-total').innerText = filteredData.length;
             document.getElementById('kpi-concluidas').innerText = filteredData.filter(d => d.status.includes('CONCLU') || d.status.includes('ATIV')).length;
             
-            const proprios = filteredData.filter(d => d.perfil.includes('PROPRIO') || d.perfil.includes('PRÓPRIO')).length;
+            const proprios = filteredData.filter(d => d.perfil.includes('PROPRIO') || d.perfil.includes('PRÓPR')).length;
             const agregados = filteredData.filter(d => d.perfil.includes('AGREG') || d.perfil.includes('TERC')).length;
             
             document.getElementById('kpi-proprio').innerText = proprios;
             document.getElementById('kpi-agregado').innerText = agregados;
 
-            const totalNFs = filteredData.reduce((acc, curr) => acc + curr.qtdNFs, 0);
-            document.getElementById('kpi-nfs').innerText = totalNFs + ' Entregas';
+            const totalEntregas = filteredData.reduce((acc, curr) => acc + curr.qtdEntregas, 0);
+            document.getElementById('kpi-nfs').innerText = totalEntregas.toLocaleString('pt-BR') + ' Entregas';
 
             const totalKm = filteredData.reduce((acc, curr) => acc + Math.max(0, curr.kmFinal - curr.kmInicial), 0);
             document.getElementById('kpi-km').innerText = totalKm.toLocaleString('pt-BR') + ' km rodados';
@@ -459,7 +465,7 @@
                     <td>${item.motorista}</td>
                     <td><span class="perfil-badge ${item.perfil.includes('AGREG') ? 'perfil-agregado' : ''}">${item.perfil}</span></td>
                     <td>${item.kmInicial.toLocaleString()} / ${item.kmFinal.toLocaleString()} <br><span style="font-size:10px; color:var(--accent-green)">(${kmRodado} km)</span></td>
-                    <td style="font-weight:600; color:var(--text-main)">${item.qtdNFs} Entregas</td>
+                    <td style="font-weight:600; color:var(--text-main)">${item.qtdEntregas} Entregas</td>
                     <td><span class="operacao-badge">${item.operacao}</span></td>
                     <td><span class="status-badge">${item.status}</span></td>
                 </tr>`;
@@ -467,10 +473,10 @@
 
             const driverData = {};
             filteredData.forEach(d => {
-                if (!driverData[d.motorista]) driverData[d.motorista] = { nfs: 0, placa: d.placa };
-                driverData[d.motorista].nfs += d.qtdNFs;
+                if (!driverData[d.motorista]) driverData[d.motorista] = { entregas: 0, placa: d.placa };
+                driverData[d.motorista].entregas += d.qtdEntregas;
             });
-            const topDrivers = Object.entries(driverData).sort((a, b) => b[1].nfs - a[1].nfs).slice(0, 5);
+            const topDrivers = Object.entries(driverData).sort((a, b) => b[1].entregas - a[1].entregas).slice(0, 5);
             
             document.getElementById('top-motoristas-list').innerHTML = topDrivers.map((d, i) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
@@ -481,7 +487,7 @@
                             <div style="font-size:10px; color:var(--text-muted);">${d[1].placa}</div>
                         </div>
                     </div>
-                    <span style="color: var(--accent-green); font-weight:700;">${d[1].nfs} Entregas</span>
+                    <span style="color: var(--accent-green); font-weight:700;">${d[1].entregas} Entregas</span>
                 </div>
             `).join('');
 
@@ -534,7 +540,7 @@
 
             const diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
             const contagemDias = [0, 0, 0, 0, 0, 0, 0];
-            filteredData.execute = filteredData.forEach(item => {
+            filteredData.forEach(item => {
                 const date = new Date(item.criado + "T00:00:00");
                 let day = date.getDay() - 1;
                 if(day === -1) day = 6;
