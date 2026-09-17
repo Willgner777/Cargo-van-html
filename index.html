@@ -132,6 +132,18 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
 th { color: var(--text-muted); padding: 12px 10px; border-bottom: 1px solid var(--border); font-weight: 700; text-transform: uppercase; font-size: 10px; text-align: left; }
 td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd5e1; vertical-align: middle; }
+
+/* Cores Dinâmicas de Status e Perfis */
+.badge-status { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+.status-concluido { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-andamento { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+.status-pernoite { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+.status-outro { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+.badge-perfil { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+.perfil-proprio { background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); }
+.perfil-agregado { background: rgba(139, 92, 246, 0.12); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.25); }
+
 #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
 #toast.show { opacity: 1; transform: translateY(0); }
 </style>
@@ -218,10 +230,17 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                     <div class="panel-header"><div class="panel-title">Volume por Cliente / Operação</div></div>
                     <div class="chart-container"><canvas id="barChart"></canvas></div>
                 </div>
-                <!-- TOP RANKINGS -->
+                <!-- NOVO GRÁFICO DE STATUS HORIZONTAL -->
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Status da Operação</div></div>
+                    <div class="chart-container"><canvas id="statusHChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Top 5 Motoristas (NFs)</div></div>
-                    <div class="ranking-list" id="ranking-motoristas"></div>
+                    <div class="ranking-list" id="ranking-motoristas" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); max-height:none;"></div>
                 </div>
             </div>
 
@@ -230,7 +249,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:11px;color:var(--text-muted);"></span></div>
                 <div class="table-container">
                     <table>
-                        <thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Ini/Fin)</th><th>NFs</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Ini / Fin) | Rodados</th><th>NFs</th><th>Status</th></tr></thead>
                         <tbody id="table-body"></tbody>
                     </table>
                 </div>
@@ -250,7 +269,7 @@ const myMSALObj = new msal.PublicClientApplication(msalConfig);
 const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 
 let rawData = [], filteredData = [];
-let lineChartInstance = null, barChartInstance = null, polarChartInstance = null;
+let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null;
 
 Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
@@ -311,20 +330,24 @@ async function syncSharePointData(account) {
                 const f = it.fields || {};
                 const perfilStr = String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
                 
-                // Limpeza rigorosa para evitar valores absurdos ou misturados com ID de documento
                 let qNfs = Number(f.QNTDDEENTREGA || 0);
                 if(qNfs > 500) qNfs = Number(f.QTDENTREGASFINALIZADAS || 0);
                 if(qNfs > 500) qNfs = 0;
 
+                const kmIni = Number(f.KMINICIAL || 0);
+                const kmFin = Number(f.KMFINAL || 0);
+                let kmRod = Number(f.KMRODADOS || 0);
+                if(kmRod <= 0 && kmFin > kmIni) kmRod = kmFin - kmIni;
+
                 return {
                     id: it.id,
                     criado: (f.Created || new Date().toISOString()).split('T')[0],
-                    documento: String(f.N_x00ba_DOCUMENTO || 'N/A'), // Tratado estritamente como String/Texto
+                    documento: String(f.N_x00ba_DOCUMENTO || 'N/A'),
                     motorista: padronizarNome(f.NOME),
                     qtdNFs: qNfs,
-                    kmInicial: Number(f.KMINICIAL || 0),
-                    kmFinal: Number(f.KMFINAL || 0),
-                    kmRodados: Number(f.KMRODADOS || 0),
+                    kmInicial: kmIni,
+                    kmFinal: kmFin,
+                    kmRodados: kmRod,
                     status: String(f.STATUS || 'CONCLUÍDO').toUpperCase(),
                     perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
                     operacao: String(f.CLIENTE_x007c_OPERA_x00c7__x00c3 || 'NÃO INFORMADA').toUpperCase(),
@@ -382,6 +405,19 @@ function applyFilters() {
     document.getElementById(id).addEventListener('keyup', () => setTimeout(applyFilters, 300));
 });
 
+function getStatusBadge(st) {
+    let css = 'status-outro';
+    if(st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) css = 'status-concluido';
+    else if(st.includes('ANDAMENTO') || st.includes('ROTA')) css = 'status-andamento';
+    else if(st.includes('PERNOITE')) css = 'status-pernoite';
+    return `<span class="badge-status ${css}">${st}</span>`;
+}
+
+function getPerfilBadge(perf) {
+    let css = perf === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado';
+    return `<span class="badge-perfil ${css}">${perf}</span>`;
+}
+
 function updateDashboardUI() {
     document.getElementById('kpi-total').innerText = filteredData.length.toLocaleString('pt-BR');
     
@@ -405,10 +441,10 @@ function updateDashboardUI() {
             <td>${it.criado.split('-').reverse().join('/')}</td>
             <td>${it.motorista}</td>
             <td style="color:var(--accent-warning)">${it.operacao}</td>
-            <td><span style="background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:6px;font-size:10px">${it.perfil}</span></td>
-            <td>${it.kmInicial} / ${it.kmFinal}</td>
+            <td>${getPerfilBadge(it.perfil)}</td>
+            <td>${it.kmInicial} / ${it.kmFinal} <br><span style="font-size:10px; color:var(--accent-green); font-weight:700;">(Rodados: ${it.kmRodados} km)</span></td>
             <td><strong>${it.qtdNFs}</strong></td>
-            <td><span style="color:var(--accent-green);font-weight:700;">${it.status}</span></td>
+            <td>${getStatusBadge(it.status)}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -430,7 +466,7 @@ function renderRankings() {
 }
 
 function updateCharts(proprios, agregados) {
-    // Linhas
+    // 1. Gráfico de Linhas (Evolução)
     const dateMap = {};
     filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
     const dates = Object.keys(dateMap).sort().slice(-10);
@@ -454,35 +490,79 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // Barras Operações
+    // 2. Gráfico de Barras com Degradê e Arredondadas (Operações)
     const opMap = {};
     filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
     const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
 
     const ctxB = document.getElementById('barChart').getContext('2d');
     if(barChartInstance) barChartInstance.destroy();
-    
+
+    let gradB = ctxB.createLinearGradient(0,0,0,250);
+    gradB.addColorStop(0, 'rgba(245, 158, 11, 0.9)');
+    gradB.addColorStop(1, 'rgba(245, 158, 11, 0.2)');
+
     barChartInstance = new Chart(ctxB, {
         type: 'bar',
-        data: { labels: sortedOps.map(i => i[0]), datasets: [{ data: sortedOps.map(i => i[1]), backgroundColor: '#f59e0b', borderRadius: 8 }] },
+        data: { 
+            labels: sortedOps.map(i => i[0]), 
+            datasets: [{ 
+                data: sortedOps.map(i => i[1]), 
+                backgroundColor: gradB, 
+                borderRadius: 12,
+                borderSkipped: false,
+                barPercentage: 0.6
+            }] 
+        },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top' } },
+            plugins: { legend: { display: false }, datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold' } } },
             scales: { x: { grid: { display: false } }, y: { display: false, beginAtZero: true } }
         }
     });
 
-    // Polar Frota
+    // 3. Polar Area (Mix de Frota com valores visíveis)
     const ctxP = document.getElementById('polarChart').getContext('2d');
     if(polarChartInstance) polarChartInstance.destroy();
 
     polarChartInstance = new Chart(ctxP, {
         type: 'polarArea',
-        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(139, 92, 246, 0.8)'], borderWidth: 0 }] },
+        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: ['rgba(59, 130, 246, 0.85)', 'rgba(139, 92, 246, 0.85)'], borderWidth: 0 }] },
         options: {
             responsive: true, maintainAspectRatio: false,
             scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } },
-            plugins: { legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 15 } }, datalabels: { display: false } }
+            plugins: { 
+                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 15 } }, 
+                datalabels: { display: true, color: '#fff', font: { weight: 'bold', size: 12 } } 
+            }
+        }
+    });
+
+    // 4. Gráfico de Status Horizontal Arredondado
+    const statusMap = {};
+    filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
+    const statusLabels = Object.keys(statusMap);
+    const statusCounts = Object.values(statusMap);
+
+    const ctxSH = document.getElementById('statusHChart').getContext('2d');
+    if(statusHChartInstance) statusHChartInstance.destroy();
+
+    statusHChartInstance = new Chart(ctxSH, {
+        type: 'bar',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'],
+                borderRadius: 10,
+                barPercentage: 0.55
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, datalabels: { display: true, color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold' } } },
+            scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false } } }
         }
     });
 }
