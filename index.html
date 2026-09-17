@@ -1,210 +1,279 @@
-1|<!DOCTYPE html>
-2|<html lang="pt-br">
-3|<head>
-4|<meta charset="UTF-8">
-5|<meta name="viewport" content="width=device-width, initial-scale=1.0">
-6|<title>FleetAnalytics PRO - Cargo Van Elite</title>
-7|<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-8|<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
-9|<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-10|<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-11|<style>
-12|:root{
-13|--bg-base:#070b14;--bg-panel:#0f1524;--bg-panel-hover:#141c30;--bg-glass:rgba(15,21,36,.7);
-14|--text-main:#e6edf3;--text-muted:#8b9bb8;--accent-blue:#3b82f6;--accent-blue-dark:#2563eb;
-15|--accent-green:#10b981;--accent-warning:#f59e0b;--accent-purple:#8b5cf6;--border:#1e293b;
-16|--radius:14px;--shadow:0 10px 30px rgba(0,0,0,.35);
-17|}
-18|*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-19|body{background:radial-gradient(1200px 600px at 20% -10%,#111b2e 0%,transparent 60%),radial-gradient(800px 400px at 90% 0%,#1a1f35 0%,transparent 55%),var(--bg-base);color:var(--text-main);overflow-x:hidden}
-20|.icon{width:18px;height:18px;fill:currentColor}
-21|#login-view{display:flex;align-items:center;justify-content:center;height:100vh;background:radial-gradient(circle at center,#131927 0%,#090e17 100%)}
-22|.login-box{background:var(--bg-panel);padding:48px 40px;border-radius:var(--radius);border:1px solid var(--border);text-align:center;box-shadow:var(--shadow);backdrop-filter:blur(12px);max-width:420px}
-23|.login-box h1{font-size:28px;color:var(--accent-blue);margin-bottom:8px;font-weight:800;letter-spacing:.2px}
-24|.login-box p{color:var(--text-muted);margin-bottom:32px;font-size:14px}
-25|.btn-primary{background:linear-gradient(135deg,var(--accent-blue-dark),var(--accent-blue));color:#fff;border:none;padding:14px 26px;font-size:14px;font-weight:700;border-radius:10px;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:10px;box-shadow:0 6px 16px rgba(59,130,246,.35)}
-26|.btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(59,130,246,.45)}
-27|#dashboard{display:none;height:100vh}
-28|.layout{display:flex;height:100%}
-29|.sidebar{width:280px;background:linear-gradient(180deg,rgba(15,21,36,.9),rgba(15,21,36,.6));border-right:1px solid var(--border);display:flex;flex-direction:column;padding:26px 0;position:sticky;top:0;height:100vh;backdrop-filter:blur(10px)}
-30|.brand{padding:0 26px 32px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:10px}
-31|.brand-badge{font-size:10px;border:1px solid var(--accent-blue);color:var(--accent-blue);padding:3px 8px;border-radius:999px;font-weight:700;background:rgba(59,130,246,.08)}
-32|.nav-section{font-size:11px;color:var(--text-muted);letter-spacing:1.2px;padding:0 26px 12px;text-transform:uppercase;font-weight:700}
-33|.nav-item{padding:12px 26px;margin:4px 14px;border-radius:10px;color:var(--text-muted);font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s}
-34|.nav-item:hover{background:var(--bg-panel-hover);color:var(--text-main)}
-35|.nav-item.active{background:rgba(59,130,246,.12);color:var(--accent-blue);border-left:3px solid var(--accent-blue)}
-36|.user-profile{margin-top:auto;padding:18px 26px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.15)}
-37|.user-name{font-size:13px;font-weight:700}
-38|.user-role{font-size:11px;color:var(--text-muted)}
-39|.btn-logout{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;transition:.2s}
-40|.btn-logout:hover{border-color:var(--accent-blue);color:var(--accent-blue)}
-41|.main-content{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding:28px 32px;gap:22px}
-42|.filter-bar{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:4px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(10px)}
-43|.filter-group{display:flex;flex-direction:column;gap:6px}
-44|.filter-group label{font-size:11px;color:var(--accent-blue);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-45|.filter-input{background:rgba(7,11,20,.7);border:1px solid var(--border);color:var(--text-main);padding:9px 12px;border-radius:8px;font-size:13px;outline:none;transition:.2s}
-46|.filter-input:focus{border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
-47|.btn-sync{background:linear-gradient(135deg,var(--accent-blue-dark),var(--accent-blue));color:#fff;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;margin-left:auto;display:flex;align-items:center;gap:8px;transition:.25s;box-shadow:0 6px 16px rgba(59,130,246,.3)}
-48|.btn-sync:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(59,130,246,.45)}
-49|.btn-sync.syncing{opacity:.7;pointer-events:none}
-50|#debug-panel{background:#0b1120;border:1px dashed var(--accent-purple);padding:12px 16px;border-radius:10px;margin-bottom:10px;font-family:ui-monospace,monospace;font-size:11px;color:#cbd5e1;display:none}
-51|.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
-52|@media(max-width:1400px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
-53|@media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
-54|@media(max-width:640px){.kpi-grid{grid-template-columns:1fr}}
-55|.kpi-card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;transition:.25s;position:relative;overflow:hidden}
-56|.kpi-card:hover{transform:translateY(-2px);border-color:#2a3a5a;box-shadow:0 12px 30px rgba(0,0,0,.35)}
-57|.kpi-card.highlight{background:linear-gradient(135deg,#1f3a8a,#2563eb);border:none;color:#fff}
-58|.kpi-title{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:700}
-59|.highlight .kpi-title{color:rgba(255,255,255,.85)}
-60|.kpi-value{font-size:28px;font-weight:800;letter-spacing:.2px}
-61|.kpi-sub{font-size:11px;color:var(--text-muted)}
-62|.highlight .kpi-sub{color:rgba(255,255,255,.9)}
-63|.content-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
-64|.content-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-65|@media(max-width:1200px){.content-grid{grid-template-columns:1fr}.content-grid-3{grid-template-columns:1fr 1fr} }
-66|@media(max-width:800px){.content-grid-3{grid-template-columns:1fr}}
-67|.panel{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.2)}
-68|.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-69|.panel-title{font-size:15px;font-weight:700;letter-spacing:.2px}
-70|.badge{background:rgba(16,185,129,.12);color:var(--accent-green);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid rgba(16,185,129,.25)}
-71|.chart-container{position:relative;height:280px;width:100%}
-72|table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-73|th{color:var(--text-muted);padding:12px;border-bottom:1px solid var(--border);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.4px;position:sticky;top:0;background:var(--bg-panel)}
-74|td{padding:14px 12px;border-bottom:1px solid rgba(30,41,59,.5);color:#cbd5e1;vertical-align:middle}
-75|tr:hover td{background:rgba(255,255,255,.02)}
-76|.status-badge{border:1px solid var(--accent-green);color:var(--accent-green);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(16,185,129,.08)}
-77|.perfil-badge{background:rgba(59,130,246,.1);border:1px solid var(--accent-blue);color:var(--accent-blue);padding:3px 9px;border-radius:6px;font-size:10.5px;font-weight:700}
-78|.perfil-agregado{background:rgba(139,92,246,.1);border-color:var(--accent-purple);color:var(--accent-purple)}
-79|.operacao-badge{background:rgba(251,191,36,.1);border:1px solid var(--accent-warning);color:var(--accent-warning);padding:3px 9px;border-radius:6px;font-size:10.5px;font-weight:600}
-80|#toast{position:fixed;bottom:20px;right:20px;background:#0f172a;border:1px solid var(--border);color:#e2e8f0;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.3s;z-index:9999}
-81|#toast.show{opacity:1;transform:translateY(0)}
-82|::-webkit-scrollbar{width:10px;height:10px}
-83|::-webkit-scrollbar-thumb{background:#1e293b;border-radius:8px}
-84|::-webkit-scrollbar-track{background:transparent}
-85|</style>
-86|</head>
-87|<body>
-88|<div id="login-view">
-89|<div class="login-box">
-90|<h1>FleetAnalytics PRO</h1>
-91|<p>Conexão Direta & Fiel ao SharePoint • CARGOVAN</p>
-92|<button class="btn-primary" onclick="signIn()">Entrar com Microsoft 365</button>
-93|</div>
-94|</div>
-95|
-96|<div id="dashboard">
-97|<div class="layout">
-98|<aside class="sidebar">
-99|<div class="brand">FleetAnalytics <span class="brand-badge">ELITE</span></div>
-100|<div class="nav-section">Operacional</div>
-101|<div class="nav-item active">Liberação de Veículos</div>
-102|<div class="user-profile">
-103|<div class="user-info">
-104|<div class="user-name" id="display-name">Carregando...</div>
-105|<div class="user-role">Conectado ao SharePoint</div>
-106|</div>
-107|<button class="btn-logout" onclick="signOut()">Sair</button>
-108|</div>
-109|</aside>
-110|<main class="main-content">
-111|<div id="debug-panel"><strong>🔍 Diagnóstico do SharePoint</strong><div id="debug-content" style="margin-top:6px;white-space:pre-wrap"></div></div>
-112|<div class="filter-bar">
-113|<div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
-114|<div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
-115|<div class="filter-group"><label>Placa</label><input type="text" id="filter-placa" class="filter-input" placeholder="Placa"></div>
-116|<div class="filter-group"><label>Motorista</label><input type="text" id="filter-motorista" class="filter-input" placeholder="Motorista"></div>
-117|<button class="btn-sync" id="sync-btn" onclick="syncSharePointData()">Sincronizar SharePoint</button>
-118|</div>
-119|
-120|<div class="kpi-grid">
-121|<div class="kpi-card highlight"><div class="kpi-title">Total de Registros</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Base LIBERACAO_VEICULO</div></div>
-122|<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">Concluídas</div><div class="kpi-value" id="kpi-concluidas">0</div><div class="kpi-sub">Status Ativo</div></div>
-123|<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Frota Própria</div><div class="kpi-value" id="kpi-proprio">0</div><div class="kpi-sub">Veículos Próprios</div></div>
-124|<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Frota Agregada</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">Veículos Agregados</div></div>
-125|<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-warning)">NFs / KM</div><div class="kpi-value" id="kpi-nfs">0 NFs</div><div class="kpi-sub" id="kpi-km">0 km rodados</div></div>
-126|</div>
-127|
-128|<div class="content-grid-3">
-129|<div class="panel">
-130|<div class="panel-header"><div class="panel-title">Evolução de Entregas</div><div class="badge">7 dias</div></div>
-131|<div class="chart-container"><canvas id="lineChart"></canvas></div>
-132|</div>
-133|<div class="panel">
-134|<div class="panel-header"><div class="panel-title">Perfil de Frota</div><div class="badge">Mix</div></div>
-135|<div class="chart-container"><canvas id="doughnutChart"></canvas></div>
-136|</div>
-137|<div class="panel">
-138|<div class="panel-header"><div class="panel-title">Top Motoristas</div></div>
-139|<div id="top-motoristas-list" style="display:flex;flex-direction:column;gap:12px;font-size:13px;overflow-y:auto;max-height:260px"></div>
-140|</div>
-141|</div>
-142|
-143|<div class="content-grid">
-144|<div class="panel">
-145|<div class="panel-header"><div class="panel-title">Liberações por Dia da Semana</div><div class="badge">Base Real</div></div>
-146|<div class="chart-container"><canvas id="barChart"></canvas></div>
-147|</div>
-148|<div class="panel">
-149|<div class="panel-header"><div class="panel-title">Ranking de Operações / Clientes</div></div>
-150|<div id="operacoes-list" style="display:flex;flex-direction:column;gap:12px;font-size:13px;overflow-y:auto;max-height:260px"></div>
-151|</div>
-152|</div>
-153|
-154|<div class="panel">
-155|<div class="panel-header"><div class="panel-title">Registros Oficiais do SharePoint</div><div class="badge" id="table-count">Exibindo 0 registros</div></div>
-156|<div class="table-container"><table><thead><tr><th>Data / Documento</th><th>Placa</th><th>Motorista</th><th>Perfil</th><th>KM Inicial / Final</th><th>NFs</th><th>Operação / Cliente</th><th>Status</th></tr></thead><tbody id="table-body"></tbody></table></div>
-157|</div>
-158|</main>
-159|</div>
-160|</div>
-161|<div id="toast"></div>
-162|<script>
-163|const msalConfig={auth:{clientId:"3b29c3bc-e828-4835-a7bf-1f035ae7c981",authority:"https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage"}};
-164|const myMSALObj=new msal.PublicClientApplication(msalConfig);
-165|const loginRequest={scopes:["User.Read","Sites.Read.All"]};
-166|let rawData=[],filteredData=[],lineChartInstance=null,doughnutChartInstance=null,barChartInstance=null;
-167|Chart.register(ChartDataLabels);
-168|Chart.defaults.color='#94a3b8';Chart.defaults.font.family='Inter';
-169|
-170|function showDashboard(name){document.getElementById("login-view").style.display="none";document.getElementById("dashboard").style.display="block";document.getElementById("display-name").innerText=name.split(" ")[0];syncSharePointData();}
-171|function showLogin(){document.getElementById("login-view").style.display="flex";document.getElementById("dashboard").style.display="none";}
-172|function signIn(){myMSALObj.loginPopup(loginRequest).then(r=>showDashboard(r.account.name)).catch(e=>console.error(e));}
-173|function signOut(){myMSALObj.logoutPopup({account:myMSALObj.getAllAccounts()[0]}).then(()=>showLogin());}
-174|function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
-175|function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
-176|
-177|function normalizeSharePointKey(k){return String(k).toLowerCase().replace(/_x0020_/g,' ').replace(/_x003a_/g,':').replace(/_x0026_/g,'&').replace(/_x002D_/g,'-');}
-178|function getField(fields,keys){if(!fields)return null;for(let key of keys){const f=Object.keys(fields).find(k=>k.toLowerCase()===key.toLowerCase());if(f&&fields[f]!=null)return fields[f];}
-179|for(let key of keys){const nk=normalizeSharePointKey(key);const f=Object.keys(fields).find(k=>normalizeSharePointKey(k)===nk);if(f&&fields[f]!=null)return fields[f];}
-180|const lowerKeys=keys.map(k=>k.toLowerCase());Object.keys(fields).forEach(k=>{const lk=k.toLowerCase();lowerKeys.forEach(lk2=>{if(lk.includes(lk2)||lk2.includes(lk))return fields[k];})});return null;}
-181|
-182|async function syncSharePointData(){
-183|const account=myMSALObj.getAllAccounts()[0];if(!account)return;
-184|const btn=document.getElementById('sync-btn');btn.classList.add('syncing');btn.innerHTML='Sincronizando...';
-185|try{
-186|const token=await myMSALObj.acquireTokenSilent({...loginRequest,account});
-187|let url=`https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
-188|let all=[];let pages=0;const maxPages=20;
-189|while(url&&pages<maxPages){pages++;const res=await fetch(url,{headers:{'Authorization':`Bearer ${token.accessToken}`}});
-190|if(res.status===429){const r=res.headers.get('Retry-After')||'30';await new Promise(r=>setTimeout(r,parseInt(r)*1000));continue;}
-191|if(!res.ok){const err=await res.text();throw new Error(`Graph ${res.status}: ${err}`);}
-192|const data=await res.json();if(data.value)all=all.concat(data.value);url=data['@odata.nextLink']||null;}
-193|if(all.length){document.getElementById('debug-panel').style.display='block';document.getElementById('debug-content').innerText=JSON.stringify(all[0].fields,null,2);
-194|rawData=all.map(it=>{const f=it.fields||{};return{id:it.id,criado:(f.Created||it.createdDateTime||new Date().toISOString()).split('T')[0],documento:getField(f,['Title','N_x00fa_Documento','Documento','NumeroDocumento','NFe'])||'N/A',placa:getField(f,['Placa','Veiculo','Vehicle'])||'S/ PLACA',motorista:getField(f,['Motorista','Driver','Condutor','Motorista1'])||'NÃO INFORMADO',perfil:String(getField(f,['Perfil','Vinculo','TipoFrota'])||'PRÓPRIO').toUpperCase(),kmInicial:Number(getField(f,['KmInicial','KM_x0020_Inicial','Km_Inicial','KMIniciado'])||0),kmFinal:Number(getField(f,['KmFinal','KM_x0020_Final','Km_Final','KMFinalizado'])||0),qtdNFs:Number(getField(f,['QtdNFs','Qtd_x0020_NFs','QuantidadeNFs','NFs'])||1),operacao:getField(f,['ClienteOperacao','Operacao','Cliente','Cliente_x0020_Operacao'])||'OPERAÇÃO GERAL',status:String(getField(f,['Status','Situacao'])||'CONCLUÍDO').toUpperCase()};});const ts=new Date().toISOString();sessionStorage.setItem('cargo_van_real_data',JSON.stringify({data:rawData,syncTime:ts}));localStorage.setItem('cargo_van_real_data_cache',JSON.stringify({data:rawData,syncTime:ts}));showToast(`✅ ${all.length} registros sincronizados`);}else{rawData=[];showToast('Lista vazia no SharePoint','info');}
-195|}catch(e){console.error(e);showToast('Erro ao sincronizar: '+e.message,'info');const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;showToast(`Usando cache (${rawData.length} registros)`);}}}
-196|finally{btn.classList.remove('syncing');btn.innerHTML='Sincronizar SharePoint';applyFilters();}}
-197|
-198|window.onload=()=>{const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;console.log('Cache carregado',rawData.length);} }const acc=myMSALObj.getAllAccounts();if(acc.length>0)showDashboard(acc[0].name);else showLogin();document.getElementById('filter-start').addEventListener('change',applyFilters);document.getElementById('filter-end').addEventListener('change',applyFilters);document.getElementById('filter-placa').addEventListener('keyup',debounce(applyFilters,300));document.getElementById('filter-motorista').addEventListener('keyup',debounce(applyFilters,300));};
-199|
-200|function applyFilters(){const s=document.getElementById('filter-start').value;const e=document.getElementById('filter-end').value;const p=document.getElementById('filter-placa').value.toLowerCase();const m=document.getElementById('filter-motorista').value.toLowerCase();filteredData=rawData.filter(it=>{let ok=true;if(s&&it.criado<s)ok=false;if(e&&it.criado>e)ok=false;if(p&&!it.placa.toLowerCase().includes(p))ok=false;if(m&&!it.motorista.toLowerCase().includes(m))ok=false;return ok;});updateDashboardUI();}
-201|
-202|function formatDateBR(d){const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
-203|function updateDashboardUI(){document.getElementById('kpi-total').innerText=filteredData.length.toLocaleString('pt-BR');document.getElementById('kpi-concluidas').innerText=filteredData.filter(d=>/CONCLU|ATIV/i.test(d.status)).length.toLocaleString('pt-BR');const proprios=filteredData.filter(d=>/PRÓPR|PROPRIO/i.test(d.perfil)).length;const agregados=filteredData.filter(d=>/AGREG|TERC/i.test(d.perfil)).length;document.getElementById('kpi-proprio').innerText=proprios.toLocaleString('pt-BR');document.getElementById('kpi-agregado').innerText=agregados.toLocaleString('pt-BR');const totalNFs=filteredData.reduce((a,c)=>a+c.qtdNFs,0);document.getElementById('kpi-nfs').innerText=`${totalNFs.toLocaleString('pt-BR')} NFs`;const totalKm=filteredData.reduce((a,c)=>a+Math.max(0,c.kmFinal-c.kmInicial),0);document.getElementById('kpi-km').innerText=`${totalKm.toLocaleString('pt-BR')} km`;const tbody=document.getElementById('table-body');tbody.innerHTML='';document.getElementById('table-count').innerText=`Exibindo ${Math.min(filteredData.length,100)} de ${filteredData.length} registros`;filteredData.slice(0,100).forEach(it=>{const km=Math.max(0,it.kmFinal-it.kmInicial);const tr=document.createElement('tr');tr.innerHTML=`<td><span style="color:white;font-weight:700">${it.documento}</span><br><span style="font-size:10px;color:var(--text-muted)">${formatDateBR(it.criado)}</span></td><td style="color:var(--accent-blue);font-weight:700">${it.placa}</td><td>${it.motorista}</td><td><span class="perfil-badge ${/AGREG/i.test(it.perfil)?'perfil-agregado':''}">${it.perfil}</span></td><td>${it.kmInicial.toLocaleString('pt-BR')}/${it.kmFinal.toLocaleString('pt-BR')}<br><span style="font-size:10px;color:var(--accent-green)">(${km} km)</span></td><td style="font-weight:700">${it.qtdNFs} NFs</td><td><span class="operacao-badge">${it.operacao}</span></td><td><span class="status-badge">${it.status}</span></td>`;tbody.appendChild(tr);});const driver={};filteredData.forEach(d=>{if(!driver[d.motorista])d... [truncated]
-204|function updateCharts(proprios,agregados){const map={};filteredData.forEach(d=>{map[d.criado]=(map[d.criado]||0)+1;});const dates=Object.keys(map).sort();const vals=dates.map(d=>map[d]);const fmt=dates.map(d=>formatDateBR(d)).slice(-14);const vals7=vals.slice(-14);const ctxL=document.getElementById('lineChart').getContext('2d');if(lineChartInstance)lineChartInstance.destroy();const gradL=ctxL.createLinearGradient(0,0,0,280);gradL.addColorStop(0,'rgba(59,130,246,.35)');gradL.addColorStop(1,'rgba(59,130,246,0)');lineChartInstance=new Chart(ctxL,{type:'line',data:{labels:fmt,datasets:[{data:vals7,borderColor:'#3b82f6',backgroundColor:gradL,fill:true,tension:.42,borderWidth:2.5,pointRadius:0,pointHoverRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',titleColor:'#e2e8f0',bodyColor:'#cbd5e1'}}},scales:{x:{grid:{display:false},ticks:{maxRotation:0}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
-205|const ctxD=document.getElementById('doughnutChart').getContext('2d');if(doughnutChartInstance)doughnutChartInstance.destroy();doughnutChartInstance=new Chart(ctxD,{type:'doughnut',data:{labels:['Próprio','Agregado'],datasets:[{data:[proprios,agregados],backgroundColor:['#3b82f6','#8b5cf6'],borderWidth:0,hoverOffset:12}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}},tooltip:{backgroundColor:'#0f172a'}}}});
-206|const dias=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];const cnt=[0,0,0,0,0,0,0];filteredData.forEach(it=>{let day=new Date(it.criado+'T00:00:00').getDay()-1;if(day===-1)day=6;cnt[day]++;});const ctxB=document.getElementById('barChart').getContext('2d');if(barChartInstance)barChartInstance.destroy();const gradB=ctxB.createLinearGradient(0,0,0,280);gradB.addColorStop(0,'#22c55e');gradB.addColorStop(1,'#16a34a');barChartInstance=new Chart(ctxB,{type:'bar',data:{labels:dias,datasets:[{data:cnt,backgroundColor:gradB,borderRadius:8,barPercentage:.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:true,color:'#fff',anchor:'end',align:'top',formatter:v=>v},tooltip:{backgroundColor:'#0f172a'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
-207|}
-208|</script>
-209|</body>
-210|</html>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FleetAnalytics PRO - Cargo Van Elite</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<style>
+:root{
+--bg-base:#070b14;--bg-panel:#0f1524;--bg-panel-hover:#141c30;--bg-glass:rgba(15,21,36,.7);
+--text-main:#e6edf3;--text-muted:#8b9bb8;--accent-blue:#3b82f6;--accent-blue-dark:#2563eb;
+--accent-green:#10b981;--accent-warning:#f59e0b;--accent-purple:#8b5cf6;--border:#1e293b;
+--radius:14px;--shadow:0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{background:radial-gradient(1200px 600px at 20% -10%,#111b2e 0%,transparent 60%),radial-gradient(800px 400px at 90% 0%,#1a1f35 0%,transparent 55%),var(--bg-base);color:var(--text-main);overflow-x:hidden}
+.icon{width:18px;height:18px;fill:currentColor}
+#login-view{display:flex;align-items:center;justify-content:center;height:100vh;background:radial-gradient(circle at center,#131927 0%,#090e17 100%)}
+.login-box{background:var(--bg-panel);padding:48px 40px;border-radius:var(--radius);border:1px solid var(--border);text-align:center;box-shadow:var(--shadow);backdrop-filter:blur(12px);max-width:420px}
+.login-box h1{font-size:28px;color:var(--accent-blue);margin-bottom:8px;font-weight:800;letter-spacing:.2px}
+.login-box p{color:var(--text-muted);margin-bottom:32px;font-size:14px}
+.btn-primary{background:linear-gradient(135deg,var(--accent-blue-dark),var(--accent-blue));color:#fff;border:none;padding:14px 26px;font-size:14px;font-weight:700;border-radius:10px;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:10px;box-shadow:0 6px 16px rgba(59,130,246,.35)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(59,130,246,.45)}
+#dashboard{display:none;height:100vh}
+.layout{display:flex;height:100%}
+.sidebar{width:280px;background:linear-gradient(180deg,rgba(15,21,36,.9),rgba(15,21,36,.6));border-right:1px solid var(--border);display:flex;flex-direction:column;padding:26px 0;position:sticky;top:0;height:100vh;backdrop-filter:blur(10px)}
+.brand{padding:0 26px 32px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:10px}
+.brand-badge{font-size:10px;border:1px solid var(--accent-blue);color:var(--accent-blue);padding:3px 8px;border-radius:999px;font-weight:700;background:rgba(59,130,246,.08)}
+.nav-section{font-size:11px;color:var(--text-muted);letter-spacing:1.2px;padding:0 26px 12px;text-transform:uppercase;font-weight:700}
+.nav-item{padding:12px 26px;margin:4px 14px;border-radius:10px;color:var(--text-muted);font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s}
+.nav-item:hover{background:var(--bg-panel-hover);color:var(--text-main)}
+.nav-item.active{background:rgba(59,130,246,.12);color:var(--accent-blue);border-left:3px solid var(--accent-blue)}
+.user-profile{margin-top:auto;padding:18px 26px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.15)}
+.user-name{font-size:13px;font-weight:700}
+.user-role{font-size:11px;color:var(--text-muted)}
+.btn-logout{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;transition:.2s}
+.btn-logout:hover{border-color:var(--accent-blue);color:var(--accent-blue)}
+.main-content{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding:28px 32px;gap:22px}
+.filter-bar{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:4px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(10px)}
+.filter-group{display:flex;flex-direction:column;gap:6px}
+.filter-group label{font-size:11px;color:var(--accent-blue);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.filter-input{background:rgba(7,11,20,.7);border:1px solid var(--border);color:var(--text-main);padding:9px 12px;border-radius:8px;font-size:13px;outline:none;transition:.2s}
+.filter-input:focus{border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.btn-sync{background:linear-gradient(135deg,var(--accent-blue-dark),var(--accent-blue));color:#fff;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;margin-left:auto;display:flex;align-items:center;gap:8px;transition:.25s;box-shadow:0 6px 16px rgba(59,130,246,.3)}
+.btn-sync:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(59,130,246,.45)}
+.btn-sync.syncing{opacity:.7;pointer-events:none}
+#debug-panel{background:#0b1120;border:1px dashed var(--accent-purple);padding:12px 16px;border-radius:10px;margin-bottom:10px;font-family:ui-monospace,monospace;font-size:11px;color:#cbd5e1;display:none}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+@media(max-width:1400px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.kpi-grid{grid-template-columns:1fr}}
+.kpi-card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;transition:.25s;position:relative;overflow:hidden}
+.kpi-card:hover{transform:translateY(-2px);border-color:#2a3a5a;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.kpi-card.highlight{background:linear-gradient(135deg,#1f3a8a,#2563eb);border:none;color:#fff}
+.kpi-title{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:700}
+.highlight .kpi-title{color:rgba(255,255,255,.85)}
+.kpi-value{font-size:28px;font-weight:800;letter-spacing:.2px}
+.kpi-sub{font-size:11px;color:var(--text-muted)}
+.highlight .kpi-sub{color:rgba(255,255,255,.9)}
+.content-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+.content-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:1200px){.content-grid{grid-template-columns:1fr}.content-grid-3{grid-template-columns:1fr 1fr} }
+@media(max-width:800px){.content-grid-3{grid-template-columns:1fr}}
+.panel{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.panel-title{font-size:15px;font-weight:700;letter-spacing:.2px}
+.badge{background:rgba(16,185,129,.12);color:var(--accent-green);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid rgba(16,185,129,.25)}
+.chart-container{position:relative;height:280px;width:100%}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th{color:var(--text-muted);padding:12px;border-bottom:1px solid var(--border);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.4px;position:sticky;top:0;background:var(--bg-panel)}
+td{padding:14px 12px;border-bottom:1px solid rgba(30,41,59,.5);color:#cbd5e1;vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+.status-badge{border:1px solid var(--accent-green);color:var(--accent-green);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(16,185,129,.08)}
+.perfil-badge{background:rgba(59,130,246,.1);border:1px solid var(--accent-blue);color:var(--accent-blue);padding:3px 9px;border-radius:6px;font-size:10.5px;font-weight:700}
+.perfil-agregado{background:rgba(139,92,246,.1);border-color:var(--accent-purple);color:var(--accent-purple)}
+.operacao-badge{background:rgba(251,191,36,.1);border:1px solid var(--accent-warning);color:var(--accent-warning);padding:3px 9px;border-radius:6px;font-size:10.5px;font-weight:600}
+#toast{position:fixed;bottom:20px;right:20px;background:#0f172a;border:1px solid var(--border);color:#e2e8f0;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.3s;z-index:9999}
+#toast.show{opacity:1;transform:translateY(0)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<div id="login-view">
+<div class="login-box">
+<h1>FleetAnalytics PRO</h1>
+<p>Conexão Direta & Fiel ao SharePoint • CARGOVAN</p>
+<button class="btn-primary" onclick="signIn()">Entrar com Microsoft 365</button>
+</div>
+</div>
+
+<div id="dashboard">
+<div class="layout">
+<aside class="sidebar">
+<div class="brand">FleetAnalytics <span class="brand-badge">ELITE</span></div>
+<div class="nav-section">Operacional</div>
+<div class="nav-item active">Liberação de Veículos</div>
+<div class="user-profile">
+<div class="user-info">
+<div class="user-name" id="display-name">Carregando...</div>
+<div class="user-role">Conectado ao SharePoint</div>
+</div>
+<button class="btn-logout" onclick="signOut()">Sair</button>
+</div>
+</aside>
+<main class="main-content">
+<div id="debug-panel"><strong>🔍 Diagnóstico do SharePoint</strong><div id="debug-content" style="margin-top:6px;white-space:pre-wrap"></div></div>
+<div class="filter-bar">
+<div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
+<div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
+<div class="filter-group"><label>Placa</label><input type="text" id="filter-placa" class="filter-input" placeholder="Placa"></div>
+<div class="filter-group"><label>Motorista</label><input type="text" id="filter-motorista" class="filter-input" placeholder="Motorista"></div>
+<button class="btn-sync" id="sync-btn" onclick="syncSharePointData()">Sincronizar SharePoint</button>
+</div>
+
+<div class="kpi-grid">
+<div class="kpi-card highlight"><div class="kpi-title">Total de Registros</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Base LIBERACAO_VEICULO</div></div>
+<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">Concluídas</div><div class="kpi-value" id="kpi-concluidas">0</div><div class="kpi-sub">Status Ativo</div></div>
+<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Frota Própria</div><div class="kpi-value" id="kpi-proprio">0</div><div class="kpi-sub">Veículos Próprios</div></div>
+<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Frota Agregada</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">Veículos Agregados</div></div>
+<div class="kpi-card"><div class="kpi-title" style="color:var(--accent-warning)">NFs / KM</div><div class="kpi-value" id="kpi-nfs">0 NFs</div><div class="kpi-sub" id="kpi-km">0 km rodados</div></div>
+</div>
+
+<div class="content-grid-3">
+<div class="panel">
+<div class="panel-header"><div class="panel-title">Evolução de Entregas</div><div class="badge">7 dias</div></div>
+<div class="chart-container"><canvas id="lineChart"></canvas></div>
+</div>
+<div class="panel">
+<div class="panel-header"><div class="panel-title">Perfil de Frota</div><div class="badge">Mix</div></div>
+<div class="chart-container"><canvas id="doughnutChart"></canvas></div>
+</div>
+<div class="panel">
+<div class="panel-header"><div class="panel-title">Top Motoristas</div></div>
+<div id="top-motoristas-list" style="display:flex;flex-direction:column;gap:12px;font-size:13px;overflow-y:auto;max-height:260px"></div>
+</div>
+</div>
+
+<div class="content-grid">
+<div class="panel">
+<div class="panel-header"><div class="panel-title">Liberações por Dia da Semana</div><div class="badge">Base Real</div></div>
+<div class="chart-container"><canvas id="barChart"></canvas></div>
+</div>
+<div class="panel">
+<div class="panel-header"><div class="panel-title">Ranking de Operações / Clientes</div></div>
+<div id="operacoes-list" style="display:flex;flex-direction:column;gap:12px;font-size:13px;overflow-y:auto;max-height:260px"></div>
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-header"><div class="panel-title">Registros Oficiais do SharePoint</div><div class="badge" id="table-count">Exibindo 0 registros</div></div>
+<div class="table-container"><table><thead><tr><th>Data / Documento</th><th>Placa</th><th>Motorista</th><th>Perfil</th><th>KM Inicial / Final</th><th>NFs</th><th>Operação / Cliente</th><th>Status</th></tr></thead><tbody id="table-body"></tbody></table></div>
+</div>
+</main>
+</div>
+</div>
+<div id="toast"></div>
+<script>
+const msalConfig={auth:{clientId:"3b29c3bc-e828-4835-a7bf-1f035ae7c981",authority:"https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage"}};
+const myMSALObj=new msal.PublicClientApplication(msalConfig);
+const loginRequest={scopes:["User.Read","Sites.Read.All"]};
+let rawData=[],filteredData=[],lineChartInstance=null,doughnutChartInstance=null,barChartInstance=null;
+Chart.register(ChartDataLabels);
+Chart.defaults.color='#94a3b8';Chart.defaults.font.family='Inter';
+
+function showDashboard(name){document.getElementById("login-view").style.display="none";document.getElementById("dashboard").style.display="block";document.getElementById("display-name").innerText=name.split(" ")[0];syncSharePointData();}
+function showLogin(){document.getElementById("login-view").style.display="flex";document.getElementById("dashboard").style.display="none";}
+function signIn(){myMSALObj.loginPopup(loginRequest).then(r=>showDashboard(r.account.name)).catch(e=>console.error(e));}
+function signOut(){myMSALObj.logoutPopup({account:myMSALObj.getAllAccounts()[0]}).then(()=>showLogin());}
+function showToast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+
+function normalizeSharePointKey(k){return String(k).toLowerCase().replace(/_x0020_/g,' ').replace(/_x003a_/g,':').replace(/_x0026_/g,'&').replace(/_x002D_/g,'-');}
+function getField(fields,keys){if(!fields)return null;for(let key of keys){const f=Object.keys(fields).find(k=>k.toLowerCase()===key.toLowerCase());if(f&&fields[f]!=null)return fields[f];}
+for(let key of keys){const nk=normalizeSharePointKey(key);const f=Object.keys(fields).find(k=>normalizeSharePointKey(k)===nk);if(f&&fields[f]!=null)return fields[f];}
+const lowerKeys=keys.map(k=>k.toLowerCase());Object.keys(fields).forEach(k=>{const lk=k.toLowerCase();lowerKeys.forEach(lk2=>{if(lk.includes(lk2)||lk2.includes(lk))return fields[k];})});return null;}
+
+async function syncSharePointData(){
+const account=myMSALObj.getAllAccounts()[0];if(!account)return;
+const btn=document.getElementById('sync-btn');btn.classList.add('syncing');btn.innerHTML='Sincronizando...';
+try{
+const token=await myMSALObj.acquireTokenSilent({...loginRequest,account});
+let url=`https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
+let all=[];let pages=0;const maxPages=20;
+while(url&&pages<maxPages){pages++;const res=await fetch(url,{headers:{'Authorization':`Bearer ${token.accessToken}`}});
+if(res.status===429){const r=res.headers.get('Retry-After')||'30';await new Promise(r=>setTimeout(r,parseInt(r)*1000));continue;}
+if(!res.ok){const err=await res.text();throw new Error(`Graph ${res.status}: ${err}`);}
+const data=await res.json();if(data.value)all=all.concat(data.value);url=data['@odata.nextLink']||null;}
+if(all.length){document.getElementById('debug-panel').style.display='block';document.getElementById('debug-content').innerText=JSON.stringify(all[0].fields,null,2);
+rawData=all.map(it=>{const f=it.fields||{};return{id:it.id,criado:(f.Created||it.createdDateTime||new Date().toISOString()).split('T')[0],documento:getField(f,['Title','N_x00fa_Documento','Documento','NumeroDocumento','NFe'])||'N/A',placa:getField(f,['Placa','Veiculo','Vehicle'])||'S/ PLACA',motorista:getField(f,['Motorista','Driver','Condutor','Motorista1'])||'NÃO INFORMADO',perfil:String(getField(f,['Perfil','Vinculo','TipoFrota'])||'PRÓPRIO').toUpperCase(),kmInicial:Number(getField(f,['KmInicial','KM_x0020_Inicial','Km_Inicial','KMIniciado'])||0),kmFinal:Number(getField(f,['KmFinal','KM_x0020_Final','Km_Final','KMFinalizado'])||0),qtdNFs:Number(getField(f,['QtdNFs','Qtd_x0020_NFs','QuantidadeNFs','NFs'])||1),operacao:getField(f,['ClienteOperacao','Operacao','Cliente','Cliente_x0020_Operacao'])||'OPERAÇÃO GERAL',status:String(getField(f,['Status','Situacao'])||'CONCLUÍDO').toUpperCase()};});const ts=new Date().toISOString();sessionStorage.setItem('cargo_van_real_data',JSON.stringify({data:rawData,syncTime:ts}));localStorage.setItem('cargo_van_real_data_cache',JSON.stringify({data:rawData,syncTime:ts}));showToast(`✅ ${all.length} registros sincronizados`);}else{rawData=[];showToast('Lista vazia no SharePoint','info');}
+}catch(e){console.error(e);showToast('Erro ao sincronizar: '+e.message,'info');const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;showToast(`Usando cache (${rawData.length} registros)`);}}}
+finally{btn.classList.remove('syncing');btn.innerHTML='Sincronizar SharePoint';applyFilters();}}
+
+window.onload=()=>{const c=localStorage.getItem('cargo_van_real_data_cache');if(c){const p=JSON.parse(c);const age=(new Date()-new Date(p.syncTime))/60000;if(age<60){rawData=p.data;console.log('Cache carregado',rawData.length);} }const acc=myMSALObj.getAllAccounts();if(acc.length>0)showDashboard(acc[0].name);else showLogin();document.getElementById('filter-start').addEventListener('change',applyFilters);document.getElementById('filter-end').addEventListener('change',applyFilters);document.getElementById('filter-placa').addEventListener('keyup',debounce(applyFilters,300));document.getElementById('filter-motorista').addEventListener('keyup',debounce(applyFilters,300));};
+
+function applyFilters(){const s=document.getElementById('filter-start').value;const e=document.getElementById('filter-end').value;const p=document.getElementById('filter-placa').value.toLowerCase();const m=document.getElementById('filter-motorista').value.toLowerCase();filteredData=rawData.filter(it=>{let ok=true;if(s&&it.criado<s)ok=false;if(e&&it.criado>e)ok=false;if(p&&!it.placa.toLowerCase().includes(p))ok=false;if(m&&!it.motorista.toLowerCase().includes(m))ok=false;return ok;});updateDashboardUI();}
+
+function formatDateBR(d){const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
+
+function updateDashboardUI(){
+  document.getElementById('kpi-total').innerText=filteredData.length.toLocaleString('pt-BR');
+  document.getElementById('kpi-concluidas').innerText=filteredData.filter(d=>/CONCLU|ATIV/i.test(d.status)).length.toLocaleString('pt-BR');
+  
+  const proprios=filteredData.filter(d=>/PRÓPR|PROPRIO/i.test(d.perfil)).length;
+  const agregados=filteredData.filter(d=>/AGREG|TERC/i.test(d.perfil)).length;
+  document.getElementById('kpi-proprio').innerText=proprios.toLocaleString('pt-BR');
+  document.getElementById('kpi-agregado').innerText=agregados.toLocaleString('pt-BR');
+  
+  const totalNFs=filteredData.reduce((a,c)=>a+c.qtdNFs,0);
+  document.getElementById('kpi-nfs').innerText=`${totalNFs.toLocaleString('pt-BR')} NFs`;
+  
+  const totalKm=filteredData.reduce((a,c)=>a+Math.max(0,c.kmFinal-c.kmInicial),0);
+  document.getElementById('kpi-km').innerText=`${totalKm.toLocaleString('pt-BR')} km`;
+  
+  const tbody=document.getElementById('table-body');
+  tbody.innerHTML='';
+  document.getElementById('table-count').innerText=`Exibindo ${Math.min(filteredData.length,100)} de ${filteredData.length} registros`;
+  
+  filteredData.slice(0,100).forEach(it=>{
+    const km=Math.max(0,it.kmFinal-it.kmInicial);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span style="color:white;font-weight:700">${it.documento}</span><br><span style="font-size:10px;color:var(--text-muted)">${formatDateBR(it.criado)}</span></td><td style="color:var(--accent-blue);font-weight:700">${it.placa}</td><td>${it.motorista}</td><td><span class="perfil-badge ${/AGREG/i.test(it.perfil)?'perfil-agregado':''}">${it.perfil}</span></td><td>${it.kmInicial.toLocaleString('pt-BR')}/${it.kmFinal.toLocaleString('pt-BR')}<br><span style="font-size:10px;color:var(--accent-green)">(${km} km)</span></td><td style="font-weight:700">${it.qtdNFs} NFs</td><td><span class="operacao-badge">${it.operacao}</span></td><td><span class="status-badge">${it.status}</span></td>`;
+    tbody.appendChild(tr);
+  });
+  
+  // Ranking de Motoristas
+  const driver={};
+  filteredData.forEach(d=>{driver[d.motorista]=(driver[d.motorista]||0)+1;});
+  const sortedDrivers=Object.entries(driver).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const driverListEl=document.getElementById('top-motoristas-list');
+  driverListEl.innerHTML=sortedDrivers.length?sortedDrivers.map(([name,val])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px"><span style="font-weight:600">${name}</span><span class="badge">${val} viagens</span></div>`).join(''):'<div style="color:var(--text-muted);text-align:center">Nenhum dado</div>';
+
+  // Ranking de Operações
+  const ops={};
+  filteredData.forEach(d=>{ops[d.operacao]=(ops[d.operacao]||0)+1;});
+  const sortedOps=Object.entries(ops).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const opsListEl=document.getElementById('operacoes-list');
+  opsListEl.innerHTML=sortedOps.length?sortedOps.map(([name,val])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px"><span style="font-weight:600">${name}</span><span class="badge" style="background:rgba(251,191,36,.1);color:var(--accent-warning);border-color:rgba(251,191,36,.25)">${val} reg.</span></div>`).join(''):'<div style="color:var(--text-muted);text-align:center">Nenhum dado</div>';
+
+  updateCharts(proprios, agregados);
+}
+
+function updateCharts(proprios,agregados){
+  const map={};
+  filteredData.forEach(d=>{map[d.criado]=(map[d.criado]||0)+1;});
+  const dates=Object.keys(map).sort();
+  const vals=dates.map(d=>map[d]);
+  const fmt=dates.map(d=>formatDateBR(d)).slice(-14);
+  const vals7=vals.slice(-14);
+  
+  const ctxL=document.getElementById('lineChart').getContext('2d');
+  if(lineChartInstance)lineChartInstance.destroy();
+  const gradL=ctxL.createLinearGradient(0,0,0,280);
+  gradL.addColorStop(0,'rgba(59,130,246,.35)');
+  gradL.addColorStop(1,'rgba(59,130,246,0)');
+  lineChartInstance=new Chart(ctxL,{type:'line',data:{labels:fmt,datasets:[{data:vals7,borderColor:'#3b82f6',backgroundColor:gradL,fill:true,tension:.42,borderWidth:2.5,pointRadius:0,pointHoverRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',titleColor:'#e2e8f0',bodyColor:'#cbd5e1'}}},scales:{x:{grid:{display:false},ticks:{maxRotation:0}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
+
+  const ctxD=document.getElementById('doughnutChart').getContext('2d');
+  if(doughnutChartInstance)doughnutChartInstance.destroy();
+  doughnutChartInstance=new Chart(ctxD,{type:'doughnut',data:{labels:['Próprio','Agregado'],datasets:[{data:[proprios,agregados],backgroundColor:['#3b82f6','#8b5cf6'],borderWidth:0,hoverOffset:12}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}},tooltip:{backgroundColor:'#0f172a'}}}});
+
+  const dias=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const cnt=[0,0,0,0,0,0,0];
+  filteredData.forEach(it=>{let day=new Date(it.criado+'T00:00:00').getDay()-1;if(day===-1)day=6;cnt[day]++;});
+  
+  const ctxB=document.getElementById('barChart').getContext('2d');
+  if(barChartInstance)barChartInstance.destroy();
+  const gradB=ctxB.createLinearGradient(0,0,0,280);
+  gradB.addColorStop(0,'#22c55e');
+  gradB.addColorStop(1,'#16a34a');
+  barChartInstance=new Chart(ctxB,{type:'bar',data:{labels:dias,datasets:[{data:cnt,backgroundColor:gradB,borderRadius:8,barPercentage:.6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:true,color:'#fff',anchor:'end',align:'top',formatter:v=>v},tooltip:{backgroundColor:'#0f172a'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#1e293b'}}}});
+}
+</script>
+</body>
+</html>
