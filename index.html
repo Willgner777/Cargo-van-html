@@ -1,719 +1,228 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logs_cargo_van · Registro de Eventos</title>
-
-  <!-- Google Fonts: Inter & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- MSAL Browser SDK -->
-  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
-
-  <style>
-    :root {
-      --bg: #090D16;
-      --panel: #111827;
-      --panel-hover: #1F2937;
-      --panel-subtle: #161F30;
-      --border: #1F293D;
-      --border-focus: #F5A623;
-      --text: #F3F4F6;
-      --text-muted: #9CA3AF;
-      --amber: #F5A623;
-      --amber-hover: #D98E16;
-      --teal: #10B981;
-      --red: #EF4444;
-      --radius: 10px;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-    }
-
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargo Van Dashboard</title>
     
-    body {
-      background: radial-gradient(1000px 500px at 80% -20%, rgba(245, 166, 35, 0.08), transparent 70%), var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      min-height: 100vh;
-      line-height: 1.5;
-    }
+    <!-- Fonte padrão da Microsoft para um visual corporativo -->
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Importando a biblioteca MSAL.js direto da Microsoft -->
+    <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 
-    .wrap {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 36px 20px 80px;
-    }
+    <style>
+        /* Estilos Globais */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            background-color: #f4f7f6; 
+            color: #333; 
+        }
 
-    /* Top bar & Header */
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 24px;
-      margin-bottom: 32px;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
+        /* Tela de Login */
+        .login-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            background: #1e2a38; 
+            color: white; 
+        }
+        .login-container h1 { margin-bottom: 10px; }
+        .login-container p { margin-bottom: 30px; color: #a9b7c6; }
+        
+        button.btn-ms { 
+            background-color: #0078d4; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            font-weight: 600;
+            cursor: pointer; 
+            border-radius: 4px; 
+            transition: background 0.3s; 
+        }
+        button.btn-ms:hover { background-color: #005a9e; }
 
-    .brand-eyebrow {
-      color: var(--amber);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      font-family: var(--font-mono);
-    }
+        /* Estrutura do Dashboard */
+        #dashboard { display: none; /* Fica oculto até fazer o login */ }
+        
+        .header { 
+            background-color: #0078d4; 
+            color: white; 
+            padding: 15px 30px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h2 { margin: 0; font-size: 22px; }
+        .user-area { display: flex; align-items: center; gap: 20px; font-weight: 600;}
+        
+        button.btn-logout {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button.btn-logout:hover { background-color: rgba(255,255,255,0.2); }
 
-    .brand-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.02em;
-    }
-
-    .brand-sub {
-      color: var(--text-muted);
-      font-size: 13px;
-      margin-top: 4px;
-    }
-
-    .auth-box {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-      background: var(--panel-subtle);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 6px 14px;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
-    }
-
-    .dot.on {
-      background: var(--teal);
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-    }
-
-    /* Buttons UI */
-    button {
-      font-family: var(--font-sans);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text);
-      padding: 10px 18px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    button:hover:not(:disabled) {
-      border-color: #374151;
-      background: var(--panel-hover);
-    }
-
-    button:active:not(:disabled) {
-      transform: translateY(1px);
-    }
-
-    button.primary {
-      background: var(--amber);
-      border-color: var(--amber);
-      color: #111827;
-    }
-
-    button.primary:hover:not(:disabled) {
-      background: var(--amber-hover);
-      border-color: var(--amber-hover);
-    }
-
-    button.primary:disabled {
-      background: rgba(245, 166, 35, 0.2);
-      border-color: transparent;
-      color: rgba(255, 255, 255, 0.3);
-      cursor: not-allowed;
-    }
-
-    button.ghost {
-      background: transparent;
-      border-color: transparent;
-      color: var(--text-muted);
-    }
-
-    button.ghost:hover {
-      color: var(--text);
-      background: var(--panel-subtle);
-    }
-
-    button.small {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
-
-    /* Cards & Form Panels */
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-    }
-
-    .panel-header {
-      margin-bottom: 20px;
-    }
-
-    .panel-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      margin: 0 0 4px;
-    }
-
-    .panel-desc {
-      color: var(--text-muted);
-      font-size: 13px;
-      margin: 0;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .field.full {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-muted);
-    }
-
-    input[type=text], input[list] {
-      font-family: var(--font-sans);
-      background: var(--panel-subtle);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    input:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
-    }
-
-    .actions-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 24px;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .hint {
-      color: var(--text-muted);
-      font-size: 12px;
-    }
-
-    .msg {
-      font-size: 13px;
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-top: 16px;
-      display: none;
-    }
-
-    .msg.show { display: block; }
-    .msg.ok { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--teal); }
-    .msg.err { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--red); }
-
-    /* Table Design UI */
-    .table-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .table-responsive {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    thead th {
-      text-align: left;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 11px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      background: var(--panel-subtle);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 14px;
-    }
-
-    tbody td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    tbody tr:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .col-title {
-      font-weight: 500;
-      color: var(--amber);
-    }
-
-    .empty-row td {
-      color: var(--text-muted);
-      text-align: center;
-      padding: 40px 14px;
-    }
-
-    .diag {
-      margin-top: 14px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-muted);
-      background: var(--panel-subtle);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      display: none;
-      max-height: 220px;
-      overflow-y: auto;
-    }
-
-    .diag.show { display: block; }
-
-    @media (max-width: 640px) {
-      .grid { grid-template-columns: 1fr; }
-      .topbar { align-items: flex-start; }
-    }
-  </style>
+        /* Conteúdo do Dashboard */
+        .content { padding: 30px; max-width: 1200px; margin: 0 auto; }
+        .content-title { color: #1e2a38; margin-bottom: 20px; }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 25px; 
+        }
+        .card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            border-top: 4px solid #0078d4;
+        }
+        .card h3 { margin-top: 0; color: #1e2a38; }
+        .card p { color: #555; line-height: 1.5; font-size: 14px; margin-bottom: 20px; }
+        .card button {
+            background-color: #f3f2f1;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+        .card button:hover { background-color: #e1dfdd; }
+    </style>
 </head>
 <body>
 
-<div class="wrap">
-
-  <!-- Header -->
-  <div class="topbar">
-    <div>
-      <div class="brand-eyebrow">CARGOVAN · SHAREPOINT INTEGRATION</div>
-      <div class="brand-title">Logs_cargo_van</div>
-      <div class="brand-sub">Registro de eventos e ações operacionais</div>
-    </div>
-    <div class="auth-box">
-      <div class="status-pill">
-        <span id="statusDot" class="dot"></span>
-        <span id="statusText">Não conectado</span>
-      </div>
-      <button id="btnLogin" class="primary small">Entrar com a conta WillTech</button>
-      <button id="btnLogout" class="ghost small" style="display:none;">Sair</button>
-    </div>
-  </div>
-
-  <!-- Formulário -->
-  <div class="panel">
-    <div class="panel-header">
-      <p class="panel-title">Novo Registro</p>
-      <p class="panel-desc">Preencha os campos abaixo para gravar diretamente no SharePoint.</p>
+    <!-- TELA DE LOGIN -->
+    <div id="login-view" class="login-container">
+        <h1>Cargo Van</h1>
+        <p>Acesso restrito ao painel operacional</p>
+        <button class="btn-ms" onclick="signIn()">Entrar com a Microsoft</button>
     </div>
 
-    <div class="grid">
-      <div class="field full">
-        <label for="fTitulo">Título</label>
-        <input type="text" id="fTitulo" placeholder="Ex.: Saída de veículo — placa OAB-1234">
-      </div>
+    <!-- TELA DO DASHBOARD -->
+    <div id="dashboard">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h2>Dashboard | Cargo Van</h2>
+            <div class="user-area">
+                <span id="user-name">Carregando...</span>
+                <button class="btn-logout" onclick="signOut()">Sair</button>
+            </div>
+        </div>
 
-      <div class="field">
-        <label for="fEvento">Evento</label>
-        <input type="text" id="fEvento" list="eventoOptions" placeholder="Ex.: Saída, Retorno, Ocorrência">
-        <datalist id="eventoOptions">
-          <option value="Saída"></option>
-          <option value="Retorno"></option>
-          <option value="Ocorrência"></option>
-          <option value="Manutenção"></option>
-          <option value="Abastecimento"></option>
-        </datalist>
-      </div>
-
-      <div class="field">
-        <label for="fAcao">Ação</label>
-        <input type="text" id="fAcao" list="acaoOptions" placeholder="Ex.: Registrado, Aprovado">
-        <datalist id="acaoOptions">
-          <option value="Registrado"></option>
-          <option value="Aprovado"></option>
-          <option value="Reprovado"></option>
-          <option value="Cancelado"></option>
-          <option value="Em análise"></option>
-        </datalist>
-      </div>
-
-      <div class="field">
-        <label for="fNome">Nome do Operador</label>
-        <input type="text" id="fNome" placeholder="Preenchido automaticamente no login">
-      </div>
-
-      <div class="field">
-        <label for="fIdCopy">ID_copy</label>
-        <input type="text" id="fIdCopy" placeholder="Ex.: ID de referência original">
-      </div>
+        <!-- Área Central -->
+        <div class="content">
+            <h2 class="content-title">Visão Geral da Operação</h2>
+            
+            <div class="grid">
+                <!-- Cartão 1 -->
+                <div class="card">
+                    <h3>Gestão de Veículos</h3>
+                    <p>Controle de frota, check-lists de entrada/saída, documentação e agendamento de manutenções preventivas e corretivas.</p>
+                    <button>Acessar Módulo</button>
+                </div>
+                <!-- Cartão 2 -->
+                <div class="card">
+                    <h3>Controle de Pneus e Combustível</h3>
+                    <p>Acompanhamento de rodagem, aferição de diesel, inspeção de sulcos e controle de recapagem para redução de custos.</p>
+                    <button>Acessar Módulo</button>
+                </div>
+                <!-- Cartão 3 -->
+                <div class="card">
+                    <h3>Indicadores de Performance</h3>
+                    <p>Relatórios gerenciais, análise de disponibilidade da frota e painéis interativos de Business Intelligence.</p>
+                    <button>Abrir Relatórios</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="actions-row">
-      <span class="hint">A data e hora de criação são registradas automaticamente.</span>
-      <button id="btnSubmit" class="primary" disabled>Gravar Registro</button>
-    </div>
+    <!-- SCRIPT DE AUTENTICAÇÃO E LÓGICA -->
+    <script>
+        // 1. Configuração do MSAL com os dados exatos do seu painel Azure
+        const msalConfig = {
+            auth: {
+                clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981",
+                authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
+                // A URL abaixo deve estar cadastrada em "URIs de Redirecionamento" no Azure
+                redirectUri: window.location.origin + window.location.pathname 
+            },
+            cache: {
+                cacheLocation: "sessionStorage", 
+                storeAuthStateInCookie: false,
+            }
+        };
 
-    <div id="formMsg" class="msg"></div>
-  </div>
+        const myMSALObj = new msal.PublicClientApplication(msalConfig);
+        
+        // Escopo básico para ler o nome e email do usuário no login
+        const loginRequest = { 
+            scopes: ["User.Read"] 
+        };
 
-  <!-- Tabela -->
-  <div class="panel">
-    <div class="table-head">
-      <div>
-        <p class="panel-title">Registros da Lista</p>
-        <p class="panel-desc">Visualização dos últimos registros gravados.</p>
-      </div>
-      <button id="btnRefresh" class="small" disabled>Atualizar Data</button>
-    </div>
+        // 2. Manipulação das Telas (Mostrar Login vs Mostrar Dashboard)
+        function showDashboard(username) {
+            document.getElementById("login-view").style.display = "none";
+            document.getElementById("dashboard").style.display = "block";
+            document.getElementById("user-name").innerText = "Olá, " + username;
+        }
 
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>Título</th>
-            <th>Evento</th>
-            <th>Ação</th>
-            <th>Criação</th>
-            <th>Nome</th>
-            <th>ID_copy</th>
-          </tr>
-        </thead>
-        <tbody id="rowsBody">
-          <tr class="empty-row"><td colspan="6">Autentique-se com a conta WillTech para carregar a base.</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+        function showLogin() {
+            document.getElementById("login-view").style.display = "flex";
+            document.getElementById("dashboard").style.display = "none";
+        }
 
-  <!-- Diagnóstico -->
-  <div class="panel">
-    <div class="table-head">
-      <div>
-        <p class="panel-title">Diagnóstico de Colunas</p>
-        <p class="panel-desc">Caso a gravação falhe, verifique aqui os nomes internos das colunas do SharePoint.</p>
-      </div>
-      <button id="btnDiag" class="small" disabled>Ver Colunas Internas</button>
-    </div>
-    <div id="diagBox" class="diag"></div>
-  </div>
+        // 3. Função de Login
+        function signIn() {
+            myMSALObj.loginPopup(loginRequest)
+                .then(response => {
+                    console.log("Autenticação bem-sucedida:", response);
+                    // Pega o nome do usuário que logou e mostra o painel
+                    showDashboard(response.account.name);
+                })
+                .catch(error => {
+                    console.error("Erro durante o login:", error);
+                    alert("Erro ao tentar fazer login. Detalhes no console.");
+                });
+        }
 
-</div>
+        // 4. Função de Logout
+        function signOut() {
+            const currentAccount = myMSALObj.getAllAccounts()[0];
+            const logoutRequest = {
+                account: currentAccount
+            };
+            
+            myMSALObj.logoutPopup(logoutRequest).then(() => {
+                showLogin();
+            });
+        }
 
-<script>
-/* =========================================================
-   CONFIGURAÇÃO — Microsoft Entra ID & SharePoint
-   ========================================================= */
-const CONFIG = {
-  clientId: "7937a0da-7f45-4bc6-b7e9-2a749dcda79b",
-  tenantId: "669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
-  spHostname: "willtech7.sharepoint.com",
-  spSitePath: "/sites/CARGOVAN",
-  listName: "Logs_cargo_van",
-  scopes: ["Sites.ReadWrite.All", "User.Read"]
-};
-
-const msalConfig = {
-  auth: {
-    clientId: CONFIG.clientId,
-    authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
-    redirectUri: window.location.origin + window.location.pathname
-  },
-  cache: { cacheLocation: "sessionStorage" }
-};
-
-const msalInstance = new msal.PublicClientApplication(msalConfig);
-let account = null;
-let siteId = null;
-let listId = null;
-
-const el = (id) => document.getElementById(id);
-
-function setStatus(connected, label){
-  el("statusDot").classList.toggle("on", connected);
-  el("statusText").textContent = label;
-}
-
-function showMsg(text, kind){
-  const box = el("formMsg");
-  box.textContent = text;
-  box.className = "msg show " + kind;
-}
-
-function clearMsg(){
-  const box = el("formMsg");
-  box.className = "msg";
-}
-
-/* ---------- Autenticação & Inicialização Corrigida ---------- */
-
-window.addEventListener("load", async () => {
-  try {
-    // Inicialização assíncrona mandatória do MSAL v2/v3
-    await msalInstance.initialize();
-
-    const response = await msalInstance.handleRedirectPromise();
-    if (response) {
-      account = response.account;
-    } else {
-      const accounts = msalInstance.getAllAccounts();
-      if (accounts.length > 0) {
-        account = accounts[0];
-      }
-    }
-
-    if (account) {
-      msalInstance.setActiveAccount(account);
-      await onSignedIn();
-    }
-  } catch (err) {
-    console.error("Erro na inicialização da autenticação:", err);
-  }
-});
-
-el("btnLogin").addEventListener("click", async () => {
-  try {
-    const res = await msalInstance.loginPopup({ scopes: CONFIG.scopes, prompt: "select_account" });
-    account = res.account;
-    msalInstance.setActiveAccount(account);
-    await onSignedIn();
-  } catch(err) {
-    console.error(err);
-    showMsg("Falha no login: " + (err && err.message ? err.message : err), "err");
-  }
-});
-
-el("btnLogout").addEventListener("click", () => {
-  msalInstance.logoutPopup();
-});
-
-async function getToken(){
-  const req = { scopes: CONFIG.scopes, account };
-  try {
-    const res = await msalInstance.acquireTokenSilent(req);
-    return res.accessToken;
-  } catch(err) {
-    const res = await msalInstance.acquireTokenPopup(req);
-    return res.accessToken;
-  }
-}
-
-async function onSignedIn(){
-  setStatus(true, account.username);
-  el("btnLogin").style.display = "none";
-  el("btnLogout").style.display = "inline-flex";
-  el("btnSubmit").disabled = false;
-  el("btnRefresh").disabled = false;
-  el("btnDiag").disabled = false;
-  
-  if (!el("fNome").value) {
-    el("fNome").value = account.name || account.username;
-  }
-
-  try {
-    await resolveSiteAndList();
-    await loadItems();
-  } catch(err) {
-    console.error("Erro ao conectar no SharePoint:", err);
-    showMsg("Conta conectada, mas houve falha ao obter o SharePoint: " + err.message, "err");
-  }
-}
-
-/* ---------- Graph API Services ---------- */
-
-async function graphFetch(path, options = {}){
-  const token = await getToken();
-  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
-  });
-  if (!res.ok){
-    const body = await res.text();
-    throw new Error(`Graph ${res.status}: ${body}`);
-  }
-  return res.status === 204 ? null : res.json();
-}
-
-async function resolveSiteAndList(){
-  const site = await graphFetch(`/sites/${CONFIG.spHostname}:${CONFIG.spSitePath}`);
-  siteId = site.id;
-  const list = await graphFetch(`/sites/${siteId}/lists/${CONFIG.listName}`);
-  listId = list.id;
-}
-
-/* ---------- Leitura ---------- */
-
-async function loadItems(){
-  const body = el("rowsBody");
-  body.innerHTML = `<tr class="empty-row"><td colspan="6">Carregando dados da lista…</td></tr>`;
-  try {
-    const data = await graphFetch(
-      `/sites/${siteId}/lists/${listId}/items?expand=fields&$orderby=fields/Created desc&$top=50`
-    );
-    const items = (data && data.value) || [];
-    if (items.length === 0){
-      body.innerHTML = `<tr class="empty-row"><td colspan="6">Nenhum registro encontrado.</td></tr>`;
-      return;
-    }
-    body.innerHTML = items.map(it => {
-      const f = it.fields || {};
-      const dateVal = f.Created || f.Criacao || "";
-      const formattedDate = dateVal ? new Date(dateVal).toLocaleString("pt-BR") : "";
-      
-      return `<tr>
-        <td class="col-title">${escapeHtml(f.Title || "")}</td>
-        <td>${escapeHtml(f.Evento || "")}</td>
-        <td>${escapeHtml(f.Acao || "")}</td>
-        <td>${escapeHtml(formattedDate)}</td>
-        <td>${escapeHtml(f.Nome || "")}</td>
-        <td>${escapeHtml(f.ID_copy || f.IDcopy || "")}</td>
-      </tr>`;
-    }).join("");
-  } catch(err) {
-    console.error(err);
-    body.innerHTML = `<tr class="empty-row"><td colspan="6">Erro ao carregar dados — consulte o diagnóstico abaixo.</td></tr>`;
-  }
-}
-
-el("btnRefresh").addEventListener("click", loadItems);
-
-function escapeHtml(str){
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-/* ---------- Gravação ---------- */
-
-el("btnSubmit").addEventListener("click", async () => {
-  clearMsg();
-  const fields = {
-    Title: el("fTitulo").value.trim(),
-    Evento: el("fEvento").value.trim(),
-    Acao: el("fAcao").value.trim(),
-    Nome: el("fNome").value.trim(),
-    ID_copy: el("fIdCopy").value.trim()
-  };
-
-  if (!fields.Title){
-    showMsg("Preencha ao menos o campo Título.", "err");
-    return;
-  }
-
-  el("btnSubmit").disabled = true;
-  el("btnSubmit").textContent = "Gravando...";
-
-  try {
-    await graphFetch(`/sites/${siteId}/lists/${listId}/items`, {
-      method: "POST",
-      body: JSON.stringify({ fields })
-    });
-    showMsg("Registro gravado com sucesso!", "ok");
-    el("fTitulo").value = "";
-    el("fEvento").value = "";
-    el("fAcao").value = "";
-    el("fIdCopy").value = "";
-    await loadItems();
-  } catch(err) {
-    console.error(err);
-    showMsg("Não foi possível gravar. Verifique se os nomes internos das colunas no SharePoint correspondem exatamente aos enviados.", "err");
-  } finally {
-    el("btnSubmit").disabled = false;
-    el("btnSubmit").textContent = "Gravar Registro";
-  }
-});
-
-/* ---------- Diagnóstico ---------- */
-
-el("btnDiag").addEventListener("click", async () => {
-  const box = el("diagBox");
-  box.classList.add("show");
-  box.textContent = "Consultando schema da lista...";
-  try {
-    const data = await graphFetch(`/sites/${siteId}/lists/${listId}/columns`);
-    const cols = (data.value || [])
-      .filter(c => !c.readOnly)
-      .map(c => `${c.displayName}  →  nome interno: ${c.name}`)
-      .join("\n");
-    box.textContent = cols || "Nenhuma coluna editável encontrada.";
-  } catch(err) {
-    box.textContent = "Erro ao consultar colunas: " + err.message;
-  }
-});
-</script>
+        // 5. Verifica estado da sessão ao recarregar a página
+        window.onload = () => {
+            const currentAccounts = myMSALObj.getAllAccounts();
+            
+            // Se já houver alguém logado na sessão, vai direto pro Dashboard
+            if (currentAccounts.length > 0) {
+                showDashboard(currentAccounts[0].name);
+            } else {
+                // Caso contrário, mostra a tela inicial azul marinho de login
+                showLogin();
+            }
+        }
+    </script>
 </body>
 </html>
