@@ -1,379 +1,1163 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Premium - Gestão de Operações</title>
-    
-    <!-- Tailwind CSS para estruturação rápida -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js e ChartDataLabels -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cargo Van Express - Dashboard Executivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<style>
+:root {
+    --bg-base: #070b14;
+    --bg-panel: #0f1524;
+    --bg-panel-hover: #141c30;
+    --bg-glass: rgba(15,21,36,.85);
+    --text-main: #e6edf3;
+    --text-muted: #8b9bb8;
+    --accent-blue: #3b82f6;
+    --accent-blue-dark: #2563eb;
+    --accent-green: #10b981;
+    --accent-warning: #f59e0b;
+    --accent-purple: #8b5cf6;
+    --accent-red: #ef4444;
+    --border: #1e293b;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --login-bg: #163C92;
+    --login-red: #FF3B30;
+}
 
-    <style>
-        /* =========================================================
-           TEMAS E EFEITOS (GLASSMORPHISM & NEON)
-           ========================================================= */
-        :root {
-            --bg-color: #0f172a; 
-            --card-bg: rgba(30, 41, 59, 0.7); 
-            --card-border: rgba(255, 255, 255, 0.1);
-            --accent-glow: 0 0 15px rgba(59, 130, 246, 0.5);
-            --success-glow: 0 0 15px rgba(16, 185, 129, 0.5);
-        }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
 
-        body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at top right, rgba(30, 64, 175, 0.15), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 40%);
-            color: #f8fafc;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            min-height: 100vh;
-        }
+/* TELA DE LOGIN */
+#login-view {
+    display: flex; flex-direction: column; justify-content: center;
+    height: 100vh; width: 100vw; background-color: var(--login-bg);
+    padding: 10%; position: relative; overflow: hidden; z-index: 10;
+}
+#login-view::before, #login-view::after {
+    content: ''; position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.04); z-index: 0;
+}
+#login-view::before { width: 800px; height: 800px; top: -200px; right: -200px; }
+#login-view::after { width: 400px; height: 400px; bottom: -100px; right: 20%; }
+.login-content { position: relative; z-index: 1; max-width: 800px; }
+.brand-title { color: #FFFFFF; font-size: 2.5rem; font-weight: 800; letter-spacing: 2px; margin-bottom: 2px; }
+.brand-subtitle { color: var(--login-red); font-size: 1rem; font-weight: 800; letter-spacing: 5px; margin-bottom: 60px; text-transform: uppercase; }
+.hero-text { color: #FFFFFF; font-size: 3.5rem; font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+.hero-subtext { color: #A5C0FA; font-size: 1.2rem; margin-bottom: 50px; font-weight: 500; }
+.btn-connect {
+    background-color: #FFFFFF; color: var(--login-bg); padding: 16px 36px;
+    font-size: 1.1rem; font-weight: 700; border: none; border-radius: 50px;
+    cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    display: inline-flex; align-items: center; gap: 10px;
+}
+.btn-connect:hover { transform: translateY(-3px); background-color: #f8f9fa; }
 
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
-            border-radius: 1rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        }
+/* TELA DE CARREGAMENTO */
+#loading-screen {
+    display: none; height: 100vh; width: 100vw; background-color: var(--bg-base);
+    flex-direction: column; justify-content: center; align-items: center; z-index: 20; position: fixed; top: 0; left: 0;
+}
+.spinner {
+    width: 65px; height: 65px; border: 4px solid rgba(59, 130, 246, 0.15);
+    border-left-color: var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;
+}
+.loading-text { color: var(--text-main); font-size: 1.2rem; font-weight: 600; letter-spacing: 0.5px; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), var(--accent-glow);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
+/* DASHBOARD PRINCIPAL */
+#dashboard { display: none; height: 100vh; overflow: hidden; }
+.layout { display: flex; height: 100%; width: 100%; }
 
-        .badge-pill {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+/* Sidebar Fixa e Organizada */
+.sidebar {
+    width: 280px; min-width: 280px; background: var(--bg-panel);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    padding: 24px 0; z-index: 5;
+}
+.brand { padding: 0 24px 24px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #fff; border-bottom: 1px solid var(--border); }
+.brand svg { width: 24px; height: 24px; fill: var(--accent-blue); }
+.sidebar-menu { padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: .2s; cursor: pointer; }
+.sidebar-item svg { width: 18px; height: 18px; fill: currentColor; }
+.sidebar-item:hover, .sidebar-item.active { background: var(--bg-panel-hover); color: #fff; }
+.user-profile { padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
+.user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
-        .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 24px; gap: 20px; background: var(--bg-base); }
 
-        .progress-bar-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 999px;
-            overflow: hidden;
-            height: 8px;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #06b6d4);
-            border-radius: 999px;
-            box-shadow: var(--accent-glow);
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+/* Barra de Filtros Completa */
+.filter-bar {
+    background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: center;
+}
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-group label { font-size: 10px; color: var(--accent-blue); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+.filter-input {
+    background: rgba(7,11,20,.8); border: 1px solid var(--border); color: var(--text-main);
+    padding: 8px 12px; border-radius: 8px; font-size: 12px; outline: none; width: 100%; transition: .2s;
+}
+.filter-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
 
-        .glass-input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--card-border);
-            color: #fff;
-            color-scheme: dark;
-        }
-        .glass-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-        }
-    </style>
+/* KPIS */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+.kpi-card.highlight { background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; }
+.kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); font-weight: 700; }
+.highlight .kpi-title { color: rgba(255,255,255,.8); }
+.kpi-value { font-size: 26px; font-weight: 800; color: #fff; }
+.kpi-sub { font-size: 11px; color: var(--text-muted); }
+
+/* Grades de Gráficos e Rankings */
+.content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+.content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media(max-width: 1200px) { .content-grid, .content-grid-3 { grid-template-columns: 1fr; } }
+
+.panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+.panel-header { display: flex; justify-content: space-between; align-items: center; }
+.panel-title { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+.chart-container { position: relative; height: 260px; width: 100%; }
+
+/* Listas de Ranking */
+.ranking-list { display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto; padding-right: 4px; }
+.ranking-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
+.ranking-item span:first-child { font-weight: 600; color: #cbd5e1; }
+.ranking-item span:last-child { font-weight: 700; color: var(--accent-blue); }
+
+/* Tabela */
+.table-container { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { color: var(--text-muted); padding: 12px 10px; border-bottom: 1px solid var(--border); font-weight: 700; text-transform: uppercase; font-size: 10px; text-align: left; }
+td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd5e1; vertical-align: middle; }
+
+/* Cores Dinâmicas de Status e Perfis */
+.badge-status { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+.status-concluido { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-andamento { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+.status-pernoite { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+.status-outro { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+.badge-perfil { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+.perfil-proprio { background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); }
+.perfil-agregado { background: rgba(139, 92, 246, 0.12); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.25); }
+
+#toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ============ NOVOS COMPONENTES DE GRÁFICO (v2) ============ */
+.perf-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
+.perf-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center; }
+.perf-card.sparkline { align-items:stretch; text-align:left; }
+.sparkline-value { font-size:22px; font-weight:800; color:#fff; }
+.sparkline-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.sparkline-canvas-wrap { height:50px; margin-top:10px; }
+
+.ring { width:100px; height:100px; border-radius:50%; background:conic-gradient(var(--ring-color,#3b82f6) calc(var(--pct,0)*1%), rgba(255,255,255,0.06) 0); display:flex; align-items:center; justify-content:center; position:relative; transition: background 1s ease; }
+.ring::before { content:''; position:absolute; inset:9px; background:var(--bg-panel); border-radius:50%; }
+.ring-label { position:relative; z-index:1; font-weight:800; font-size:16px; color:#fff; }
+.ring-title { font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
+
+.progress-wrap { display:flex; flex-direction:column; gap:10px; }
+.progress-top { display:flex; justify-content:space-between; align-items:baseline; }
+.progress-track { width:100%; height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
+.progress-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius:8px; transition: width 1s ease; }
+
+.funnel-track { position:relative; display:flex; justify-content:space-around; align-items:flex-start; padding:16px 20px 4px; }
+.funnel-track::before { content:''; position:absolute; top:56px; left:70px; right:70px; height:0; border-top:2px dashed var(--border); z-index:0; }
+.funnel-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
+
+.segmented-bar { display:flex; width:100%; height:22px; border-radius:8px; overflow:hidden; background:rgba(255,255,255,0.05); }
+.segmented-bar .segment { height:100%; width:0%; transition: width .6s ease; }
+.segmented-legend { display:flex; flex-wrap:wrap; gap:14px; margin-top:2px; }
+.segmented-legend-item { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted); }
+.segmented-legend-dot { width:9px; height:9px; border-radius:50%; }
+
+.timeline-list { display:flex; flex-direction:column; gap:10px; max-height: 320px; overflow-y:auto; padding-right:4px; }
+.timeline-item { display:flex; gap:12px; align-items:flex-start; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:10px; padding:10px 12px; }
+.timeline-dot { width:9px; height:9px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+.timeline-body { display:flex; flex-direction:column; gap:2px; }
+.timeline-title { font-size:12px; font-weight:700; color:#e6edf3; }
+.timeline-sub { font-size:11px; color:var(--text-muted); }
+</style>
 </head>
-<body class="p-6">
+<body>
 
-    <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
-                Performance de Operações
-            </h1>
-            <p class="text-slate-400 text-sm mt-1">Sincronizado via MSAL & SharePoint | Atualização em tempo real</p>
-        </div>
-        
-        <div class="glass-card p-2 px-4 flex items-center gap-3">
-            <label class="text-sm text-slate-300">Período:</label>
-            <input type="date" id="filter-start" class="glass-input rounded-md px-2 py-1 text-sm" value="2026-09-01">
-            <span class="text-slate-500">até</span>
-            <input type="date" id="filter-end" class="glass-input rounded-md px-2 py-1 text-sm" value="2026-09-30">
-            <button onclick="updateDashboard()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-md text-sm transition-colors shadow-[0_0_10px_rgba(37,99,235,0.4)]">
-                Filtrar
-            </button>
-        </div>
-    </header>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <div class="glass-card p-6 flex flex-col justify-between">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <span class="badge-pill badge-cyan mb-2">KPI Principal</span>
-                    <h2 class="text-lg font-semibold text-slate-200">Meta Mensal (NFs)</h2>
-                </div>
-                <div class="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                </div>
-            </div>
-            
-            <div class="mt-2">
-                <div class="flex justify-between items-end mb-2">
-                    <span class="text-3xl font-bold" id="meta-mensal-atual">0</span>
-                    <span class="text-sm text-slate-400">de <span id="meta-mensal-alvo" class="text-slate-200">0</span> alvo</span>
-                </div>
-                <div class="progress-bar-container">
-                    <div id="meta-mensal-fill" class="progress-bar-fill" style="width: 0%;"></div>
-                </div>
-                <div class="mt-2 text-right">
-                    <span id="meta-mensal-pct" class="text-sm font-medium text-cyan-400 cursor-help">0%</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="glass-card p-6 lg:col-span-2">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-slate-200">Evolução de Entregas</h2>
-                <span class="badge-pill badge-emerald">Tempo Real</span>
-            </div>
-            <div class="relative h-48">
-                <canvas id="lineChart"></canvas>
-            </div>
-        </div>
-
-        <div class="glass-card p-6 lg:col-span-3">
-            <h2 class="text-lg font-semibold text-slate-200 mb-4">Performance por Operação vs Meta Dinâmica</h2>
-            <div class="relative h-72">
-                <canvas id="opTargetChart"></canvas>
-            </div>
-        </div>
+<!-- TELA DE LOGIN -->
+<div id="login-view">
+    <div class="login-content">
+        <div class="brand-title">CARGO VAN</div>
+        <div class="brand-subtitle">EXPRESS</div>
+        <h1 class="hero-text">A Logística Completa<br>na sua Mão.</h1>
+        <p class="hero-subtext">Gerencie sua frota com controle, eficiência e dados oficiais do SharePoint em tempo real.</p>
+        <button class="btn-connect" onclick="iniciarLogin()">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Conectar com Microsoft 365
+        </button>
     </div>
+</div>
 
-    <script>
-        let opTargetChartInstance = null;
-        let lineChartInstance = null;
-        const fmt = (num) => new Intl.NumberFormat('pt-BR').format(num);
+<!-- TELA DE CARREGAMENTO -->
+<div id="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-msg">Sincronizando dados com o SharePoint...</div>
+</div>
 
-        /* =========================================================
-           PLUGIN VISUAL: PULSO NEON MULTI-GRÁFICO
-           ========================================================= */
-        const globalPulsePlugin = {
-            id: 'globalPulsePlugin',
-            afterDatasetsDraw(chart) {
-                const ctx = chart.ctx;
-                const t = performance.now() / 1000;
-                const pulse = (Math.sin(t * 2) + 1) / 2;
+<!-- DASHBOARD -->
+<div id="dashboard">
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                FleetAnalytics
+            </div>
+            <div class="sidebar-menu">
+                <a href="#" class="sidebar-item active">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Visão Geral
+                </a>
+                <a class="sidebar-item" onclick="syncSharePointData()">
+                    <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                    Sincronizar Dados
+                </a>
+            </div>
+            <div class="user-profile">
+                <div class="user-name" id="display-name">Carregando...</div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <!-- BARRA DE FILTROS -->
+            <div class="filter-bar">
+                <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
+                <div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
+                <div class="filter-group"><label>Placa / Veículo</label><input type="text" id="filter-placa" class="filter-input" placeholder="Filtrar placa..."></div>
+                <div class="filter-group"><label>Nº Documento</label><input type="text" id="filter-doc" class="filter-input" placeholder="Nº Documento"></div>
+                <div class="filter-group"><label>Cliente / Operação</label><input type="text" id="filter-operacao" class="filter-input" placeholder="Cliente ou UF"></div>
+                <div class="filter-group"><label>Status</label><select id="filter-status" class="filter-input"><option value="">Todos</option></select></div>
+                <div class="filter-group"><label>Perfil Frota</label><select id="filter-perfil" class="filter-input"><option value="">Todos</option><option value="PRÓPRIO">Próprio</option><option value="AGREGADO">Agregado</option></select></div>
+            </div>
 
-                chart.data.datasets.forEach((dataset, datasetIndex) => {
-                    const meta = chart.getDatasetMeta(datasetIndex);
-                    if (!meta || !meta.data || meta.data.length === 0) return;
+            <!-- KPIS -->
+            <div class="kpi-grid">
+                <div class="kpi-card highlight"><div class="kpi-title">Total Entregas</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Registros Oficiais</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">NFs Faturadas</div><div class="kpi-value" id="kpi-nfs">0</div><div class="kpi-sub">Volume Calculado</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Frota Própria</div><div class="kpi-value" id="kpi-proprio">0</div><div class="kpi-sub">NFs Realizadas</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">NFs Realizadas</div></div>
+            </div>
 
-                    const lastIdx = meta.data.length - 1;
-                    const point = meta.data[lastIdx];
+            <!-- NOVO: META MENSAL DE NFS -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Meta Mensal de NFs</div>
+                    <span id="meta-mensal-pct" style="font-size:12px; font-weight:700; color:var(--accent-green);">0%</span>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress-top">
+                        <span style="font-size:12px; color:var(--text-muted);">Realizado: <strong id="meta-mensal-atual" style="color:#fff;">0</strong></span>
+                        <span style="font-size:12px; color:var(--text-muted);">Meta: <strong id="meta-mensal-alvo" style="color:#fff;">0</strong></span>
+                    </div>
+                    <div class="progress-track"><div class="progress-fill" id="meta-mensal-fill"></div></div>
+                </div>
+            </div>
 
-                    if (point && point.x !== undefined && point.y !== undefined) {
-                        ctx.save();
-                        ctx.beginPath();
-                        
-                        if (chart.config.type === 'bar') {
-                            ctx.arc(point.x + 5, point.y, 4 + pulse * 4, 0, Math.PI * 2);
-                        } else {
-                            ctx.arc(point.x, point.y, 6 + pulse * 6, 0, Math.PI * 2);
-                        }
-                        
-                        ctx.fillStyle = `rgba(59, 130, 246, ${0.4 - pulse * 0.3})`;
-                        ctx.fill();
-                        ctx.restore();
-                    }
-                });
+            <!-- NOVO: INDICADORES DE DESEMPENHO (ring conclusão / ring eficiência / km total com sparkline) -->
+            <div class="panel">
+                <div class="panel-header"><div class="panel-title">Indicadores de Desempenho</div></div>
+                <div class="perf-grid">
+                    <div class="perf-card sparkline">
+                        <div>
+                            <div class="sparkline-value" id="km-total-value">0 km</div>
+                            <div class="sparkline-sub">Total KM Rodado no período · tendência dos últimos dias</div>
+                        </div>
+                        <div class="sparkline-canvas-wrap"><canvas id="kmSparklineChart"></canvas></div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="ring" id="ring-conclusao" style="--ring-color:#10b981;">
+                            <span class="ring-label" id="ring-conclusao-label">0%</span>
+                        </div>
+                        <div class="ring-title">Taxa de Conclusão</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="ring" id="ring-eficiencia" style="--ring-color:#3b82f6;">
+                            <span class="ring-label" id="ring-eficiencia-label">0</span>
+                        </div>
+                        <div class="ring-title">Eficiência (NFs / 100km)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICOS PRINCIPAIS -->
+            <div class="content-grid-3">
+                <div class="panel" style="grid-column: span 2;">
+                    <div class="panel-header"><div class="panel-title">Evolução de Entregas (NFs)</div></div>
+                    <div class="chart-container"><canvas id="lineChart"></canvas></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Mix de Frota</div></div>
+                    <div class="chart-container"><canvas id="polarChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Volume por Cliente / Operação</div></div>
+                    <div class="chart-container"><canvas id="barChart"></canvas></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Status da Operação</div></div>
+                    <div class="chart-container"><canvas id="statusHChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- NOVO GRÁFICO POR ESTADO (UF) COM ILUSTRAÇÃO DE MAPA -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--accent-blue);"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Volume de NFs por Estado (UF) vs Status
+                        </div>
+                        <span style="font-size:11px; color:var(--text-muted);">Visão Geográfica Operacional</span>
+                    </div>
+                    <div class="chart-container" style="height: 280px;"><canvas id="stateChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- NOVO: TABELA DE STATUS OPERACIONAL POR UF -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>UF</th><th>Entregas</th><th>% Concluído</th><th>Status</th></tr></thead>
+                            <tbody id="uf-status-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOVO: DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
+            <div class="content-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Distribuição de Status</div></div>
+                    <div class="segmented-bar" id="segmented-bar"></div>
+                    <div class="segmented-legend" id="segmented-legend"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Funil Operacional</div></div>
+                    <div class="funnel-track">
+                        <div class="funnel-item">
+                            <div class="ring" id="funil-ring-andamento" style="--ring-color:#3b82f6; width:80px; height:80px;"><span class="ring-label" id="funil-andamento-label" style="font-size:13px;">0</span></div>
+                            <span class="ring-title">Em Rota</span>
+                        </div>
+                        <div class="funnel-item">
+                            <div class="ring" id="funil-ring-pernoite" style="--ring-color:#8b5cf6; width:80px; height:80px;"><span class="ring-label" id="funil-pernoite-label" style="font-size:13px;">0</span></div>
+                            <span class="ring-title">Pernoite</span>
+                        </div>
+                        <div class="funnel-item">
+                            <div class="ring" id="funil-ring-concluido" style="--ring-color:#10b981; width:80px; height:80px;"><span class="ring-label" id="funil-concluido-label" style="font-size:13px;">0</span></div>
+                            <span class="ring-title">Concluído</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOVO: RANKING DE OPERAÇÕES VS META -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div>
+                    <div class="chart-container" style="height:240px;"><canvas id="opTargetChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Top 5 Motoristas (NFs)</div></div>
+                    <div class="ranking-list" id="ranking-motoristas" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); max-height:none;"></div>
+                </div>
+            </div>
+
+            <!-- NOVO: FEED DE ÚLTIMAS OCORRÊNCIAS -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div>
+                    <div class="timeline-list" id="timeline-ocorrencias"></div>
+                </div>
+            </div>
+
+            <!-- TABELA DE REGISTROS -->
+            <div class="panel">
+                <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:11px;color:var(--text-muted);"></span></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Ini / Fin) | Rodados</th><th>NFs</th><th>Status</th></tr></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const msalConfig = {
+    auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.origin + window.location.pathname },
+    cache: { cacheLocation: "sessionStorage" }
+};
+const myMSALObj = new msal.PublicClientApplication(msalConfig);
+const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
+
+let rawData = [], filteredData = [];
+let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
+
+Chart.register(ChartDataLabels);
+Chart.defaults.color = '#8b9bb8';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+/* =========================================================
+   PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
+   - Todos os pontos: glow suave respirando (lento)
+   - Último ponto (mais recente): pulso mais forte + anel expansivo (efeito "ao vivo")
+   Não interfere em nenhum dado, cálculo ou lógica de sincronização.
+   ========================================================= */
+const pulsePointsPlugin = {
+    id: 'pulsePointsPlugin',
+    afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== 'lineChart') return;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
+
+        const { ctx } = chart;
+        const t = performance.now() / 1000;
+        const lastIndex = meta.data.length - 1;
+
+        meta.data.forEach((point, index) => {
+            const isLast = index === lastIndex;
+            const speed = isLast ? 1.1 : 0.6; // "devagar" = velocidade baixa
+            const phase = index * 0.35;
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2; // 0 -> 1 -> 0
+
+            // Glow suave (respirando) em todos os pontos
+            const baseRadius = isLast ? 6 : 5;
+            const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
+            const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, glowRadius, 0, Math.PI * 2);
+            ctx.fillStyle = isLast
+                ? `rgba(16, 185, 129, ${glowAlpha})`
+                : `rgba(59, 130, 246, ${glowAlpha})`;
+            ctx.fill();
+            ctx.restore();
+
+            // Anel expansivo extra só no ponto mais recente (efeito "ao vivo")
+            if (isLast) {
+                const ringRadius = baseRadius + 4 + pulse * 12;
+                const ringAlpha = 0.55 * (1 - pulse);
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, ringRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
             }
-        };
-        Chart.register(globalPulsePlugin);
-        Chart.register(ChartDataLabels);
+        });
+    }
+};
+Chart.register(pulsePointsPlugin);
 
-        setInterval(() => {
-            if (lineChartInstance) lineChartInstance.draw();
-            if (opTargetChartInstance) opTargetChartInstance.draw();
-        }, 80);
+/* Plugin: marca o dia de pico (maior volume) na linha de Evolução de Entregas */
+const peakAnnotationPlugin = {
+    id: 'peakAnnotationPlugin',
+    afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== 'lineChart') return;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !dataset || !dataset.data || !dataset.data.length) return;
+        let maxVal = -Infinity, maxIdx = -1;
+        dataset.data.forEach((v, i) => { if (v > maxVal) { maxVal = v; maxIdx = i; } });
+        if (maxIdx === -1) return;
+        const point = meta.data[maxIdx];
+        const label = chart.data.labels[maxIdx];
+        const { ctx } = chart;
+        ctx.save();
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillStyle = '#f59e0b';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Pico: ${label} • ${fmt(maxVal)}`, point.x, Math.max(14, point.y - 24));
+        ctx.restore();
+    }
+};
+Chart.register(peakAnnotationPlugin);
 
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
-        Chart.defaults.plugins.tooltip.titleColor = '#fff';
-        Chart.defaults.plugins.tooltip.bodyColor = '#cbd5e1';
-        Chart.defaults.plugins.tooltip.borderColor = 'rgba(59, 130, 246, 0.5)';
-        Chart.defaults.plugins.tooltip.borderWidth = 1;
-        Chart.defaults.plugins.tooltip.cornerRadius = 8;
-        Chart.defaults.plugins.tooltip.displayColors = false;
+// Loop de redesenho leve e lento (10 fps) só para animar o pulso, sem re-renderizar dados/eixos
+setInterval(() => {
+    if (lineChartInstance) {
+        lineChartInstance.draw();
+    }
+}, 100);
 
-        /* =========================================================
-           LÓGICA E METAS
-           ========================================================= */
-        function countWorkingDays(startStr, endStr) {
-            if (!startStr || !endStr) return 26; 
-            let inicio = new Date(startStr + 'T00:00:00');
-            let fim = new Date(endStr + 'T00:00:00');
-            if (inicio > fim) [inicio, fim] = [fim, inicio];
-            let dias = 0;
-            const cur = new Date(inicio);
-            while (cur <= fim) {
-                const d = cur.getDay();
-                if (d >= 1 && d <= 6) dias++; // Seg a Sab
-                cur.setDate(cur.getDate() + 1);
-            }
-            return dias;
+// Instâncias dos novos gráficos (não interferem nos 5 já existentes)
+let sparklineChartInstance = null, opTargetChartInstance = null;
+
+function fmt(num) {
+    return Number(num || 0).toLocaleString('pt-BR');
+}
+
+function iniciarLogin() {
+    document.getElementById("login-view").style.display = "none";
+    document.getElementById("loading-screen").style.display = "flex";
+    myMSALObj.loginPopup(loginRequest)
+        .then(response => {
+            document.getElementById("display-name").innerText = response.account.name;
+            syncSharePointData(response.account);
+        })
+        .catch(error => {
+            console.error(error);
+            document.getElementById("loading-screen").style.display = "none";
+            document.getElementById("login-view").style.display = "flex";
+            showToast("Erro ao conectar.");
+        });
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function padronizarNome(nome) {
+    if (!nome) return 'NÃO INFORMADO';
+    return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+async function syncSharePointData(account) {
+    if(!account) account = myMSALObj.getAllAccounts()[0];
+    if(!account) { iniciarLogin(); return; }
+
+    document.getElementById("loading-screen").style.display = "flex";
+    document.getElementById("loading-msg").innerText = "Sincronizando dados com o SharePoint...";
+
+    try {
+        const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+        let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
+        let all = []; 
+        let pages = 0;
+        
+        while(url && pages < 10) {
+            pages++;
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
+            if (!res.ok) throw new Error(`Graph Erro: ${res.status}`);
+            const data = await res.json();
+            if (data.value) all = all.concat(data.value);
+            url = data['@odata.nextLink'] || null;
         }
 
-        function renderMetaMensal(totalNFs) {
-            const META_MENSAL_NFS = 20306;
-            const start = document.getElementById('filter-start').value;
-            const end = document.getElementById('filter-end').value;
-            const diasUteis = countWorkingDays(start, end);
-            
-            const metaPeriodo = Math.round((META_MENSAL_NFS / 26) * diasUteis);
-            const pct = metaPeriodo > 0 ? Math.max(0, Math.min(100, Math.round((totalNFs / metaPeriodo) * 100))) : 0;
-            
-            document.getElementById('meta-mensal-fill').style.width = pct + '%';
-            document.getElementById('meta-mensal-atual').innerText = fmt(totalNFs);
-            document.getElementById('meta-mensal-alvo').innerText = fmt(metaPeriodo);
-            const elPct = document.getElementById('meta-mensal-pct');
-            if(elPct) {
-                elPct.innerText = pct + '%';
-                elPct.title = `${diasUteis} dias úteis no período.`;
-            }
-        }
+        if (all.length > 0) {
+            rawData = all.map(it => {
+                const f = it.fields || {};
+                const perfilStr = String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
+                
+                let qNfs = Number(f.QNTDDEENTREGA || 0);
+                if(qNfs > 500) qNfs = Number(f.QTDENTREGASFINALIZADAS || 0);
+                if(qNfs > 500) qNfs = 0;
 
-        function updateOpTargetChart(data) {
-            const META_OPERACAO_MENSAL = 500;
-            const start = document.getElementById('filter-start').value;
-            const end = document.getElementById('filter-end').value;
-            const diasUteis = countWorkingDays(start, end);
-            const META_OPERACAO = Math.round((META_OPERACAO_MENSAL / 26) * diasUteis);
+                const kmIni = Number(f.KMINICIAL || 0);
+                const kmFin = Number(f.KMFINAL || 0);
+                let kmRod = Number(f.KMRODADOS || 0);
+                if(kmRod <= 0 && kmFin > kmIni) kmRod = kmFin - kmIni;
 
-            const opMap = {};
-            data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
-            const sorted = Object.entries(opMap).sort((a, b) => b[1] - a[1]).slice(0, 7);
-
-            const ctx = document.getElementById('opTargetChart').getContext('2d');
-            if (opTargetChartInstance) opTargetChartInstance.destroy();
-
-            opTargetChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: sorted.map(i => i[0]),
-                    datasets: [{
-                        label: 'NFs Entregues',
-                        data: sorted.map(i => i[1]),
-                        // AQUI ESTÁ A CORREÇÃO DO CORTE!
-                        backgroundColor: sorted.map(i => i[1] >= META_OPERACAO 
-                            ? 'rgba(16, 185, 129, 0.85)' // Esmeralda se bateu a meta
-                            : 'rgba(59, 130, 246, 0.85)'), // Azul se não bateu
-                        borderRadius: 8,
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true, maintainAspectRatio: false,
-                    animation: { duration: 600, easing: 'easeOutQuart' },
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: { 
-                            display: true, color: '#fff', anchor: 'end', align: 'left',
-                            formatter: (v) => fmt(v) 
-                        }
-                    },
-                    scales: {
-                        x: { display: false, beginAtZero: true, grace: '10%' },
-                        y: { grid: { display: false, color: 'rgba(255,255,255,0.05)' } }
-                    }
+                const operacaoStr = String(f.CLIENTE_x007c_OPERA_x00c7__x00c3 || 'NÃO INFORMADA').toUpperCase();
+                let uf = 'GERAL';
+                const parts = operacaoStr.split('|');
+                if(parts.length > 1 && parts[0].trim().length === 2) {
+                    uf = parts[0].trim().toUpperCase();
                 }
+
+                return {
+                    id: it.id,
+                    criado: (f.Created || new Date().toISOString()).split('T')[0],
+                    documento: String(f.N_x00ba_DOCUMENTO || 'N/A'),
+                    motorista: padronizarNome(f.NOME),
+                    qtdNFs: qNfs,
+                    kmInicial: kmIni,
+                    kmFinal: kmFin,
+                    kmRodados: kmRod,
+                    status: String(f.STATUS || 'CONCLUÍDO').toUpperCase(),
+                    perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
+                    operacao: operacaoStr,
+                    uf: uf,
+                    observacao: String(f.OBSERVA_x00c7__x00c3_O || '').toUpperCase()
+                };
             });
+            popularFiltrosDinamicos();
+            showToast(`✅ ${all.length} registros sincronizados com sucesso!`);
         }
+    } catch(e) {
+        console.error(e);
+        showToast('Falha na sincronização.');
+    } finally {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        applyFilters();
+    }
+}
 
-        function updateLineChart(data) {
-            const dateMap = {};
-            data.forEach(d => {
-                const dateKey = d.dataEntrega.substring(0,10);
-                dateMap[dateKey] = (dateMap[dateKey] || 0) + d.qtdNFs;
-            });
-            
-            const sortedDates = Object.keys(dateMap).sort((a, b) => new Date(a) - new Date(b));
-            const chartData = sortedDates.map(date => dateMap[date]);
+function popularFiltrosDinamicos() {
+    const statusSet = new Set();
+    rawData.forEach(d => { if(d.status) statusSet.add(d.status); });
+    const selStatus = document.getElementById('filter-status');
+    selStatus.innerHTML = '<option value="">Todos</option>';
+    statusSet.forEach(st => { selStatus.innerHTML += `<option value="${st}">${st}</option>`; });
+}
 
-            const ctx = document.getElementById('lineChart').getContext('2d');
-            
-            // Criar gradiente para a linha
-            let gradient = ctx.createLinearGradient(0, 0, 0, 200);
-            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
-            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+function applyFilters() {
+    const s = document.getElementById('filter-start').value;
+    const e = document.getElementById('filter-end').value;
+    const placa = document.getElementById('filter-placa').value.toLowerCase();
+    const doc = document.getElementById('filter-doc').value.toLowerCase();
+    const op = document.getElementById('filter-operacao').value.toLowerCase();
+    const st = document.getElementById('filter-status').value;
+    const perf = document.getElementById('filter-perfil').value;
+    
+    filteredData = rawData.filter(it => {
+        if(s && it.criado < s) return false;
+        if(e && it.criado > e) return false;
+        if(placa && !it.observacao.includes(placa)) return false;
+        if(doc && !it.documento.toLowerCase().includes(doc)) return false;
+        if(op && !it.operacao.toLowerCase().includes(op) && !it.uf.toLowerCase().includes(op)) return false;
+        if(st && it.status !== st) return false;
+        if(perf && it.perfil !== perf) return false;
+        return true;
+    });
+    
+    updateDashboardUI();
+}
 
-            if (lineChartInstance) lineChartInstance.destroy();
+['filter-start', 'filter-end', 'filter-status', 'filter-perfil'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyFilters);
+});
+['filter-placa', 'filter-doc', 'filter-operacao'].forEach(id => {
+    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyFilters, 300));
+});
 
-            lineChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: sortedDates,
-                    datasets: [{
-                        label: 'NFs',
-                        data: chartData,
-                        borderColor: '#3b82f6',
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#0f172a',
-                        pointBorderColor: '#3b82f6',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    animation: { duration: 600, easing: 'easeOutQuart' },
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: { display: false }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } },
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
-                    }
+function getStatusBadge(st) {
+    let css = 'status-outro';
+    if(st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) css = 'status-concluido';
+    else if(st.includes('ANDAMENTO') || st.includes('ROTA')) css = 'status-andamento';
+    else if(st.includes('PERNOITE')) css = 'status-pernoite';
+    return `<span class="badge-status ${css}">${st}</span>`;
+}
+
+function getPerfilBadge(perf) {
+    let css = perf === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado';
+    return `<span class="badge-perfil ${css}">${perf}</span>`;
+}
+
+/* Filtro de sanidade só para os NOVOS indicadores visuais (KM total e sparkline).
+   Não altera kmInicial/kmFinal/kmRodados exibidos na tabela nem o cálculo original de sync.
+   Ignora registros com KM Rodado fora de uma faixa realista (provável erro de digitação
+   no SharePoint, ex: KMFINAL/KMINICIAL trocados ou com dígito a mais). Ajuste o limite se precisar. */
+function kmValidoFiltro(km) {
+    const KM_MAXIMO_RAZOAVEL = 5000; // nenhuma viagem única deveria passar disso
+    return km > 0 && km <= KM_MAXIMO_RAZOAVEL;
+}
+
+/* Reaproveita a mesma lógica de classificação usada nos badges da tabela,
+   apenas devolvendo uma chave curta em vez de HTML. Não altera getStatusBadge. */
+function classifyStatusKey(st) {
+    if (st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) return 'concluido';
+    if (st.includes('ANDAMENTO') || st.includes('ROTA')) return 'andamento';
+    if (st.includes('PERNOITE')) return 'pernoite';
+    return 'outro';
+}
+
+/* ================= NOVOS PAINÉIS (v2) ================= */
+
+function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
+    document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
+
+    const pctConclusao = totalRegistros > 0 ? Math.round((concluidos / totalRegistros) * 100) : 0;
+    const ringC = document.getElementById('ring-conclusao');
+    ringC.style.setProperty('--pct', pctConclusao);
+    document.getElementById('ring-conclusao-label').innerText = pctConclusao + '%';
+
+    // Eficiência = NFs por 100km rodados. Referência de 100% = 20 NFs/100km (ajustável).
+    const EFICIENCIA_REFERENCIA = 20;
+    const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
+    const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / EFICIENCIA_REFERENCIA) * 100)));
+    const ringE = document.getElementById('ring-eficiencia');
+    ringE.style.setProperty('--pct', pctEficiencia);
+    document.getElementById('ring-eficiencia-label').innerText = eficiencia.toFixed(1);
+}
+
+function renderMetaMensal(totalNFs) {
+    // AJUSTE AQUI a meta mensal de NFs. Operação seg-sáb (~26 dias úteis/mês):
+    // 781 (média diária) x 26 dias úteis ≈ 20.306
+    const META_MENSAL_NFS = 20306;
+    const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
+    document.getElementById('meta-mensal-fill').style.width = pct + '%';
+    document.getElementById('meta-mensal-atual').innerText = fmt(totalNFs);
+    document.getElementById('meta-mensal-alvo').innerText = fmt(META_MENSAL_NFS);
+    document.getElementById('meta-mensal-pct').innerText = pct + '%';
+}
+
+function renderFunil(data) {
+    const counts = { andamento: 0, pernoite: 0, concluido: 0, outro: 0 };
+    data.forEach(d => { counts[classifyStatusKey(d.status)]++; });
+    const total = data.length || 1;
+
+    const setRing = (id, value) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.setProperty('--pct', Math.round((value / total) * 100));
+    };
+    setRing('funil-ring-andamento', counts.andamento);
+    setRing('funil-ring-pernoite', counts.pernoite);
+    setRing('funil-ring-concluido', counts.concluido);
+
+    document.getElementById('funil-andamento-label').innerText = fmt(counts.andamento);
+    document.getElementById('funil-pernoite-label').innerText = fmt(counts.pernoite);
+    document.getElementById('funil-concluido-label').innerText = fmt(counts.concluido);
+}
+
+function renderSegmentedBar(data) {
+    const counts = { concluido: 0, andamento: 0, pernoite: 0, outro: 0 };
+    data.forEach(d => counts[classifyStatusKey(d.status)]++);
+    const total = data.length || 1;
+    const colors = { concluido: '#10b981', andamento: '#3b82f6', pernoite: '#8b5cf6', outro: '#f59e0b' };
+    const labels = { concluido: 'Concluído', andamento: 'Andamento', pernoite: 'Pernoite', outro: 'Outro' };
+
+    const bar = document.getElementById('segmented-bar');
+    const legend = document.getElementById('segmented-legend');
+    bar.innerHTML = '';
+    legend.innerHTML = '';
+
+    Object.keys(counts).forEach(key => {
+        const pct = (counts[key] / total) * 100;
+        if (pct <= 0) return;
+        const seg = document.createElement('div');
+        seg.className = 'segment';
+        seg.style.width = pct + '%';
+        seg.style.background = colors[key];
+        bar.appendChild(seg);
+        legend.innerHTML += `<div class="segmented-legend-item"><span class="segmented-legend-dot" style="background:${colors[key]}"></span>${labels[key]} (${Math.round(pct)}%)</div>`;
+    });
+}
+
+function renderUfStatusTable(data) {
+    const map = {};
+    data.forEach(d => {
+        if (!map[d.uf]) map[d.uf] = { total: 0, concluido: 0 };
+        map[d.uf].total++;
+        if (classifyStatusKey(d.status) === 'concluido') map[d.uf].concluido++;
+    });
+    const rows = Object.entries(map).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
+
+    const tbody = document.getElementById('uf-status-table-body');
+    tbody.innerHTML = '';
+    rows.forEach(([uf, info]) => {
+        const pct = info.total > 0 ? Math.round((info.concluido / info.total) * 100) : 0;
+        const statusBadge = pct >= 80
+            ? '<span class="badge-status status-concluido">NORMAL</span>'
+            : pct >= 50
+                ? '<span class="badge-status status-andamento">ATENÇÃO</span>'
+                : '<span class="badge-status status-outro">CRÍTICO</span>';
+        tbody.innerHTML += `<tr><td><strong>${uf}</strong></td><td>${fmt(info.total)}</td><td>${pct}%</td><td>${statusBadge}</td></tr>`;
+    });
+}
+
+function renderOcorrencias(data) {
+    const colors = { concluido: '#10b981', andamento: '#3b82f6', pernoite: '#8b5cf6', outro: '#f59e0b' };
+    const sorted = [...data].sort((a, b) => b.criado.localeCompare(a.criado)).slice(0, 10);
+
+    const container = document.getElementById('timeline-ocorrencias');
+    container.innerHTML = '';
+    sorted.forEach(it => {
+        const key = classifyStatusKey(it.status);
+        container.innerHTML += `
+            <div class="timeline-item">
+                <span class="timeline-dot" style="background:${colors[key]}"></span>
+                <div class="timeline-body">
+                    <span class="timeline-title">${it.documento} — ${it.motorista}</span>
+                    <span class="timeline-sub">${it.operacao} · ${it.criado.split('-').reverse().join('/')} · ${getStatusBadge(it.status)}</span>
+                </div>
+            </div>`;
+    });
+}
+
+function updateKmSparkline(data) {
+    const dateMap = {};
+    data.forEach(d => { if (kmValidoFiltro(d.kmRodados)) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmRodados; });
+    const dates = Object.keys(dateMap).sort().slice(-14);
+    const values = dates.map(d => dateMap[d]);
+
+    const ctx = document.getElementById('kmSparklineChart').getContext('2d');
+    if (sparklineChartInstance) sparklineChartInstance.destroy();
+
+    let grad = ctx.createLinearGradient(0, 0, 0, 50);
+    grad.addColorStop(0, 'rgba(16,185,129,0.5)');
+    grad.addColorStop(1, 'rgba(16,185,129,0)');
+
+    sparklineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: dates, datasets: [{ data: values, borderColor: '#10b981', backgroundColor: grad, borderWidth: 2, fill: true, tension: 0.35, pointRadius: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 800 },
+            plugins: { legend: { display: false }, datalabels: { display: false } },
+            scales: { x: { display: false }, y: { display: false } }
+        }
+    });
+}
+
+function updateOpTargetChart(data) {
+    // AJUSTE AQUI a meta de NFs por operação/cliente
+    const META_OPERACAO = 500;
+    const opMap = {};
+    data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
+    const sorted = Object.entries(opMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+    const ctx = document.getElementById('opTargetChart').getContext('2d');
+    if (opTargetChartInstance) opTargetChartInstance.destroy();
+
+    const targetLinePlugin = {
+        id: 'opTargetLinePlugin',
+        afterDatasetsDraw(chart) {
+            const xScale = chart.scales.x;
+            const yScale = chart.scales.y;
+            const xPixel = xScale.getPixelForValue(META_OPERACAO);
+            const { ctx } = chart;
+            ctx.save();
+            ctx.beginPath();
+            ctx.setLineDash([5, 4]);
+            ctx.moveTo(xPixel, chart.chartArea.top);
+            ctx.lineTo(xPixel, chart.chartArea.bottom);
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 10px Inter, sans-serif';
+            // trava o texto dentro da área do gráfico pra não cortar nas bordas
+            const labelText = 'Meta: ' + fmt(META_OPERACAO);
+            const halfWidth = ctx.measureText(labelText).width / 2;
+            let labelX = xPixel;
+            if (labelX - halfWidth < chart.chartArea.left) labelX = chart.chartArea.left + halfWidth;
+            if (labelX + halfWidth > chart.chartArea.right) labelX = chart.chartArea.right - halfWidth;
+            ctx.textAlign = 'center';
+            ctx.fillText(labelText, labelX, chart.chartArea.top - 8);
+            ctx.restore();
+        }
+    };
+
+    opTargetChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sorted.map(i => i[0]),
+            datasets: [{
+                data: sorted.map(i => i[1]),
+                backgroundColor: sorted.map(i => i[1] >= META_OPERACAO ? 'rgba(16,185,129,0.85)' : 'rgba(59,130,246,0.85)'),
+                borderRadius: 8,
+                barPercentage: 0.6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 22, right: 46 } },
+            animation: { duration: 1000 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold', size: 10 }, formatter: (v) => fmt(v) }
+            },
+            scales: {
+                x: { display: false, beginAtZero: true, grace: '30%' },
+                y: { grid: { display: false } }
+            }
+        },
+        plugins: [targetLinePlugin]
+    });
+}
+
+function updateDashboardUI() {
+    document.getElementById('kpi-total').innerText = fmt(filteredData.length);
+    
+    const totalNFs = filteredData.reduce((acc, curr) => acc + curr.qtdNFs, 0);
+    document.getElementById('kpi-nfs').innerText = fmt(totalNFs);
+    
+    const nfsProprio = filteredData.filter(d => d.perfil === 'PRÓPRIO').reduce((acc, curr) => acc + curr.qtdNFs, 0);
+    const nfsAgregado = filteredData.filter(d => d.perfil === 'AGREGADO').reduce((acc, curr) => acc + curr.qtdNFs, 0);
+    document.getElementById('kpi-proprio').innerText = fmt(nfsProprio);
+    document.getElementById('kpi-agregado').innerText = fmt(nfsAgregado);
+
+    // Tabela
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+    document.getElementById('table-count').innerText = `Mostrando ${Math.min(filteredData.length, 50)} de ${fmt(filteredData.length)}`;
+    
+    filteredData.slice(0, 50).forEach(it => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${it.documento}</strong></td>
+            <td>${it.criado.split('-').reverse().join('/')}</td>
+            <td>${it.motorista}</td>
+            <td style="color:var(--accent-warning)">${it.operacao}</td>
+            <td>${getPerfilBadge(it.perfil)}</td>
+            <td>${fmt(it.kmInicial)} / ${fmt(it.kmFinal)} <br><span style="font-size:10px; color:var(--accent-green); font-weight:700;">(Rodados: ${fmt(it.kmRodados)} km)</span></td>
+            <td><strong>${fmt(it.qtdNFs)}</strong></td>
+            <td>${getStatusBadge(it.status)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    renderRankings();
+    updateCharts(nfsProprio, nfsAgregado);
+
+    // ===== Novos painéis (v2) — reaproveitam filteredData, sem duplicar cálculo dos KPIs originais =====
+    const totalKm = filteredData.reduce((acc, curr) => acc + (kmValidoFiltro(curr.kmRodados) ? curr.kmRodados : 0), 0);
+    const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
+
+    renderIndicadores(totalNFs, totalKm, concluidosCount, filteredData.length);
+    renderMetaMensal(totalNFs);
+    renderFunil(filteredData);
+    renderSegmentedBar(filteredData);
+    renderUfStatusTable(filteredData);
+    renderOcorrencias(filteredData);
+    updateKmSparkline(filteredData);
+    updateOpTargetChart(filteredData);
+}
+
+function renderRankings() {
+    const motMap = {};
+    filteredData.forEach(d => { motMap[d.motorista] = (motMap[d.motorista] || 0) + d.qtdNFs; });
+    const topMot = Object.entries(motMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    
+    const container = document.getElementById('ranking-motoristas');
+    container.innerHTML = '';
+    topMot.forEach(([mot, qtd]) => {
+        container.innerHTML += `<div class="ranking-item"><span>${mot}</span><span>${fmt(qtd)} NFs</span></div>`;
+    });
+}
+
+function updateCharts(proprios, agregados) {
+    // 1. Gráfico de Linhas com Animação e Pontos com Brilho
+    const dateMap = {};
+    filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
+
+    const ctxL = document.getElementById('lineChart').getContext('2d');
+    if(lineChartInstance) lineChartInstance.destroy();
+    
+    let gradL = ctxL.createLinearGradient(0,0,0,250);
+    gradL.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+    gradL.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+    lineChartInstance = new Chart(ctxL, {
+        type: 'line',
+        data: { 
+            labels: lineLabels, 
+            datasets: [{ 
+                data: lineData, 
+                borderColor: '#3b82f6', 
+                backgroundColor: gradL, 
+                borderWidth: 3, 
+                fill: true, 
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }] 
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1500, easing: 'easeOutQuart' },
+            plugins: { 
+                legend: { display: false }, 
+                datalabels: { 
+                    display: true, 
+                    color: '#fff', 
+                    align: 'top', 
+                    font: { weight: 'bold', size: 10 },
+                    formatter: (value) => fmt(value)
+                } 
+            },
+            scales: { 
+                x: { grid: { display: false } }, 
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' } 
+            }
+        }
+    });
+
+    // 2. Gráfico de Barras Verticais (Com proteção contra corte de valores)
+    const opMap = {};
+    filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
+    const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+    const ctxB = document.getElementById('barChart').getContext('2d');
+    if(barChartInstance) barChartInstance.destroy();
+
+    let gradB = ctxB.createLinearGradient(0,0,0,250);
+    gradB.addColorStop(0, 'rgba(245, 158, 11, 0.9)');
+    gradB.addColorStop(1, 'rgba(245, 158, 11, 0.2)');
+
+    barChartInstance = new Chart(ctxB, {
+        type: 'bar',
+        data: { 
+            labels: sortedOps.map(i => i[0]), 
+            datasets: [{ 
+                data: sortedOps.map(i => i[1]), 
+                backgroundColor: gradB, 
+                borderRadius: 12,
+                borderSkipped: false,
+                barPercentage: 0.6
+            }] 
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: { 
+                legend: { display: false }, 
+                datalabels: { 
+                    display: true, 
+                    color: '#fff', 
+                    anchor: 'end', 
+                    align: 'top', 
+                    font: { weight: 'bold', size: 11 },
+                    formatter: (value) => fmt(value)
+                } 
+            },
+            scales: { 
+                x: { grid: { display: false } }, 
+                y: { display: false, beginAtZero: true, grace: '30%' } 
+            }
+        }
+    });
+
+    // 3. Mix de Frota (Polar Area com pontos formatados com pontuação)
+    const ctxP = document.getElementById('polarChart').getContext('2d');
+    if(polarChartInstance) polarChartInstance.destroy();
+
+    polarChartInstance = new Chart(ctxP, {
+        type: 'polarArea',
+        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: ['rgba(59, 130, 246, 0.85)', 'rgba(139, 92, 246, 0.85)'], borderWidth: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { animateRotate: true, animateScale: true, duration: 1200 },
+            scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } },
+            plugins: { 
+                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 15 } }, 
+                datalabels: { 
+                    display: true, 
+                    color: '#fff', 
+                    font: { weight: 'bold', size: 12 },
+                    formatter: (value) => fmt(value)
+                } 
+            }
+        }
+    });
+
+    // 4. Gráfico de Status Horizontal (Com espaçamento garantido para evitar corte)
+    const statusMap = {};
+    filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
+    const statusLabels = Object.keys(statusMap);
+    const statusCounts = Object.values(statusMap);
+
+    const ctxSH = document.getElementById('statusHChart').getContext('2d');
+    if(statusHChartInstance) statusHChartInstance.destroy();
+
+    statusHChartInstance = new Chart(ctxSH, {
+        type: 'bar',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'],
+                borderRadius: 10,
+                barPercentage: 0.55
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: { 
+                legend: { display: false }, 
+                datalabels: { 
+                    display: true, 
+                    color: '#fff', 
+                    anchor: 'end', 
+                    align: 'right', 
+                    font: { weight: 'bold', size: 11 },
+                    formatter: (value) => fmt(value)
+                } 
+            },
+            scales: { 
+                x: { display: false, beginAtZero: true, grace: '35%' }, 
+                y: { grid: { display: false } } 
+            }
+        }
+    });
+
+    // 5. Novo Gráfico por Estado (UF) vs NFs
+    const stateMap = {};
+    filteredData.forEach(d => {
+        stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
+    });
+    const sortedStates = Object.entries(stateMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+
+    const ctxSt = document.getElementById('stateChart').getContext('2d');
+    if(stateChartInstance) stateChartInstance.destroy();
+
+    let gradSt = ctxSt.createLinearGradient(0,0,0,260);
+    gradSt.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
+    gradSt.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
+
+    stateChartInstance = new Chart(ctxSt, {
+        type: 'bar',
+        data: {
+            labels: sortedStates.map(i => i[0]),
+            datasets: [{
+                label: 'NFs por Estado',
+                data: sortedStates.map(i => i[1]),
+                backgroundColor: gradSt,
+                borderRadius: 10,
+                barPercentage: 0.65
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true,
+                    color: '#fff',
+                    anchor: 'end',
+                    align: 'top',
+                    font: { weight: 'bold', size: 11 },
+                    formatter: (value) => fmt(value)
                 }
-            });
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
+            }
         }
-
-        // Função principal que orquestra a atualização (Simulando o Fetch do SharePoint)
-        function updateDashboard() {
-            // Simulando alguns dados para preencher o visual
-            const mockData = [
-                { operacao: 'Operação A', qtdNFs: 650, dataEntrega: '2026-09-02' },
-                { operacao: 'Operação A', qtdNFs: 200, dataEntrega: '2026-09-05' },
-                { operacao: 'Operação B', qtdNFs: 420, dataEntrega: '2026-09-03' },
-                { operacao: 'Operação C', qtdNFs: 810, dataEntrega: '2026-09-08' },
-                { operacao: 'Operação D', qtdNFs: 300, dataEntrega: '2026-09-01' },
-                { operacao: 'Operação E', qtdNFs: 550, dataEntrega: '2026-09-10' },
-                { operacao: 'Operação F', qtdNFs: 120, dataEntrega: '2026-09-12' }
-            ];
-            
-            const totalNFs = mockData.reduce((acc, curr) => acc + curr.qtdNFs, 0) + 12000; // +12000 para simular um volume maior
-            
-            renderMetaMensal(totalNFs);
-            updateOpTargetChart(mockData);
-            updateLineChart(mockData);
-        }
-
-        // Inicializar
-        window.onload = updateDashboard;
-    </script>
+    });
+}
+</script>
 </body>
 </html>
