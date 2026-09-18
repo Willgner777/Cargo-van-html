@@ -269,7 +269,8 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </aside>
         
-        <main class="main-content">
+        <!-- OPERAÇÃO VIEW -->
+        <main class="main-content" id="operacao-view">
             <!-- BARRA DE FILTROS -->
             <div class="filter-bar">
                 <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
@@ -289,7 +290,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">NFs Realizadas</div></div>
             </div>
 
-            <!-- NOVO: META MENSAL DE NFS -->
+            <!-- META MENSAL DE NFS -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Meta Mensal de NFs</div>
@@ -304,7 +305,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: INDICADORES DE DESEMPENHO (ring conclusão / ring eficiência / km total com sparkline) -->
+            <!-- INDICADORES DE DESEMPENHO -->
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Indicadores de Desempenho</div></div>
                 <div class="perf-grid">
@@ -353,7 +354,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO GRÁFICO POR ESTADO (UF) COM ILUSTRAÇÃO DE MAPA -->
+            <!-- GRÁFICO POR ESTADO (UF) -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header">
@@ -367,7 +368,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: TABELA DE STATUS OPERACIONAL POR UF -->
+            <!-- TABELA DE STATUS OPERACIONAL POR UF -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
@@ -380,7 +381,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
+            <!-- DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
             <div class="content-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Distribuição de Status</div></div>
@@ -406,7 +407,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: RANKING DE OPERAÇÕES VS META -->
+            <!-- RANKING DE OPERAÇÕES VS META -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div>
@@ -421,7 +422,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: FEED DE ÚLTIMAS OCORRÊNCIAS -->
+            <!-- FEED DE ÚLTIMAS OCORRÊNCIAS -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div>
@@ -533,18 +534,42 @@ const msalConfig = {
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 
+/* DADOS DA OPERAÇÃO */
 let rawData = [], filteredData = [];
 let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
+let sparklineChartInstance = null, opTargetChartInstance = null;
+
+/* DADOS DE DESPESAS */
+let rawDespData = [], filteredDespData = [];
+let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
 
 Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
 /* =========================================================
+   TROCA DE VIEWS (Navegação da Sidebar)
+   ========================================================= */
+function showView(viewName) {
+    const mainOp = document.getElementById('operacao-view');
+    const mainDesp = document.getElementById('despesas-view');
+    const navItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
+
+    if (viewName === 'despesas') {
+        if (mainOp) mainOp.classList.add('view-hidden');
+        if (mainDesp) mainDesp.classList.remove('view-hidden');
+        navItems[0].classList.remove('active');
+        navItems[1].classList.add('active');
+    } else {
+        if (mainOp) mainOp.classList.remove('view-hidden');
+        if (mainDesp) mainDesp.classList.add('view-hidden');
+        navItems[1].classList.remove('active');
+        navItems[0].classList.add('active');
+    }
+}
+
+/* =========================================================
    PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
-   - Todos os pontos: glow suave respirando (lento)
-   - Último ponto (mais recente): pulso mais forte + anel expansivo (efeito "ao vivo")
-   Não interfere em nenhum dado, cálculo ou lógica de sincronização.
    ========================================================= */
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
@@ -559,11 +584,10 @@ const pulsePointsPlugin = {
 
         meta.data.forEach((point, index) => {
             const isLast = index === lastIndex;
-            const speed = isLast ? 1.1 : 0.6; // "devagar" = velocidade baixa
+            const speed = isLast ? 1.1 : 0.6;
             const phase = index * 0.35;
-            const pulse = (Math.sin(t * speed + phase) + 1) / 2; // 0 -> 1 -> 0
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2;
 
-            // Glow suave (respirando) em todos os pontos
             const baseRadius = isLast ? 6 : 5;
             const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
             const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
@@ -577,7 +601,6 @@ const pulsePointsPlugin = {
             ctx.fill();
             ctx.restore();
 
-            // Anel expansivo extra só no ponto mais recente (efeito "ao vivo")
             if (isLast) {
                 const ringRadius = baseRadius + 4 + pulse * 12;
                 const ringAlpha = 0.55 * (1 - pulse);
@@ -594,7 +617,6 @@ const pulsePointsPlugin = {
 };
 Chart.register(pulsePointsPlugin);
 
-/* Plugin: marca o dia de pico (maior volume) na linha de Evolução de Entregas */
 const peakAnnotationPlugin = {
     id: 'peakAnnotationPlugin',
     afterDatasetsDraw(chart) {
@@ -618,18 +640,16 @@ const peakAnnotationPlugin = {
 };
 Chart.register(peakAnnotationPlugin);
 
-// Loop de redesenho leve e lento (10 fps) só para animar o pulso, sem re-renderizar dados/eixos
 setInterval(() => {
-    if (lineChartInstance) {
-        lineChartInstance.draw();
-    }
+    if (lineChartInstance) lineChartInstance.draw();
 }, 100);
-
-// Instâncias dos novos gráficos (não interferem nos 5 já existentes)
-let sparklineChartInstance = null, opTargetChartInstance = null;
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('pt-BR');
+}
+
+function fmtMoeda(val) {
+    return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function iniciarLogin() {
@@ -660,6 +680,9 @@ function padronizarNome(nome) {
     return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
+/* =========================================================
+   SINCRONIZAÇÃO COMPLETA SHAREPOINT (LIBERACAO_VEICULO + BD_DESPESAS)
+   ========================================================= */
 async function syncSharePointData(account) {
     if(!account) account = myMSALObj.getAllAccounts()[0];
     if(!account) { iniciarLogin(); return; }
@@ -669,6 +692,8 @@ async function syncSharePointData(account) {
 
     try {
         const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+
+        // 1. LIBERACAO_VEICULO (Lógica original e inalterada)
         let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
         let all = []; 
         let pages = 0;
@@ -676,7 +701,7 @@ async function syncSharePointData(account) {
         while(url && pages < 10) {
             pages++;
             const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
-            if (!res.ok) throw new Error(`Graph Erro: ${res.status}`);
+            if (!res.ok) throw new Error(`Graph Erro (LIBERACAO_VEICULO): ${res.status}`);
             const data = await res.json();
             if (data.value) all = all.concat(data.value);
             url = data['@odata.nextLink'] || null;
@@ -720,8 +745,66 @@ async function syncSharePointData(account) {
                 };
             });
             popularFiltrosDinamicos();
-            showToast(`✅ ${all.length} registros sincronizados com sucesso!`);
         }
+
+        // 2. BD_DESPESAS (Mesma lógica de sincronização aplicada)
+        let urlDesp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
+        let allDesp = []; 
+        let pagesDesp = 0;
+
+        while(urlDesp && pagesDesp < 10) {
+            pagesDesp++;
+            const resDesp = await fetch(urlDesp, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
+            if (resDesp.ok) {
+                const dataDesp = await resDesp.json();
+                if (dataDesp.value) allDesp = allDesp.concat(dataDesp.value);
+                urlDesp = dataDesp['@odata.nextLink'] || null;
+            } else {
+                console.warn(`Aviso Graph (BD_DESPESAS): ${resDesp.status}`);
+                break;
+            }
+        }
+
+        if (allDesp.length > 0) {
+            rawDespData = allDesp.map(it => {
+                const f = it.fields || {};
+                const valTotal = Number(f.VALORTOTAL || f.VALOR_x0020_TOTAL || f.ValorTotal || 0);
+                const valUnit = Number(f.VALORUNIT_x00c1_RIO || f.VALOR_x0020_UNIT_x00c1_RIO || f.ValorUnitario || 0);
+                const qntd = Number(f.QNTD || f.QUANTIDADE || f.Quantidade || 1);
+
+                return {
+                    id: it.id,
+                    placa: String(f.PLACA || f.Placa || 'N/A').toUpperCase(),
+                    servico: String(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A').toUpperCase(),
+                    valorTotal: valTotal,
+                    valorUnit: valUnit,
+                    qntd: qntd,
+                    dataCompra: (f.DATA_x0020_DE_x0020_COMPRA || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
+                    status: String(f.STATUS || f.Status || 'Pendente').trim(),
+                    aprovador: String(f.APROVADOR || f.Aprovador || 'N/A'),
+                    tipoDoc: String(f.TIPO_x0020_DOCUMENTO || f.TIPODOCUMENTO || f.TipoDoc || 'N/A'),
+                    formaPag: String(f.FORMA_x0020_PAGAMENTO || f.FORMAPAGAMENTO || f.FormaPagamento || 'N/A'),
+                    fornecedor: String(f.FORNECEDOR || f.Fornecedor || 'N/A'),
+                    criadoPor: String(f.CRIADO_x0020_POR || f.CRIADOPOR || f.Author || 'N/A'),
+                    informacao: String(f.INFORMA_x00c7__x00c3_O || f.INFORMACAO || f.Informacao || 'N/A'),
+                    umb: String(f.UMB || f.Umb || 'N/A'),
+                    banco: String(f.BANCO || f.Banco || 'N/A'),
+                    chavePix: String(f.CHAVE_x0020_PIX || f.CHAVEPIX || f.ChavePix || 'N/A'),
+                    bancoAjud: String(f.BANCO_x0020_AJUDANTE || f.BANCOAJUDANTE || f.BancoAjudante || 'N/A'),
+                    chaveAjud: String(f.CHAVE_x0020_AJUDANTE || f.CHAVEAJUDANTE || f.ChaveAjudante || 'N/A'),
+                    recebedor: String(f.RECEBEDOR || f.Recebedor || 'N/A'),
+                    descontos: Number(f.DESCONTOS || f.Descontos || 0),
+                    operacao: String(f.OPERA_x00c7__x00c3_O || f.OPERACAO || f.Operacao || 'N/A'),
+                    anexo: f.ANEXO || f.Anexo || (f.Attachments ? 'Sim' : ''),
+                    descFunc: String(f.DESC_x0020_FUNC || f.DESCFUNC || f.DescFunc || 'N/A'),
+                    parcelado: String(f.PARCELADO || f.Parcelado || 'NÃO'),
+                    numParcelas: Number(f.N_x00ba__x0020_PARCELAS || f.NUMPARCELAS || f.NumParcelas || 1),
+                    periodoParcelamento: String(f.PER_x00cd_ODO_x0020_PARCELAMENTO || f.PERIODOPARCELAMENTO || 'N/A')
+                };
+            });
+        }
+
+        showToast(`✅ Sincronizado: ${rawData.length} Veículos | ${rawDespData.length} Despesas`);
     } catch(e) {
         console.error(e);
         showToast('Falha na sincronização.');
@@ -729,9 +812,13 @@ async function syncSharePointData(account) {
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
         applyFilters();
+        applyDespFilters();
     }
 }
 
+/* =========================================================
+   LÓGICA OPERAÇÃO (VEICULO_LIBERACAO)
+   ========================================================= */
 function popularFiltrosDinamicos() {
     const statusSet = new Set();
     rawData.forEach(d => { if(d.status) statusSet.add(d.status); });
@@ -783,25 +870,17 @@ function getPerfilBadge(perf) {
     return `<span class="badge-perfil ${css}">${perf}</span>`;
 }
 
-/* Filtro de sanidade só para os NOVOS indicadores visuais (KM total e sparkline).
-   Não altera kmInicial/kmFinal/kmRodados exibidos na tabela nem o cálculo original de sync.
-   Ignora registros com KM Rodado fora de uma faixa realista (provável erro de digitação
-   no SharePoint, ex: KMFINAL/KMINICIAL trocados ou com dígito a mais). Ajuste o limite se precisar. */
 function kmValidoFiltro(km) {
-    const KM_MAXIMO_RAZOAVEL = 5000; // nenhuma viagem única deveria passar disso
+    const KM_MAXIMO_RAZOAVEL = 5000;
     return km > 0 && km <= KM_MAXIMO_RAZOAVEL;
 }
 
-/* Reaproveita a mesma lógica de classificação usada nos badges da tabela,
-   apenas devolvendo uma chave curta em vez de HTML. Não altera getStatusBadge. */
 function classifyStatusKey(st) {
     if (st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) return 'concluido';
     if (st.includes('ANDAMENTO') || st.includes('ROTA')) return 'andamento';
     if (st.includes('PERNOITE')) return 'pernoite';
     return 'outro';
 }
-
-/* ================= NOVOS PAINÉIS (v2) ================= */
 
 function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
@@ -811,7 +890,6 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     ringC.style.setProperty('--pct', pctConclusao);
     document.getElementById('ring-conclusao-label').innerText = pctConclusao + '%';
 
-    // Eficiência = NFs por 100km rodados. Referência de 100% = 20 NFs/100km (ajustável).
     const EFICIENCIA_REFERENCIA = 20;
     const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
     const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / EFICIENCIA_REFERENCIA) * 100)));
@@ -821,8 +899,6 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
 }
 
 function renderMetaMensal(totalNFs) {
-    // AJUSTE AQUI a meta mensal de NFs. Operação seg-sáb (~26 dias úteis/mês):
-    // 781 (média diária) x 26 dias úteis ≈ 20.306
     const META_MENSAL_NFS = 20306;
     const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
     document.getElementById('meta-mensal-fill').style.width = pct + '%';
@@ -941,7 +1017,6 @@ function updateKmSparkline(data) {
 }
 
 function updateOpTargetChart(data) {
-    // AJUSTE AQUI a meta de NFs por operação/cliente
     const META_OPERACAO = 500;
     const opMap = {};
     data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
@@ -954,7 +1029,6 @@ function updateOpTargetChart(data) {
         id: 'opTargetLinePlugin',
         afterDatasetsDraw(chart) {
             const xScale = chart.scales.x;
-            const yScale = chart.scales.y;
             const xPixel = xScale.getPixelForValue(META_OPERACAO);
             const { ctx } = chart;
             ctx.save();
@@ -968,7 +1042,6 @@ function updateOpTargetChart(data) {
             ctx.setLineDash([]);
             ctx.fillStyle = '#f59e0b';
             ctx.font = 'bold 10px Inter, sans-serif';
-            // trava o texto dentro da área do gráfico pra não cortar nas bordas
             const labelText = 'Meta: ' + fmt(META_OPERACAO);
             const halfWidth = ctx.measureText(labelText).width / 2;
             let labelX = xPixel;
@@ -1020,7 +1093,6 @@ function updateDashboardUI() {
     document.getElementById('kpi-proprio').innerText = fmt(nfsProprio);
     document.getElementById('kpi-agregado').innerText = fmt(nfsAgregado);
 
-    // Tabela
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
     document.getElementById('table-count').innerText = `Mostrando ${Math.min(filteredData.length, 50)} de ${fmt(filteredData.length)}`;
@@ -1043,7 +1115,6 @@ function updateDashboardUI() {
     renderRankings();
     updateCharts(nfsProprio, nfsAgregado);
 
-    // ===== Novos painéis (v2) — reaproveitam filteredData, sem duplicar cálculo dos KPIs originais =====
     const totalKm = filteredData.reduce((acc, curr) => acc + (kmValidoFiltro(curr.kmRodados) ? curr.kmRodados : 0), 0);
     const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
 
@@ -1070,7 +1141,6 @@ function renderRankings() {
 }
 
 function updateCharts(proprios, agregados) {
-    // 1. Gráfico de Linhas com Animação e Pontos com Brilho
     const dateMap = {};
     filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
     const dates = Object.keys(dateMap).sort().slice(-10);
@@ -1122,7 +1192,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 2. Gráfico de Barras Verticais (Com proteção contra corte de valores)
     const opMap = {};
     filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
     const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
@@ -1167,7 +1236,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 3. Mix de Frota (Polar Area com pontos formatados com pontuação)
     const ctxP = document.getElementById('polarChart').getContext('2d');
     if(polarChartInstance) polarChartInstance.destroy();
 
@@ -1190,7 +1258,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 4. Gráfico de Status Horizontal (Com espaçamento garantido para evitar corte)
     const statusMap = {};
     filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
     const statusLabels = Object.keys(statusMap);
@@ -1232,7 +1299,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 5. Novo Gráfico por Estado (UF) vs NFs
     const stateMap = {};
     filteredData.forEach(d => {
         stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
@@ -1278,6 +1344,305 @@ function updateCharts(proprios, agregados) {
             }
         }
     });
+}
+
+/* =========================================================
+   LÓGICA DESPESAS (BD_DESPESAS)
+   ========================================================= */
+function applyDespFilters() {
+    const s = document.getElementById('desp-filter-start').value;
+    const e = document.getElementById('desp-filter-end').value;
+    const placa = document.getElementById('desp-filter-placa').value.toLowerCase();
+    const servico = document.getElementById('desp-filter-servico').value.toLowerCase();
+    const idVal = document.getElementById('desp-filter-id').value;
+    const st = document.getElementById('desp-filter-status').value;
+
+    filteredDespData = rawDespData.filter(it => {
+        if(s && it.dataCompra < s) return false;
+        if(e && it.dataCompra > e) return false;
+        if(placa && !it.placa.toLowerCase().includes(placa)) return false;
+        if(servico && !it.servico.toLowerCase().includes(servico)) return false;
+        if(idVal && String(it.id) !== String(idVal)) return false;
+        if(st && it.status.toLowerCase() !== st.toLowerCase()) return false;
+        return true;
+    });
+
+    updateDespDashboardUI();
+}
+
+['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyDespFilters);
+});
+['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => {
+    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyDespFilters, 300));
+});
+
+function getDespStatusBadge(st) {
+    let css = 'status-pendente';
+    const upper = String(st || '').toUpperCase();
+    if(upper.includes('APROVADO') || upper.includes('CONCLUÍDO') || upper.includes('CONCLUIDO')) css = 'status-aprovado';
+    else if(upper.includes('RECUSADO') || upper.includes('CANCELADO') || upper.includes('REJEITADO')) css = 'status-recusado';
+    return `<span class="badge-despesa ${css}">${st}</span>`;
+}
+
+function updateDespDashboardUI() {
+    const totalGasto = filteredDespData.reduce((acc, curr) => acc + curr.valorTotal, 0);
+    const totalCount = filteredDespData.length;
+    const mediaGasto = totalCount > 0 ? (totalGasto / totalCount) : 0;
+
+    let ultimaData = '--';
+    if(totalCount > 0) {
+        const sorted = [...filteredDespData].sort((a,b) => b.dataCompra.localeCompare(a.dataCompra));
+        ultimaData = sorted[0].dataCompra.split('-').reverse().join('/');
+    }
+
+    document.getElementById('desp-kpi-total').innerText = fmtMoeda(totalGasto);
+    document.getElementById('desp-kpi-count').innerText = fmt(totalCount);
+    document.getElementById('desp-kpi-avg').innerText = fmtMoeda(mediaGasto);
+    document.getElementById('desp-kpi-last').innerText = ultimaData;
+
+    // Tabela Despesas
+    const tbody = document.getElementById('desp-table-body');
+    tbody.innerHTML = '';
+    document.getElementById('desp-table-count').innerText = `Mostrando ${Math.min(filteredDespData.length, 50)} de ${fmt(filteredDespData.length)}`;
+
+    filteredDespData.slice(0, 50).forEach(it => {
+        const tr = document.createElement('tr');
+        const hasAnexo = it.anexo && it.anexo.length > 5;
+        const btnAnexo = hasAnexo 
+            ? `<button onclick='openDespAttachmentModal(${JSON.stringify(it)})' style="background:var(--accent-blue); color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:10px; font-weight:700;">Ver Anexo</button>`
+            : '<span style="color:var(--text-muted)">Sem anexo</span>';
+
+        tr.innerHTML = `
+            <td><strong>#${it.id}</strong></td>
+            <td><strong>${it.placa}</strong></td>
+            <td>${it.servico}</td>
+            <td style="color:var(--accent-green); font-weight:700;">${fmtMoeda(it.valorTotal)}</td>
+            <td>${fmtMoeda(it.valorUnit)}</td>
+            <td>${it.qntd}</td>
+            <td>${it.dataCompra.split('-').reverse().join('/')}</td>
+            <td>${getDespStatusBadge(it.status)}</td>
+            <td>${it.aprovador}</td>
+            <td>${it.tipoDoc}</td>
+            <td>${it.formaPag}</td>
+            <td>${it.fornecedor}</td>
+            <td>${it.criadoPor}</td>
+            <td>${it.informacao}</td>
+            <td>${it.umb}</td>
+            <td>${it.banco}</td>
+            <td>${it.chavePix}</td>
+            <td>${it.bancoAjud}</td>
+            <td>${it.chaveAjud}</td>
+            <td>${it.recebedor}</td>
+            <td>${fmtMoeda(it.descontos)}</td>
+            <td>${it.operacao}</td>
+            <td>${btnAnexo}</td>
+            <td>${it.descFunc}</td>
+            <td>${it.parcelado}</td>
+            <td>${it.numParcelas}</td>
+            <td>${it.periodoParcelamento}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    updateDespCharts();
+}
+
+function updateDespCharts() {
+    // 1. Line Chart: Evolução Temporal de Despesas
+    const dateMap = {};
+    filteredDespData.forEach(d => { dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
+
+    const ctxL = document.getElementById('desp-lineChart').getContext('2d');
+    if(despLineChartInstance) despLineChartInstance.destroy();
+
+    let gradL = ctxL.createLinearGradient(0,0,0,260);
+    gradL.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+    gradL.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+    despLineChartInstance = new Chart(ctxL, {
+        type: 'line',
+        data: {
+            labels: lineLabels,
+            datasets: [{
+                data: lineData,
+                borderColor: '#ef4444',
+                backgroundColor: gradL,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 5,
+                pointBackgroundColor: '#ef4444',
+                pointBorderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' }
+            }
+        }
+    });
+
+    // 2. Donut Chart: Status das Despesas
+    const statusMap = {};
+    filteredDespData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
+
+    const ctxD = document.getElementById('desp-donutChart').getContext('2d');
+    if(despDonutChartInstance) despDonutChartInstance.destroy();
+
+    despDonutChartInstance = new Chart(ctxD, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(statusMap),
+            datasets: [{
+                data: Object.values(statusMap),
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } },
+                datalabels: {
+                    display: true, color: '#fff', font: { weight: 'bold', size: 11 },
+                    formatter: (v) => fmt(v)
+                }
+            }
+        }
+    });
+
+    // 3. Bar Chart: Gasto por Placa (Top 10)
+    const placaMap = {};
+    filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
+    const sortedPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+    const ctxB = document.getElementById('desp-barChart').getContext('2d');
+    if(despBarChartInstance) despBarChartInstance.destroy();
+
+    let gradB = ctxB.createLinearGradient(0,0,0,260);
+    gradB.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
+    gradB.addColorStop(1, 'rgba(139, 92, 246, 0.2)');
+
+    despBarChartInstance = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+            labels: sortedPlacas.map(i => i[0]),
+            datasets: [{
+                data: sortedPlacas.map(i => i[1]),
+                backgroundColor: gradB,
+                borderRadius: 8,
+                barPercentage: 0.6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
+            }
+        }
+    });
+
+    // 4. Neon Line Chart: Tipo Documento × Valor Total
+    const docMap = {};
+    filteredDespData.forEach(d => { docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal; });
+    const sortedDocs = Object.entries(docMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+
+    const ctxN = document.getElementById('desp-neonLineChart').getContext('2d');
+    if(despNeonLineChartInstance) despNeonLineChartInstance.destroy();
+
+    despNeonLineChartInstance = new Chart(ctxN, {
+        type: 'line',
+        data: {
+            labels: sortedDocs.map(i => i[0]),
+            datasets: [{
+                data: sortedDocs.map(i => i[1]),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 6,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '25%' }
+            }
+        }
+    });
+}
+
+/* =========================================================
+   MODAL DE ANEXO DA DESPESA
+   ========================================================= */
+function openDespAttachmentModal(item) {
+    const modal = document.getElementById('desp-attachment-modal');
+    const img = document.getElementById('desp-modal-image');
+    const noImg = document.getElementById('desp-modal-no-image');
+    const title = document.getElementById('desp-modal-title');
+    const info = document.getElementById('desp-modal-info');
+
+    title.innerText = `Comprovante - ID #${item.id} (${item.placa})`;
+
+    if (item.anexo && item.anexo.startsWith('http')) {
+        img.src = item.anexo;
+        img.style.display = 'block';
+        noImg.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        noImg.style.display = 'block';
+    }
+
+    info.innerHTML = `
+        <div class="modal-info-item"><span class="modal-info-label">Fornecedor</span><span class="modal-info-value">${item.fornecedor}</span></div>
+        <div class="modal-info-item"><span class="modal-info-label">Valor Total</span><span class="modal-info-value">${fmtMoeda(item.valorTotal)}</span></div>
+        <div class="modal-info-item"><span class="modal-info-label">Forma Pagamento</span><span class="modal-info-value">${item.formaPag}</span></div>
+        <div class="modal-info-item"><span class="modal-info-label">Aprovador</span><span class="modal-info-value">${item.aprovador}</span></div>
+    `;
+
+    modal.classList.add('show');
+}
+
+function closeDespAttachmentModal(e) {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal-close')) {
+        document.getElementById('desp-attachment-modal').classList.remove('show');
+    }
 }
 </script>
 </body>
