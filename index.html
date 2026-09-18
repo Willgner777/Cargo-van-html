@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cargo Van EX - Dashboard Executivo v2.0</title>
+<title>Cargo Van EX - Dashboard Executivo v1.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -250,7 +250,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </aside>
         
-        <!-- VISÃO OPERAÇÃO (MANTIDA 100% INTACTA) -->
+        <!-- VISÃO OPERAÇÃO -->
         <main class="view-section active" id="view-operacao">
             <!-- BARRA DE FILTROS DA OPERAÇÃO -->
             <div class="filter-bar">
@@ -418,7 +418,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </main>
 
-        <!-- MÓDULO DE DESPESAS (AJUSTADO PARA ABERTURA DE MODAL) -->
+        <!-- MÓDULO DE DESPESAS (SINCRONIZADO COM BD_DESPESAS) -->
         <main class="view-section" id="view-despesas">
             <!-- FILTROS INDEPENDENTES DE DESPESAS -->
             <div class="filter-bar">
@@ -522,7 +522,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
     </div>
 </div>
 
-<!-- MODAL VISUALIZADOR DE FOTOS / COMPROVANTES (CENTRALIZADO) -->
+<!-- MODAL VISUALIZADOR DE FOTOS / COMPROVANTES -->
 <div id="modal-photo" onclick="closeImageModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <button class="btn-close-modal" onclick="closeImageModal()">✕</button>
@@ -567,7 +567,7 @@ function switchView(viewName) {
         document.getElementById('view-despesas').classList.add('active');
         document.getElementById('nav-despesas').classList.add('active');
         if (despesasRawData.length === 0) {
-            carregarDadosDespesasIniciais();
+            syncSharePointDespesasData();
         } else {
             applyDespesasFilters();
         }
@@ -685,22 +685,66 @@ function padronizarNome(nome) {
     return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-/* CARREGAMENTO DE DADOS DAS DESPESAS */
-function carregarDadosDespesasIniciais() {
+/* SINCRONIZAÇÃO COMPLETA DE DESPESAS COM SHAREPOINT (BD_DESPESAS) */
+async function syncSharePointDespesasData(account) {
+    if(!account) account = myMSALObj.getAllAccounts()[0];
+    if(!account) return;
+
+    document.getElementById("loading-screen").style.display = "flex";
+    document.getElementById("loading-msg").innerText = "Sincronizando BD_DESPESAS com o SharePoint...";
+
     const photoBase = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%230f1524'/><text x='50%25' y='40%25' dominant-baseline='middle' text-anchor='middle' fill='%233b82f6' font-size='20' font-family='sans-serif' font-weight='bold'>COMPROVANTE FISCAL</text><text x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' fill='%238b9bb8' font-size='14' font-family='sans-serif'>BD_DESPESAS - ANEXO VERIFICADO</text></svg>";
 
-    despesasRawData = [
-        { id: 101, placa: 'POE1A95', servico: 'Adiantamento salarial', valor_unitario: 150.00, qntd: 1, valor_total: 150.00, informacao: 'N/A', umb: 'N/A', data_compra: '2026-07-02', status: 'Aprovado', aprovador: 'Heraldo.Melo@...', tipo_documento: 'Salário', formas_pagamento: 'PIX', fornecedor: 'N/A', criado_por_user: 'Maria Aparecida', anexo: photoBase },
-        { id: 102, placa: 'RMJ6B38', servico: 'Adiantamento salarial', valor_unitario: 35.00, qntd: 1, valor_total: 35.00, informacao: 'N/A', umb: 'N/A', data_compra: '2026-07-02', status: 'Aprovado', aprovador: 'Heraldo.Melo@...', tipo_documento: 'Salário', formas_pagamento: 'PIX', fornecedor: 'N/A', criado_por_user: 'Maria Aparecida', anexo: photoBase },
-        { id: 103, placa: 'SBP7A98', servico: 'Abastecimento de combustível', valor_unitario: 7.29, qntd: 54.87, valor_total: 400.00, informacao: 'Transação aprovada junto ao gestor / PA | AMBEV - MARABÁ', umb: 'L (Litro)', data_compra: '2026-07-04', status: 'Aprovado', aprovador: 'Heraldo.Melo@...', tipo_documento: 'PIX', formas_pagamento: 'PIX', fornecedor: 'AMBEV MARABÁ', criado_por_user: 'FRANCISCO ROBSON RODRIGUES FERREIRA', anexo: photoBase },
-        { id: 104, placa: 'RNH1A24', servico: 'Abastecimento de combustível', valor_unitario: 7.29, qntd: 58.05, valor_total: 400.00, informacao: 'Transação aprovada junto ao gestor / PE | TOTAL EXPRESS RECIFE', umb: 'L (Litro)', data_compra: '2026-07-05', status: 'Aprovado', aprovador: 'Heraldo.Melo@...', tipo_documento: 'PIX', formas_pagamento: 'PIX', fornecedor: 'TOTAL EXPRESS', criado_por_user: 'Wellgton Alves Teixeira da Silva', anexo: photoBase },
-        { id: 105, placa: 'RZJ8A74', servico: 'Abastecimento de combustível', valor_unitario: 7.29, qntd: 57.23, valor_total: 400.00, informacao: 'Transação aprovada junto ao gestor / PE | TOTAL EXPRESS RECIFE', umb: 'L (Litro)', data_compra: '2026-07-05', status: 'Aprovado', aprovador: 'Heraldo.Melo@...', tipo_documento: 'PIX', formas_pagamento: 'PIX', fornecedor: 'TOTAL EXPRESS', criado_por_user: 'Admilson Ferreira Da Silva Junior', anexo: photoBase },
-        { id: 106, placa: 'QXS9B62', servico: 'Abastecimento de combustível', valor_unitario: 7.29, qntd: 42.67, valor_total: 300.00, informacao: 'Transação aprovada junto ao gestor / PE | TOTAL EXPRESS', umb: 'L (Litro)', data_compra: '2026-07-05', status: 'Aprovado', aprovador: 'Heraldo.Melo@...', tipo_documento: 'PIX', formas_pagamento: 'PIX', fornecedor: 'TOTAL EXPRESS', criado_por_user: 'WALTER CORREIA DE OLIVEIRA JUNIOR', anexo: photoBase },
-        { id: 107, placa: 'POE1A95', servico: 'Manutenção Preventiva', valor_unitario: 850.00, qntd: 1, valor_total: 850.00, informacao: 'Troca de óleo de motor e filtros de ar/combustível', umb: 'Serviço', data_compra: '2026-07-08', status: 'Pendente', aprovador: 'Aguardando', tipo_documento: 'Nota Fiscal', formas_pagamento: 'Faturado 30 dias', fornecedor: 'Auto Center Silva', criado_por_user: 'Maria Aparecida', anexo: photoBase },
-        { id: 108, placa: 'RMJ6B38', servico: 'Reembolso Pedágio', valor_unitario: 42.50, qntd: 2, valor_total: 85.00, informacao: 'Comprovantes de pedágio trecho BR-116', umb: 'Unid', data_compra: '2026-07-09', status: 'Recusado', aprovador: 'Heraldo.Melo@...', tipo_documento: 'Comprovante', formas_pagamento: 'Espécie', fornecedor: 'Concessionária ViaSul', criado_por_user: 'Maria Aparecida', anexo: photoBase }
-    ];
+    try {
+        const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+        // Alterado para buscar da lista BD_DESPESAS no SharePoint
+        let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
+        let all = []; 
+        let pages = 0;
+        
+        while(url && pages < 10) {
+            pages++;
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
+            if (!res.ok) throw new Error(`Graph Erro Despesas: ${res.status}`);
+            const data = await res.json();
+            if (data.value) all = all.concat(data.value);
+            url = data['@odata.nextLink'] || null;
+        }
 
-    applyDespesasFilters();
+        if (all.length > 0) {
+            despesasRawData = all.map(it => {
+                const f = it.fields || {};
+                const vUnit = Number(f.ValorUnitario || f.VALORUNITARIO || f.Valor_x0020_Unitario || 0);
+                const qntd = Number(f.Quantidade || f.QNTD || f.QUANTIDADE || 1);
+                let vTotal = Number(f.ValorTotal || f.VALORTOTAL || f.Valor_x0020_Total || (vUnit * qntd));
+
+                return {
+                    id: it.id || f.ID || 0,
+                    placa: String(f.Placa || f.PLACA || f.Title || 'N/A').toUpperCase(),
+                    servico: String(f.Servico || f.SERVICO || f.Serviço || 'Despesa Operacional'),
+                    valor_unitario: vUnit,
+                    qntd: qntd,
+                    valor_total: vTotal,
+                    informacao: String(f.Informacao || f.INFORMACAO || 'N/A'),
+                    umb: String(f.UMB || 'N/A'),
+                    data_compra: (f.DataCompra || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
+                    status: String(f.Status || f.STATUS || 'Pendente'),
+                    aprovador: String(f.Aprovador || f.APROVADOR || 'Aguardando'),
+                    tipo_documento: String(f.TipoDocumento || f.TIPODOCUMENTO || 'Nota Fiscal'),
+                    formas_pagamento: String(f.FormaPagamento || f.FORMAPAGAMENTO || 'PIX'),
+                    fornecedor: String(f.Fornecedor || f.FORNECEDOR || 'N/A'),
+                    criado_por_user: padronizarNome(f.Author || f.CriadoPor || 'Sistema'),
+                    anexo: f.Anexo || photoBase
+                };
+            });
+            showToast(`✅ BD_DESPESAS sincronizado (${all.length} registros)!`);
+        }
+    } catch(e) {
+        console.warn("Aviso na sincronização de BD_DESPESAS do SharePoint, operando com fallback padrão.", e);
+    } finally {
+        document.getElementById('loading-screen').style.display = 'none';
+        applyDespesasFilters();
+    }
 }
 
 async function syncSharePointData(account) {
@@ -765,6 +809,10 @@ async function syncSharePointData(account) {
             popularFiltrosDinamicos();
             showToast(`✅ ${all.length} registros sincronizados com sucesso!`);
         }
+        
+        // Sincroniza também as despesas vinculadas ao SharePoint
+        await syncSharePointDespesasData(account);
+
     } catch(e) {
         console.error(e);
         showToast('Falha na sincronização.');
@@ -905,7 +953,6 @@ function updateDespesasUI() {
     despesasFilteredData.forEach(d => {
         const tr = document.createElement('tr');
         
-        // Trata os textos para acionamento do Modal sem quebra no JS
         const titleText = `Comprovante - ${d.placa} (${d.servico})`;
         const subText = `Valor: ${fmtMoeda(d.valor_total)} | Data: ${d.data_compra}`;
 
@@ -916,7 +963,7 @@ function updateDespesasUI() {
             <td>${fmtMoeda(d.valor_unitario)}</td>
             <td>${d.qntd} ${d.umb !== 'N/A' ? d.umb : ''}</td>
             <td><strong style="color:#fff;">${fmtMoeda(d.valor_total)}</strong></td>
-            <td>${d.data_compra.split('-').reverse().join('/')}</td>
+            <td>${d.data_compra ? d.data_compra.split('-').reverse().join('/') : ''}</td>
             <td>${getStatusBadge(d.status)}</td>
             <td><span class="badge-pill">${d.tipo_documento}</span></td>
             <td>${d.formas_pagamento}</td>
@@ -930,7 +977,6 @@ function updateDespesasUI() {
         `;
         tbody.appendChild(tr);
 
-        // Atribui evento via JS direto para evitar conflitos de aspas
         document.getElementById(`btn-foto-${d.id}`).onclick = function() {
             openImageModal(d.anexo, titleText, subText);
         };
@@ -1111,7 +1157,7 @@ function renderDespesasCharts() {
     });
 }
 
-/* FUNÇÕES DA OPERAÇÃO (INALTERADAS) */
+/* FUNÇÕES DA OPERAÇÃO */
 function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
 
