@@ -288,6 +288,67 @@ Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
+/* =========================================================
+   PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
+   - Todos os pontos: glow suave respirando (lento)
+   - Último ponto (mais recente): pulso mais forte + anel expansivo (efeito "ao vivo")
+   Não interfere em nenhum dado, cálculo ou lógica de sincronização.
+   ========================================================= */
+const pulsePointsPlugin = {
+    id: 'pulsePointsPlugin',
+    afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== 'lineChart') return;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
+
+        const { ctx } = chart;
+        const t = performance.now() / 1000;
+        const lastIndex = meta.data.length - 1;
+
+        meta.data.forEach((point, index) => {
+            const isLast = index === lastIndex;
+            const speed = isLast ? 1.1 : 0.6; // "devagar" = velocidade baixa
+            const phase = index * 0.35;
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2; // 0 -> 1 -> 0
+
+            // Glow suave (respirando) em todos os pontos
+            const baseRadius = isLast ? 6 : 5;
+            const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
+            const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, glowRadius, 0, Math.PI * 2);
+            ctx.fillStyle = isLast
+                ? `rgba(16, 185, 129, ${glowAlpha})`
+                : `rgba(59, 130, 246, ${glowAlpha})`;
+            ctx.fill();
+            ctx.restore();
+
+            // Anel expansivo extra só no ponto mais recente (efeito "ao vivo")
+            if (isLast) {
+                const ringRadius = baseRadius + 4 + pulse * 12;
+                const ringAlpha = 0.55 * (1 - pulse);
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, ringRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+        });
+    }
+};
+Chart.register(pulsePointsPlugin);
+
+// Loop de redesenho leve e lento (10 fps) só para animar o pulso, sem re-renderizar dados/eixos
+setInterval(() => {
+    if (lineChartInstance) {
+        lineChartInstance.draw();
+    }
+}, 100);
+
 function fmt(num) {
     return Number(num || 0).toLocaleString('pt-BR');
 }
