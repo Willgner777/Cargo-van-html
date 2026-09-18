@@ -182,7 +182,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .progress-track { width:100%; height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
 .progress-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius:8px; transition: width 1s ease; }
 
-.funnel-track { position:relative; display:flex; justify-style:space-around; align-items:flex-start; padding:16px 20px 4px; justify-content: space-around; }
+.funnel-track { position:relative; display:flex; align-items:flex-start; padding:16px 20px 4px; justify-content: space-around; }
 .funnel-track::before { content:''; position:absolute; top:56px; left:70px; right:70px; height:0; border-top:2px dashed var(--border); z-index:0; }
 .funnel-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
 
@@ -697,7 +697,6 @@ async function syncSharePointDespesasData(account) {
 
     try {
         const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
-        // Alterado para buscar da lista BD_DESPESAS no SharePoint
         let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
         let all = []; 
         let pages = 0;
@@ -810,7 +809,6 @@ async function syncSharePointData(account) {
             showToast(`✅ ${all.length} registros sincronizados com sucesso!`);
         }
         
-        // Sincroniza também as despesas vinculadas ao SharePoint
         await syncSharePointDespesasData(account);
 
     } catch(e) {
@@ -945,14 +943,12 @@ function updateDespesasUI() {
     document.getElementById('desp-kpi-pendente').innerText = fmtMoeda(totalPend);
     document.getElementById('desp-kpi-recusado').innerText = fmtMoeda(totalRec);
 
-    // Tabela DataGrid Despesas
     const tbody = document.getElementById('desp-table-body');
     tbody.innerHTML = '';
     document.getElementById('desp-table-count').innerText = `Exibindo ${despesasFilteredData.length} de ${despesasRawData.length} registros`;
 
     despesasFilteredData.forEach(d => {
         const tr = document.createElement('tr');
-        
         const titleText = `Comprovante - ${d.placa} (${d.servico})`;
         const subText = `Valor: ${fmtMoeda(d.valor_total)} | Data: ${d.data_compra}`;
 
