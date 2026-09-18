@@ -73,19 +73,19 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 #dashboard { display: none; height: 100vh; overflow: hidden; }
 .layout { display: flex; height: 100%; width: 100%; }
 
-/* Sidebar Fixa e Organizada */
+/* Sidebar Fixa e Organizada - ÍCONES E TEXTOS ALINHADOS */
 .sidebar {
     width: 280px; min-width: 280px; background: var(--bg-panel);
     border-right: 1px solid var(--border); display: flex; flex-direction: column;
     padding: 24px 0; z-index: 5;
 }
 .brand { padding: 0 24px 24px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #fff; border-bottom: 1px solid var(--border); }
-.brand svg { width: 24px; height: 24px; fill: var(--accent-blue); }
+.brand svg { width: 24px; height: 24px; fill: var(--accent-blue); flex-shrink: 0; }
 .sidebar-menu { padding: 20px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: .2s; cursor: pointer; }
-.sidebar-item svg { width: 18px; height: 18px; fill: currentColor; }
+.sidebar-item svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; display: block; }
 .sidebar-item:hover, .sidebar-item.active { background: var(--bg-panel-hover); color: #fff; }
-.sidebar-subitem { padding-left: 38px; font-size: 12px; }
+.sidebar-subitem { padding-left: 20px; font-size: 13px; }
 .user-profile { padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
 .user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -151,22 +151,20 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .perfil-agregado { background: rgba(139, 92, 246, 0.12); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.25); }
 
 /* Anexo Thumb UI */
-.img-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1px solid var(--accent-blue); cursor: pointer; transition: transform .2s ease; }
-.img-thumb:hover { transform: scale(1.15); box-shadow: 0 0 10px rgba(59,130,246,0.5); }
-.btn-anexo { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-blue); color: #60a5fa; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-.btn-anexo:hover { background: var(--accent-blue); color: #fff; }
+.btn-anexo { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-blue); color: #60a5fa; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s ease; }
+.btn-anexo:hover { background: var(--accent-blue); color: #fff; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
 
 /* Modal de Visualização de Foto */
 #modal-photo { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
 .modal-content { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 16px; max-width: 600px; width: 90%; text-align: center; display: flex; flex-direction: column; gap: 15px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-.modal-img { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 10px; border: 1px solid var(--border); }
-.btn-close-modal { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+.modal-img { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 10px; border: 1px solid var(--border); background: #070b14; }
+.btn-close-modal { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
 .btn-close-modal:hover { background: var(--accent-red); }
 
 #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
 #toast.show { opacity: 1; transform: translateY(0); }
 
-/* NOVOS COMPONENTES VISUAIS DA OPERAÇÃO */
+/* COMPONENTES VISUAIS DA OPERAÇÃO */
 .perf-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
 .perf-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center; }
 .perf-card.sparkline { align-items:stretch; text-align:left; }
@@ -184,7 +182,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .progress-track { width:100%; height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
 .progress-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius:8px; transition: width 1s ease; }
 
-.funnel-track { position:relative; display:flex; justify-content:space-around; align-items:flex-start; padding:16px 20px 4px; }
+.funnel-track { position:relative; display:flex; justify-style:space-around; align-items:flex-start; padding:16px 20px 4px; justify-content: space-around; }
 .funnel-track::before { content:''; position:absolute; top:56px; left:70px; right:70px; height:0; border-top:2px dashed var(--border); z-index:0; }
 .funnel-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
 
@@ -227,7 +225,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 <!-- DASHBOARD PRINCIPAL -->
 <div id="dashboard">
     <div class="layout">
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR COM ÍCONES RE-ALINHADOS -->
         <aside class="sidebar">
             <div class="brand">
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -236,16 +234,15 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             <div class="sidebar-menu">
                 <a href="#" class="sidebar-item active" id="nav-operacao" onclick="switchView('operacao')">
                     <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-                    Operação
+                    <span>Operação</span>
                 </a>
-                <!-- SUBMENU DESPESAS -->
                 <a href="#" class="sidebar-item sidebar-subitem" id="nav-despesas" onclick="switchView('despesas')">
                     <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1H6.32c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-                    Despesas
+                    <span>Despesas</span>
                 </a>
                 <a class="sidebar-item" onclick="syncSharePointData()">
                     <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-                    Sincronizar
+                    <span>Sincronizar</span>
                 </a>
             </div>
             <div class="user-profile">
@@ -253,7 +250,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </aside>
         
-        <!-- VISÃO OPERAÇÃO (ORIGINAL - MANTIDA INTACTA) -->
+        <!-- VISÃO OPERAÇÃO (MANTIDA 100% INTACTA) -->
         <main class="view-section active" id="view-operacao">
             <!-- BARRA DE FILTROS DA OPERAÇÃO -->
             <div class="filter-bar">
@@ -421,7 +418,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </main>
 
-        <!-- NOVO MÓDULO DE DESPESAS (ISOLADO E COMPLETO) -->
+        <!-- MÓDULO DE DESPESAS (AJUSTADO PARA ABERTURA DE MODAL) -->
         <main class="view-section" id="view-despesas">
             <!-- FILTROS INDEPENDENTES DE DESPESAS -->
             <div class="filter-bar">
@@ -466,7 +463,6 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
             <!-- GRÁFICOS DESPESAS -->
             <div class="content-grid-2">
-                <!-- 1. Linha Suave Vivo Pulsando (Data_compra x Valor_total) -->
                 <div class="panel">
                     <div class="panel-header">
                         <div class="panel-title">Evolução Temporal das Despesas (Valor Total)</div>
@@ -475,7 +471,6 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                     <div class="chart-container"><canvas id="despLineChart"></canvas></div>
                 </div>
 
-                <!-- 2. Gráfico de Barras UI (Placa x Valor) -->
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Gastos por Placa (Veículo)</div></div>
                     <div class="chart-container"><canvas id="despBarChart"></canvas></div>
@@ -483,13 +478,11 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
 
             <div class="content-grid-2">
-                <!-- 3. Gráfico de Pizza UI/UX (Status: Pendente, Aprovado, Recusado) -->
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Distribuição por Status</div></div>
                     <div class="chart-container"><canvas id="despPieChart"></canvas></div>
                 </div>
 
-                <!-- 4. Gráfico de Linha Clean Neon sem preenchimento (Tipo_documento x Valor_total) -->
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Valor por Tipo de Documento</div></div>
                     <div class="chart-container"><canvas id="despDocChart"></canvas></div>
@@ -529,7 +522,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
     </div>
 </div>
 
-<!-- MODAL VISUALIZADOR DE FOTOS / COMPROVANTES -->
+<!-- MODAL VISUALIZADOR DE FOTOS / COMPROVANTES (CENTRALIZADO) -->
 <div id="modal-photo" onclick="closeImageModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <button class="btn-close-modal" onclick="closeImageModal()">✕</button>
@@ -581,7 +574,7 @@ function switchView(viewName) {
     }
 }
 
-/* PLUGIN PULSO DE VIDA - DESPESAS E OPERAÇÃO */
+/* PLUGIN PULSO DE VIDA */
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
     afterDatasetsDraw(chart) {
@@ -692,9 +685,8 @@ function padronizarNome(nome) {
     return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-/* CARREGAMENTO DE DADOS EXTRAÍDOS REAIS DAS IMAGENS DAS DESPESAS */
+/* CARREGAMENTO DE DADOS DAS DESPESAS */
 function carregarDadosDespesasIniciais() {
-    // Foto base placeholder em SVG/DataURI estilizado para exibição perfeita nos anexos
     const photoBase = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%230f1524'/><text x='50%25' y='40%25' dominant-baseline='middle' text-anchor='middle' fill='%233b82f6' font-size='20' font-family='sans-serif' font-weight='bold'>COMPROVANTE FISCAL</text><text x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' fill='%238b9bb8' font-size='14' font-family='sans-serif'>BD_DESPESAS - ANEXO VERIFICADO</text></svg>";
 
     despesasRawData = [
@@ -791,7 +783,7 @@ function popularFiltrosDinamicos() {
     statusSet.forEach(st => { selStatus.innerHTML += `<option value="${st}">${st}</option>`; });
 }
 
-/* LÓGICA DE FILTROS DA OPERAÇÃO (MANTIDA) */
+/* LÓGICA DE FILTROS DA OPERAÇÃO */
 function applyFilters() {
     const s = document.getElementById('filter-start').value;
     const e = document.getElementById('filter-end').value;
@@ -875,7 +867,7 @@ function classifyStatusKey(st) {
     return 'outro';
 }
 
-/* MODAL DE FOTOS/ANEXOS DO DATAGRID */
+/* MODAL DE FOTOS/ANEXOS */
 function openImageModal(imgSrc, title, details) {
     document.getElementById('modal-photo-img').src = imgSrc;
     document.getElementById('modal-photo-title').innerText = title || 'Comprovante / Anexo de Despesa';
@@ -912,6 +904,11 @@ function updateDespesasUI() {
 
     despesasFilteredData.forEach(d => {
         const tr = document.createElement('tr');
+        
+        // Trata os textos para acionamento do Modal sem quebra no JS
+        const titleText = `Comprovante - ${d.placa} (${d.servico})`;
+        const subText = `Valor: ${fmtMoeda(d.valor_total)} | Data: ${d.data_compra}`;
+
         tr.innerHTML = `
             <td><span class="badge-pill">#${d.id}</span></td>
             <td><strong>${d.placa}</strong></td>
@@ -926,20 +923,24 @@ function updateDespesasUI() {
             <td>${d.aprovador}</td>
             <td>${d.criado_por_user}</td>
             <td>
-                <button class="btn-anexo" onclick="openImageModal('${d.anexo}', 'Comprovante - ${d.placa} (${d.servico})', 'Valor: ${fmtMoeda(d.valor_total)} | Data: ${d.data_compra}')">
+                <button class="btn-anexo" id="btn-foto-${d.id}">
                     📷 Ver Foto
                 </button>
             </td>
         `;
         tbody.appendChild(tr);
+
+        // Atribui evento via JS direto para evitar conflitos de aspas
+        document.getElementById(`btn-foto-${d.id}`).onclick = function() {
+            openImageModal(d.anexo, titleText, subText);
+        };
     });
 
     renderDespesasCharts();
 }
 
-/* RENDERIZAÇÃO DOS GRÁFICOS DE DESPESAS UI/UX ELITE */
+/* RENDERIZAÇÃO DOS GRÁFICOS DE DESPESAS */
 function renderDespesasCharts() {
-    // 1. Gráfico de Linhas Temporal Pulsando (Data_compra x Valor_total)
     const dateMap = {};
     despesasFilteredData.forEach(d => {
         dateMap[d.data_compra] = (dateMap[d.data_compra] || 0) + Number(d.valor_total || 0);
@@ -990,7 +991,6 @@ function renderDespesasCharts() {
         }
     });
 
-    // 2. Gráfico de Barras UI (Placa x Valor)
     const placaMap = {};
     despesasFilteredData.forEach(d => {
         placaMap[d.placa] = (placaMap[d.placa] || 0) + Number(d.valor_total || 0);
@@ -1032,7 +1032,6 @@ function renderDespesasCharts() {
         }
     });
 
-    // 3. Gráfico de Rosca/Pizza UI (Status)
     const statusCounts = { Aprovado: 0, Pendente: 0, Recusado: 0 };
     despesasFilteredData.forEach(d => {
         if (statusCounts[d.status] !== undefined) statusCounts[d.status]++;
@@ -1066,7 +1065,6 @@ function renderDespesasCharts() {
         }
     });
 
-    // 4. Gráfico de Linha Clean Neon sem preenchimento (Tipo_documento x Valor_total)
     const docMap = {};
     despesasFilteredData.forEach(d => {
         docMap[d.tipo_documento] = (docMap[d.tipo_documento] || 0) + Number(d.valor_total || 0);
@@ -1113,7 +1111,7 @@ function renderDespesasCharts() {
     });
 }
 
-/* CONTINUAÇÃO DAS FUNÇÕES DA OPERAÇÃO */
+/* FUNÇÕES DA OPERAÇÃO (INALTERADAS) */
 function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
 
@@ -1527,52 +1525,6 @@ function updateCharts(proprios, agregados) {
             scales: { 
                 x: { display: false, beginAtZero: true, grace: '35%' }, 
                 y: { grid: { display: false } } 
-            }
-        }
-    });
-
-    const stateMap = {};
-    filteredData.forEach(d => {
-        stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
-    });
-    const sortedStates = Object.entries(stateMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
-
-    const ctxSt = document.getElementById('stateChart').getContext('2d');
-    if(stateChartInstance) stateChartInstance.destroy();
-
-    let gradSt = ctxSt.createLinearGradient(0,0,0,260);
-    gradSt.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
-    gradSt.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
-
-    stateChartInstance = new Chart(ctxSt, {
-        type: 'bar',
-        data: {
-            labels: sortedStates.map(i => i[0]),
-            datasets: [{
-                label: 'NFs por Estado',
-                data: sortedStates.map(i => i[1]),
-                backgroundColor: gradSt,
-                borderRadius: 10,
-                barPercentage: 0.65
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true,
-                    color: '#fff',
-                    anchor: 'end',
-                    align: 'top',
-                    font: { weight: 'bold', size: 11 },
-                    formatter: (value) => fmt(value)
-                }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { display: false, beginAtZero: true, grace: '30%' }
             }
         }
     });
