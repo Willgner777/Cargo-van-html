@@ -22,7 +22,6 @@
     --accent-warning: #f59e0b;
     --accent-purple: #8b5cf6;
     --accent-red: #ef4444;
-    --accent-cyan: #06b6d4;
     --border: #1e293b;
     --radius: 14px;
     --shadow: 0 10px 30px rgba(0,0,0,.35);
@@ -73,29 +72,27 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 #dashboard { display: none; height: 100vh; overflow: hidden; }
 .layout { display: flex; height: 100%; width: 100%; }
 
-/* Sidebar Fixa e Organizada - ÍCONES E TEXTOS ALINHADOS */
+/* Sidebar Fixa e Organizada */
 .sidebar {
     width: 280px; min-width: 280px; background: var(--bg-panel);
     border-right: 1px solid var(--border); display: flex; flex-direction: column;
     padding: 24px 0; z-index: 5;
 }
 .brand { padding: 0 24px 24px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #fff; border-bottom: 1px solid var(--border); }
-.brand svg { width: 24px; height: 24px; fill: var(--accent-blue); flex-shrink: 0; }
-.sidebar-menu { padding: 20px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.brand svg { width: 24px; height: 24px; fill: var(--accent-blue); }
+.sidebar-menu { padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: .2s; cursor: pointer; }
-.sidebar-item svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; display: block; }
+.sidebar-item svg { width: 18px; height: 18px; fill: currentColor; }
 .sidebar-item:hover, .sidebar-item.active { background: var(--bg-panel-hover); color: #fff; }
-.sidebar-subitem { padding-left: 20px; font-size: 13px; }
 .user-profile { padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
 .user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.view-section { flex: 1; display: none; flex-direction: column; overflow-y: auto; padding: 24px; gap: 20px; background: var(--bg-base); }
-.view-section.active { display: flex; }
+.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 24px; gap: 20px; background: var(--bg-base); }
 
 /* Barra de Filtros Completa */
 .filter-bar {
     background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: center;
+    padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: center;
 }
 .filter-group { display: flex; flex-direction: column; gap: 5px; }
 .filter-group label { font-size: 10px; color: var(--accent-blue); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
@@ -107,24 +104,22 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 
 /* KPIS */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-.kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+.kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
 .kpi-card.highlight { background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; }
-.kpi-card.highlight-green { background: linear-gradient(135deg, #064e3b, #10b981); border: none; }
 .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); font-weight: 700; }
-.highlight .kpi-title, .highlight-green .kpi-title { color: rgba(255,255,255,.8); }
+.highlight .kpi-title { color: rgba(255,255,255,.8); }
 .kpi-value { font-size: 26px; font-weight: 800; color: #fff; }
 .kpi-sub { font-size: 11px; color: var(--text-muted); }
 
 /* Grades de Gráficos e Rankings */
 .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-.content-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-@media(max-width: 1200px) { .content-grid, .content-grid-2, .content-grid-3 { grid-template-columns: 1fr; } }
+@media(max-width: 1200px) { .content-grid, .content-grid-3 { grid-template-columns: 1fr; } }
 
 .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
 .panel-header { display: flex; justify-content: space-between; align-items: center; }
 .panel-title { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
-.chart-container { position: relative; height: 270px; width: 100%; }
+.chart-container { position: relative; height: 260px; width: 100%; }
 
 /* Listas de Ranking */
 .ranking-list { display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto; padding-right: 4px; }
@@ -140,31 +135,19 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
 /* Cores Dinâmicas de Status e Perfis */
 .badge-status { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
-.status-concluido, .status-aprovado { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-.status-andamento, .status-pendente { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-.status-pernoite, .status-recusado { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-.status-outro { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+.status-concluido { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-andamento { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+.status-pernoite { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+.status-outro { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-.badge-pill { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
 .badge-perfil { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
 .perfil-proprio { background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); }
 .perfil-agregado { background: rgba(139, 92, 246, 0.12); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.25); }
 
-/* Anexo Thumb UI */
-.btn-anexo { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-blue); color: #60a5fa; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s ease; }
-.btn-anexo:hover { background: var(--accent-blue); color: #fff; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
-
-/* Modal de Visualização de Foto */
-#modal-photo { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-.modal-content { background: var(--bg-panel); border: 1px solid var(--border); padding: 20px; border-radius: 16px; max-width: 600px; width: 90%; text-align: center; display: flex; flex-direction: column; gap: 15px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-.modal-img { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 10px; border: 1px solid var(--border); background: #070b14; }
-.btn-close-modal { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-.btn-close-modal:hover { background: var(--accent-red); }
-
 #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
 #toast.show { opacity: 1; transform: translateY(0); }
 
-/* COMPONENTES VISUAIS DA OPERAÇÃO */
+/* ============ NOVOS COMPONENTES DE GRÁFICO (v2) ============ */
 .perf-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
 .perf-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center; }
 .perf-card.sparkline { align-items:stretch; text-align:left; }
@@ -182,7 +165,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .progress-track { width:100%; height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
 .progress-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius:8px; transition: width 1s ease; }
 
-.funnel-track { position:relative; display:flex; align-items:flex-start; padding:16px 20px 4px; justify-content: space-around; }
+.funnel-track { position:relative; display:flex; justify-content:space-around; align-items:flex-start; padding:16px 20px 4px; }
 .funnel-track::before { content:''; position:absolute; top:56px; left:70px; right:70px; height:0; border-top:2px dashed var(--border); z-index:0; }
 .funnel-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
 
@@ -222,27 +205,22 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
     <div class="loading-text" id="loading-msg">Sincronizando dados com o SharePoint...</div>
 </div>
 
-<!-- DASHBOARD PRINCIPAL -->
+<!-- DASHBOARD -->
 <div id="dashboard">
     <div class="layout">
-        <!-- SIDEBAR COM ÍCONES RE-ALINHADOS -->
         <aside class="sidebar">
             <div class="brand">
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                TechSolutions
+                TechSolutions Analytics
             </div>
             <div class="sidebar-menu">
-                <a href="#" class="sidebar-item active" id="nav-operacao" onclick="switchView('operacao')">
+                <a href="#" class="sidebar-item active">
                     <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-                    <span>Operação</span>
-                </a>
-                <a href="#" class="sidebar-item sidebar-subitem" id="nav-despesas" onclick="switchView('despesas')">
-                    <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1H6.32c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-                    <span>Despesas</span>
+                    Operação
                 </a>
                 <a class="sidebar-item" onclick="syncSharePointData()">
                     <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-                    <span>Sincronizar</span>
+                    Sincronizar Dados
                 </a>
             </div>
             <div class="user-profile">
@@ -250,9 +228,8 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </aside>
         
-        <!-- VISÃO OPERAÇÃO -->
-        <main class="view-section active" id="view-operacao">
-            <!-- BARRA DE FILTROS DA OPERAÇÃO -->
+        <main class="main-content">
+            <!-- BARRA DE FILTROS -->
             <div class="filter-bar">
                 <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
                 <div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
@@ -263,7 +240,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="filter-group"><label>Perfil Frota</label><select id="filter-perfil" class="filter-input"><option value="">Todos</option><option value="PRÓPRIO">Próprio</option><option value="AGREGADO">Agregado</option></select></div>
             </div>
 
-            <!-- KPIS DA OPERAÇÃO -->
+            <!-- KPIS -->
             <div class="kpi-grid">
                 <div class="kpi-card highlight"><div class="kpi-title">Total Entregas</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Registros Oficiais</div></div>
                 <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">NFs Faturadas</div><div class="kpi-value" id="kpi-nfs">0</div><div class="kpi-sub">Volume Calculado</div></div>
@@ -271,7 +248,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">NFs Realizadas</div></div>
             </div>
 
-            <!-- META MENSAL DE NFS -->
+            <!-- NOVO: META MENSAL DE NFS -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Meta Mensal de NFs</div>
@@ -286,7 +263,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- INDICADORES DE DESEMPENHO -->
+            <!-- NOVO: INDICADORES DE DESEMPENHO (ring conclusão / ring eficiência / km total com sparkline) -->
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Indicadores de Desempenho</div></div>
                 <div class="perf-grid">
@@ -312,7 +289,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- GRÁFICOS PRINCIPAIS OPERAÇÃO -->
+            <!-- GRÁFICOS PRINCIPAIS -->
             <div class="content-grid-3">
                 <div class="panel" style="grid-column: span 2;">
                     <div class="panel-header"><div class="panel-title">Evolução de Entregas (NFs)</div></div>
@@ -335,6 +312,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
+            <!-- NOVO GRÁFICO POR ESTADO (UF) COM ILUSTRAÇÃO DE MAPA -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header">
@@ -348,6 +326,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
+            <!-- NOVO: TABELA DE STATUS OPERACIONAL POR UF -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
@@ -360,6 +339,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
+            <!-- NOVO: DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
             <div class="content-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Distribuição de Status</div></div>
@@ -385,6 +365,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
+            <!-- NOVO: RANKING DE OPERAÇÕES VS META -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div>
@@ -399,6 +380,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
+            <!-- NOVO: FEED DE ÚLTIMAS OCORRÊNCIAS -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div>
@@ -406,7 +388,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- TABELA OPERAÇÃO -->
+            <!-- TABELA DE REGISTROS -->
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:11px;color:var(--text-muted);"></span></div>
                 <div class="table-container">
@@ -417,118 +399,6 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
         </main>
-
-        <!-- MÓDULO DE DESPESAS (SINCRONIZADO COM BD_DESPESAS) -->
-        <main class="view-section" id="view-despesas">
-            <!-- FILTROS INDEPENDENTES DE DESPESAS -->
-            <div class="filter-bar">
-                <div class="filter-group"><label>Data Inicial</label><input type="date" id="desp-filter-start" class="filter-input"></div>
-                <div class="filter-group"><label>Data Final</label><input type="date" id="desp-filter-end" class="filter-input"></div>
-                <div class="filter-group"><label>Placa</label><input type="text" id="desp-filter-placa" class="filter-input" placeholder="Ex: POE1A95"></div>
-                <div class="filter-group"><label>Serviço</label><input type="text" id="desp-filter-servico" class="filter-input" placeholder="Ex: Abastecimento"></div>
-                <div class="filter-group"><label>ID Item</label><input type="text" id="desp-filter-id" class="filter-input" placeholder="Filtrar por ID"></div>
-                <div class="filter-group"><label>Status</label>
-                    <select id="desp-filter-status" class="filter-input">
-                        <option value="">Todos</option>
-                        <option value="Aprovado">Aprovado</option>
-                        <option value="Pendente">Pendente</option>
-                        <option value="Recusado">Recusado</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- KPIS DESPESAS -->
-            <div class="kpi-grid">
-                <div class="kpi-card highlight-green">
-                    <div class="kpi-title">Valor Total Despesas</div>
-                    <div class="kpi-value" id="desp-kpi-total-val">R$ 0,00</div>
-                    <div class="kpi-sub" id="desp-kpi-total-count">0 Lançamentos</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-title" style="color:var(--accent-green)">Total Aprovado</div>
-                    <div class="kpi-value" id="desp-kpi-aprovado">R$ 0,00</div>
-                    <div class="kpi-sub">Aprovado pelo gestor</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-title" style="color:var(--accent-warning)">Total Pendente</div>
-                    <div class="kpi-value" id="desp-kpi-pendente">R$ 0,00</div>
-                    <div class="kpi-sub">Aguardando aprovação</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-title" style="color:var(--accent-red)">Total Recusado</div>
-                    <div class="kpi-value" id="desp-kpi-recusado">R$ 0,00</div>
-                    <div class="kpi-sub">Lançamentos recusados</div>
-                </div>
-            </div>
-
-            <!-- GRÁFICOS DESPESAS -->
-            <div class="content-grid-2">
-                <div class="panel">
-                    <div class="panel-header">
-                        <div class="panel-title">Evolução Temporal das Despesas (Valor Total)</div>
-                        <span style="font-size:11px; color:var(--accent-green); font-weight:700;">● Ao Vivo</span>
-                    </div>
-                    <div class="chart-container"><canvas id="despLineChart"></canvas></div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header"><div class="panel-title">Gastos por Placa (Veículo)</div></div>
-                    <div class="chart-container"><canvas id="despBarChart"></canvas></div>
-                </div>
-            </div>
-
-            <div class="content-grid-2">
-                <div class="panel">
-                    <div class="panel-header"><div class="panel-title">Distribuição por Status</div></div>
-                    <div class="chart-container"><canvas id="despPieChart"></canvas></div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header"><div class="panel-title">Valor por Tipo de Documento</div></div>
-                    <div class="chart-container"><canvas id="despDocChart"></canvas></div>
-                </div>
-            </div>
-
-            <!-- DATAGRID DESPESAS COM ANEXOS -->
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Grid Executivo de Despesas (BD_DESPESAS)</div>
-                    <span id="desp-table-count" style="font-size:11px;color:var(--text-muted);"></span>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Placa</th>
-                                <th>Serviço</th>
-                                <th>Valor Unit.</th>
-                                <th>Qntd</th>
-                                <th>Valor Total</th>
-                                <th>Data Compra</th>
-                                <th>Status</th>
-                                <th>Tipo Doc.</th>
-                                <th>Forma Pag.</th>
-                                <th>Aprovador</th>
-                                <th>Criado Por</th>
-                                <th>Anexo / Foto</th>
-                            </tr>
-                        </thead>
-                        <tbody id="desp-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
-</div>
-
-<!-- MODAL VISUALIZADOR DE FOTOS / COMPROVANTES -->
-<div id="modal-photo" onclick="closeImageModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="btn-close-modal" onclick="closeImageModal()">✕</button>
-        <h4 id="modal-photo-title" style="color:#fff; font-size:14px; text-align:left;">Comprovante de Despesa</h4>
-        <img id="modal-photo-img" class="modal-img" src="" alt="Comprovante">
-        <div id="modal-photo-sub" style="font-size:12px; color:var(--text-muted); text-align:left;"></div>
     </div>
 </div>
 
@@ -544,41 +414,21 @@ const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 
 let rawData = [], filteredData = [];
 let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
-let sparklineChartInstance = null, opTargetChartInstance = null;
-
-/* DADOS E INSTÂNCIAS EXCLUSIVAS DE DESPESAS */
-let despesasRawData = [];
-let despesasFilteredData = [];
-let despLineChartInstance = null, despBarChartInstance = null, despPieChartInstance = null, despDocChartInstance = null;
 
 Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
-/* ALTERNÂNCIA DE TELAS */
-function switchView(viewName) {
-    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-
-    if (viewName === 'operacao') {
-        document.getElementById('view-operacao').classList.add('active');
-        document.getElementById('nav-operacao').classList.add('active');
-    } else if (viewName === 'despesas') {
-        document.getElementById('view-despesas').classList.add('active');
-        document.getElementById('nav-despesas').classList.add('active');
-        if (despesasRawData.length === 0) {
-            syncSharePointDespesasData();
-        } else {
-            applyDespesasFilters();
-        }
-    }
-}
-
-/* PLUGIN PULSO DE VIDA */
+/* =========================================================
+   PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
+   - Todos os pontos: glow suave respirando (lento)
+   - Último ponto (mais recente): pulso mais forte + anel expansivo (efeito "ao vivo")
+   Não interfere em nenhum dado, cálculo ou lógica de sincronização.
+   ========================================================= */
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
     afterDatasetsDraw(chart) {
-        if (chart.canvas.id !== 'lineChart' && chart.canvas.id !== 'despLineChart') return;
+        if (chart.canvas.id !== 'lineChart') return;
         const meta = chart.getDatasetMeta(0);
         if (!meta || !meta.data || meta.data.length === 0) return;
 
@@ -588,23 +438,25 @@ const pulsePointsPlugin = {
 
         meta.data.forEach((point, index) => {
             const isLast = index === lastIndex;
-            const speed = isLast ? 1.2 : 0.6;
+            const speed = isLast ? 1.1 : 0.6; // "devagar" = velocidade baixa
             const phase = index * 0.35;
-            const pulse = (Math.sin(t * speed + phase) + 1) / 2;
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2; // 0 -> 1 -> 0
 
+            // Glow suave (respirando) em todos os pontos
             const baseRadius = isLast ? 6 : 5;
-            const glowRadius = baseRadius + pulse * (isLast ? 10 : 5);
-            const glowAlpha = (isLast ? 0.35 : 0.20) * (0.4 + pulse * 0.6);
+            const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
+            const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
 
             ctx.save();
             ctx.beginPath();
             ctx.arc(point.x, point.y, glowRadius, 0, Math.PI * 2);
-            ctx.fillStyle = chart.canvas.id === 'despLineChart' 
-                ? `rgba(16, 185, 129, ${glowAlpha})` 
-                : (isLast ? `rgba(16, 185, 129, ${glowAlpha})` : `rgba(59, 130, 246, ${glowAlpha})`);
+            ctx.fillStyle = isLast
+                ? `rgba(16, 185, 129, ${glowAlpha})`
+                : `rgba(59, 130, 246, ${glowAlpha})`;
             ctx.fill();
             ctx.restore();
 
+            // Anel expansivo extra só no ponto mais recente (efeito "ao vivo")
             if (isLast) {
                 const ringRadius = baseRadius + 4 + pulse * 12;
                 const ringAlpha = 0.55 * (1 - pulse);
@@ -621,6 +473,7 @@ const pulsePointsPlugin = {
 };
 Chart.register(pulsePointsPlugin);
 
+/* Plugin: marca o dia de pico (maior volume) na linha de Evolução de Entregas */
 const peakAnnotationPlugin = {
     id: 'peakAnnotationPlugin',
     afterDatasetsDraw(chart) {
@@ -644,17 +497,18 @@ const peakAnnotationPlugin = {
 };
 Chart.register(peakAnnotationPlugin);
 
+// Loop de redesenho leve e lento (10 fps) só para animar o pulso, sem re-renderizar dados/eixos
 setInterval(() => {
-    if (lineChartInstance) lineChartInstance.draw();
-    if (despLineChartInstance) despLineChartInstance.draw();
+    if (lineChartInstance) {
+        lineChartInstance.draw();
+    }
 }, 100);
+
+// Instâncias dos novos gráficos (não interferem nos 5 já existentes)
+let sparklineChartInstance = null, opTargetChartInstance = null;
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('pt-BR');
-}
-
-function fmtMoeda(num) {
-    return Number(num || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function iniciarLogin() {
@@ -683,67 +537,6 @@ function showToast(msg) {
 function padronizarNome(nome) {
     if (!nome) return 'NÃO INFORMADO';
     return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-/* SINCRONIZAÇÃO COMPLETA DE DESPESAS COM SHAREPOINT (BD_DESPESAS) */
-async function syncSharePointDespesasData(account) {
-    if(!account) account = myMSALObj.getAllAccounts()[0];
-    if(!account) return;
-
-    document.getElementById("loading-screen").style.display = "flex";
-    document.getElementById("loading-msg").innerText = "Sincronizando BD_DESPESAS com o SharePoint...";
-
-    const photoBase = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%230f1524'/><text x='50%25' y='40%25' dominant-baseline='middle' text-anchor='middle' fill='%233b82f6' font-size='20' font-family='sans-serif' font-weight='bold'>COMPROVANTE FISCAL</text><text x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' fill='%238b9bb8' font-size='14' font-family='sans-serif'>BD_DESPESAS - ANEXO VERIFICADO</text></svg>";
-
-    try {
-        const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
-        let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
-        let all = []; 
-        let pages = 0;
-        
-        while(url && pages < 10) {
-            pages++;
-            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
-            if (!res.ok) throw new Error(`Graph Erro Despesas: ${res.status}`);
-            const data = await res.json();
-            if (data.value) all = all.concat(data.value);
-            url = data['@odata.nextLink'] || null;
-        }
-
-        if (all.length > 0) {
-            despesasRawData = all.map(it => {
-                const f = it.fields || {};
-                const vUnit = Number(f.ValorUnitario || f.VALORUNITARIO || f.Valor_x0020_Unitario || 0);
-                const qntd = Number(f.Quantidade || f.QNTD || f.QUANTIDADE || 1);
-                let vTotal = Number(f.ValorTotal || f.VALORTOTAL || f.Valor_x0020_Total || (vUnit * qntd));
-
-                return {
-                    id: it.id || f.ID || 0,
-                    placa: String(f.Placa || f.PLACA || f.Title || 'N/A').toUpperCase(),
-                    servico: String(f.Servico || f.SERVICO || f.Serviço || 'Despesa Operacional'),
-                    valor_unitario: vUnit,
-                    qntd: qntd,
-                    valor_total: vTotal,
-                    informacao: String(f.Informacao || f.INFORMACAO || 'N/A'),
-                    umb: String(f.UMB || 'N/A'),
-                    data_compra: (f.DataCompra || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
-                    status: String(f.Status || f.STATUS || 'Pendente'),
-                    aprovador: String(f.Aprovador || f.APROVADOR || 'Aguardando'),
-                    tipo_documento: String(f.TipoDocumento || f.TIPODOCUMENTO || 'Nota Fiscal'),
-                    formas_pagamento: String(f.FormaPagamento || f.FORMAPAGAMENTO || 'PIX'),
-                    fornecedor: String(f.Fornecedor || f.FORNECEDOR || 'N/A'),
-                    criado_por_user: padronizarNome(f.Author || f.CriadoPor || 'Sistema'),
-                    anexo: f.Anexo || photoBase
-                };
-            });
-            showToast(`✅ BD_DESPESAS sincronizado (${all.length} registros)!`);
-        }
-    } catch(e) {
-        console.warn("Aviso na sincronização de BD_DESPESAS do SharePoint, operando com fallback padrão.", e);
-    } finally {
-        document.getElementById('loading-screen').style.display = 'none';
-        applyDespesasFilters();
-    }
 }
 
 async function syncSharePointData(account) {
@@ -808,9 +601,6 @@ async function syncSharePointData(account) {
             popularFiltrosDinamicos();
             showToast(`✅ ${all.length} registros sincronizados com sucesso!`);
         }
-        
-        await syncSharePointDespesasData(account);
-
     } catch(e) {
         console.error(e);
         showToast('Falha na sincronização.');
@@ -829,7 +619,6 @@ function popularFiltrosDinamicos() {
     statusSet.forEach(st => { selStatus.innerHTML += `<option value="${st}">${st}</option>`; });
 }
 
-/* LÓGICA DE FILTROS DA OPERAÇÃO */
 function applyFilters() {
     const s = document.getElementById('filter-start').value;
     const e = document.getElementById('filter-end').value;
@@ -860,40 +649,11 @@ function applyFilters() {
     document.getElementById(id).addEventListener('keyup', () => setTimeout(applyFilters, 300));
 });
 
-/* LÓGICA DE FILTROS INDEPENDENTE DE DESPESAS */
-function applyDespesasFilters() {
-    const start = document.getElementById('desp-filter-start').value;
-    const end = document.getElementById('desp-filter-end').value;
-    const placa = document.getElementById('desp-filter-placa').value.toLowerCase().trim();
-    const servico = document.getElementById('desp-filter-servico').value.toLowerCase().trim();
-    const idVal = document.getElementById('desp-filter-id').value.trim();
-    const status = document.getElementById('desp-filter-status').value;
-
-    despesasFilteredData = despesasRawData.filter(d => {
-        if (start && d.data_compra < start) return false;
-        if (end && d.data_compra > end) return false;
-        if (placa && !d.placa.toLowerCase().includes(placa)) return false;
-        if (servico && !d.servico.toLowerCase().includes(servico)) return false;
-        if (idVal && String(d.id) !== idVal) return false;
-        if (status && d.status !== status) return false;
-        return true;
-    });
-
-    updateDespesasUI();
-}
-
-['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => {
-    document.getElementById(id).addEventListener('change', applyDespesasFilters);
-});
-['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => {
-    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyDespesasFilters, 300));
-});
-
 function getStatusBadge(st) {
     let css = 'status-outro';
-    if(st.includes('CONCLUÍDO') || st.includes('CONCLUIDO') || st.includes('Aprovado')) css = 'status-concluido';
-    else if(st.includes('ANDAMENTO') || st.includes('ROTA') || st.includes('Pendente')) css = 'status-andamento';
-    else if(st.includes('PERNOITE') || st.includes('Recusado')) css = 'status-pernoite';
+    if(st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) css = 'status-concluido';
+    else if(st.includes('ANDAMENTO') || st.includes('ROTA')) css = 'status-andamento';
+    else if(st.includes('PERNOITE')) css = 'status-pernoite';
     return `<span class="badge-status ${css}">${st}</span>`;
 }
 
@@ -902,10 +662,17 @@ function getPerfilBadge(perf) {
     return `<span class="badge-perfil ${css}">${perf}</span>`;
 }
 
+/* Filtro de sanidade só para os NOVOS indicadores visuais (KM total e sparkline).
+   Não altera kmInicial/kmFinal/kmRodados exibidos na tabela nem o cálculo original de sync.
+   Ignora registros com KM Rodado fora de uma faixa realista (provável erro de digitação
+   no SharePoint, ex: KMFINAL/KMINICIAL trocados ou com dígito a mais). Ajuste o limite se precisar. */
 function kmValidoFiltro(km) {
-    return km > 0 && km <= 5000;
+    const KM_MAXIMO_RAZOAVEL = 5000; // nenhuma viagem única deveria passar disso
+    return km > 0 && km <= KM_MAXIMO_RAZOAVEL;
 }
 
+/* Reaproveita a mesma lógica de classificação usada nos badges da tabela,
+   apenas devolvendo uma chave curta em vez de HTML. Não altera getStatusBadge. */
 function classifyStatusKey(st) {
     if (st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) return 'concluido';
     if (st.includes('ANDAMENTO') || st.includes('ROTA')) return 'andamento';
@@ -913,247 +680,8 @@ function classifyStatusKey(st) {
     return 'outro';
 }
 
-/* MODAL DE FOTOS/ANEXOS */
-function openImageModal(imgSrc, title, details) {
-    document.getElementById('modal-photo-img').src = imgSrc;
-    document.getElementById('modal-photo-title').innerText = title || 'Comprovante / Anexo de Despesa';
-    document.getElementById('modal-photo-sub').innerText = details || '';
-    document.getElementById('modal-photo').style.display = 'flex';
-}
+/* ================= NOVOS PAINÉIS (v2) ================= */
 
-function closeImageModal() {
-    document.getElementById('modal-photo').style.display = 'none';
-}
-
-/* ATUALIZAÇÃO DA UI DE DESPESAS */
-function updateDespesasUI() {
-    let totalVal = 0, totalAprov = 0, totalPend = 0, totalRec = 0;
-
-    despesasFilteredData.forEach(d => {
-        const v = Number(d.valor_total || 0);
-        totalVal += v;
-        if (d.status === 'Aprovado') totalAprov += v;
-        else if (d.status === 'Pendente') totalPend += v;
-        else if (d.status === 'Recusado') totalRec += v;
-    });
-
-    document.getElementById('desp-kpi-total-val').innerText = fmtMoeda(totalVal);
-    document.getElementById('desp-kpi-total-count').innerText = `${despesasFilteredData.length} Lançamentos`;
-    document.getElementById('desp-kpi-aprovado').innerText = fmtMoeda(totalAprov);
-    document.getElementById('desp-kpi-pendente').innerText = fmtMoeda(totalPend);
-    document.getElementById('desp-kpi-recusado').innerText = fmtMoeda(totalRec);
-
-    const tbody = document.getElementById('desp-table-body');
-    tbody.innerHTML = '';
-    document.getElementById('desp-table-count').innerText = `Exibindo ${despesasFilteredData.length} de ${despesasRawData.length} registros`;
-
-    despesasFilteredData.forEach(d => {
-        const tr = document.createElement('tr');
-        const titleText = `Comprovante - ${d.placa} (${d.servico})`;
-        const subText = `Valor: ${fmtMoeda(d.valor_total)} | Data: ${d.data_compra}`;
-
-        tr.innerHTML = `
-            <td><span class="badge-pill">#${d.id}</span></td>
-            <td><strong>${d.placa}</strong></td>
-            <td>${d.servico}</td>
-            <td>${fmtMoeda(d.valor_unitario)}</td>
-            <td>${d.qntd} ${d.umb !== 'N/A' ? d.umb : ''}</td>
-            <td><strong style="color:#fff;">${fmtMoeda(d.valor_total)}</strong></td>
-            <td>${d.data_compra ? d.data_compra.split('-').reverse().join('/') : ''}</td>
-            <td>${getStatusBadge(d.status)}</td>
-            <td><span class="badge-pill">${d.tipo_documento}</span></td>
-            <td>${d.formas_pagamento}</td>
-            <td>${d.aprovador}</td>
-            <td>${d.criado_por_user}</td>
-            <td>
-                <button class="btn-anexo" id="btn-foto-${d.id}">
-                    📷 Ver Foto
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-
-        document.getElementById(`btn-foto-${d.id}`).onclick = function() {
-            openImageModal(d.anexo, titleText, subText);
-        };
-    });
-
-    renderDespesasCharts();
-}
-
-/* RENDERIZAÇÃO DOS GRÁFICOS DE DESPESAS */
-function renderDespesasCharts() {
-    const dateMap = {};
-    despesasFilteredData.forEach(d => {
-        dateMap[d.data_compra] = (dateMap[d.data_compra] || 0) + Number(d.valor_total || 0);
-    });
-    const sortedDates = Object.keys(dateMap).sort();
-    const lineLabels = sortedDates.map(dt => dt.split('-').reverse().join('/'));
-    const lineData = sortedDates.map(dt => dateMap[dt]);
-
-    const ctxL = document.getElementById('despLineChart').getContext('2d');
-    if (despLineChartInstance) despLineChartInstance.destroy();
-
-    let gradL = ctxL.createLinearGradient(0, 0, 0, 250);
-    gradL.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-    gradL.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-
-    despLineChartInstance = new Chart(ctxL, {
-        type: 'line',
-        data: {
-            labels: lineLabels,
-            datasets: [{
-                label: 'Valor Total (R$)',
-                data: lineData,
-                borderColor: '#10b981',
-                backgroundColor: gradL,
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 6,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1500, easing: 'easeOutQuart' },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '25%' }
-            }
-        }
-    });
-
-    const placaMap = {};
-    despesasFilteredData.forEach(d => {
-        placaMap[d.placa] = (placaMap[d.placa] || 0) + Number(d.valor_total || 0);
-    });
-    const sortedPlacas = Object.entries(placaMap).sort((a, b) => b[1] - a[1]);
-
-    const ctxB = document.getElementById('despBarChart').getContext('2d');
-    if (despBarChartInstance) despBarChartInstance.destroy();
-
-    let gradB = ctxB.createLinearGradient(0, 0, 0, 250);
-    gradB.addColorStop(0, 'rgba(59, 130, 246, 0.9)');
-    gradB.addColorStop(1, 'rgba(59, 130, 246, 0.2)');
-
-    despBarChartInstance = new Chart(ctxB, {
-        type: 'bar',
-        data: {
-            labels: sortedPlacas.map(i => i[0]),
-            datasets: [{
-                data: sortedPlacas.map(i => i[1]),
-                backgroundColor: gradB,
-                borderRadius: 10,
-                barPercentage: 0.55
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { display: false, beginAtZero: true, grace: '30%' }
-            }
-        }
-    });
-
-    const statusCounts = { Aprovado: 0, Pendente: 0, Recusado: 0 };
-    despesasFilteredData.forEach(d => {
-        if (statusCounts[d.status] !== undefined) statusCounts[d.status]++;
-    });
-
-    const ctxP = document.getElementById('despPieChart').getContext('2d');
-    if (despPieChartInstance) despPieChartInstance.destroy();
-
-    despPieChartInstance = new Chart(ctxP, {
-        type: 'doughnut',
-        data: {
-            labels: ['Aprovado', 'Pendente', 'Recusado'],
-            datasets: [{
-                data: [statusCounts.Aprovado, statusCounts.Pendente, statusCounts.Recusado],
-                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                borderWidth: 0,
-                hoverOffset: 6
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            cutout: '70%',
-            animation: { animateRotate: true, duration: 1200 },
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 15 } },
-                datalabels: {
-                    display: true, color: '#fff', font: { weight: 'bold', size: 12 },
-                    formatter: (v) => v > 0 ? v : ''
-                }
-            }
-        }
-    });
-
-    const docMap = {};
-    despesasFilteredData.forEach(d => {
-        docMap[d.tipo_documento] = (docMap[d.tipo_documento] || 0) + Number(d.valor_total || 0);
-    });
-    const docLabels = Object.keys(docMap);
-    const docValues = Object.values(docMap);
-
-    const ctxD = document.getElementById('despDocChart').getContext('2d');
-    if (despDocChartInstance) despDocChartInstance.destroy();
-
-    despDocChartInstance = new Chart(ctxD, {
-        type: 'line',
-        data: {
-            labels: docLabels,
-            datasets: [{
-                label: 'Valor Total',
-                data: docValues,
-                borderColor: '#06b6d4',
-                backgroundColor: 'transparent',
-                borderWidth: 3,
-                fill: false,
-                tension: 0.2,
-                pointRadius: 6,
-                pointBackgroundColor: '#06b6d4',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true, color: '#06b6d4', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
-            },
-            scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, grace: '25%' }
-            }
-        }
-    });
-}
-
-/* FUNÇÕES DA OPERAÇÃO */
 function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
 
@@ -1162,6 +690,7 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     ringC.style.setProperty('--pct', pctConclusao);
     document.getElementById('ring-conclusao-label').innerText = pctConclusao + '%';
 
+    // Eficiência = NFs por 100km rodados. Referência de 100% = 20 NFs/100km (ajustável).
     const EFICIENCIA_REFERENCIA = 20;
     const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
     const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / EFICIENCIA_REFERENCIA) * 100)));
@@ -1171,6 +700,8 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
 }
 
 function renderMetaMensal(totalNFs) {
+    // AJUSTE AQUI a meta mensal de NFs. Operação seg-sáb (~26 dias úteis/mês):
+    // 781 (média diária) x 26 dias úteis ≈ 20.306
     const META_MENSAL_NFS = 20306;
     const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
     document.getElementById('meta-mensal-fill').style.width = pct + '%';
@@ -1289,6 +820,7 @@ function updateKmSparkline(data) {
 }
 
 function updateOpTargetChart(data) {
+    // AJUSTE AQUI a meta de NFs por operação/cliente
     const META_OPERACAO = 500;
     const opMap = {};
     data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
@@ -1301,6 +833,7 @@ function updateOpTargetChart(data) {
         id: 'opTargetLinePlugin',
         afterDatasetsDraw(chart) {
             const xScale = chart.scales.x;
+            const yScale = chart.scales.y;
             const xPixel = xScale.getPixelForValue(META_OPERACAO);
             const { ctx } = chart;
             ctx.save();
@@ -1314,6 +847,7 @@ function updateOpTargetChart(data) {
             ctx.setLineDash([]);
             ctx.fillStyle = '#f59e0b';
             ctx.font = 'bold 10px Inter, sans-serif';
+            // trava o texto dentro da área do gráfico pra não cortar nas bordas
             const labelText = 'Meta: ' + fmt(META_OPERACAO);
             const halfWidth = ctx.measureText(labelText).width / 2;
             let labelX = xPixel;
@@ -1365,6 +899,7 @@ function updateDashboardUI() {
     document.getElementById('kpi-proprio').innerText = fmt(nfsProprio);
     document.getElementById('kpi-agregado').innerText = fmt(nfsAgregado);
 
+    // Tabela
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
     document.getElementById('table-count').innerText = `Mostrando ${Math.min(filteredData.length, 50)} de ${fmt(filteredData.length)}`;
@@ -1387,6 +922,7 @@ function updateDashboardUI() {
     renderRankings();
     updateCharts(nfsProprio, nfsAgregado);
 
+    // ===== Novos painéis (v2) — reaproveitam filteredData, sem duplicar cálculo dos KPIs originais =====
     const totalKm = filteredData.reduce((acc, curr) => acc + (kmValidoFiltro(curr.kmRodados) ? curr.kmRodados : 0), 0);
     const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
 
@@ -1413,6 +949,7 @@ function renderRankings() {
 }
 
 function updateCharts(proprios, agregados) {
+    // 1. Gráfico de Linhas com Animação e Pontos com Brilho
     const dateMap = {};
     filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
     const dates = Object.keys(dateMap).sort().slice(-10);
@@ -1464,6 +1001,7 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // 2. Gráfico de Barras Verticais (Com proteção contra corte de valores)
     const opMap = {};
     filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
     const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
@@ -1508,6 +1046,7 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // 3. Mix de Frota (Polar Area com pontos formatados com pontuação)
     const ctxP = document.getElementById('polarChart').getContext('2d');
     if(polarChartInstance) polarChartInstance.destroy();
 
@@ -1530,6 +1069,7 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // 4. Gráfico de Status Horizontal (Com espaçamento garantido para evitar corte)
     const statusMap = {};
     filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
     const statusLabels = Object.keys(statusMap);
@@ -1567,6 +1107,53 @@ function updateCharts(proprios, agregados) {
             scales: { 
                 x: { display: false, beginAtZero: true, grace: '35%' }, 
                 y: { grid: { display: false } } 
+            }
+        }
+    });
+
+    // 5. Novo Gráfico por Estado (UF) vs NFs
+    const stateMap = {};
+    filteredData.forEach(d => {
+        stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
+    });
+    const sortedStates = Object.entries(stateMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+
+    const ctxSt = document.getElementById('stateChart').getContext('2d');
+    if(stateChartInstance) stateChartInstance.destroy();
+
+    let gradSt = ctxSt.createLinearGradient(0,0,0,260);
+    gradSt.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
+    gradSt.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
+
+    stateChartInstance = new Chart(ctxSt, {
+        type: 'bar',
+        data: {
+            labels: sortedStates.map(i => i[0]),
+            datasets: [{
+                label: 'NFs por Estado',
+                data: sortedStates.map(i => i[1]),
+                backgroundColor: gradSt,
+                borderRadius: 10,
+                barPercentage: 0.65
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true,
+                    color: '#fff',
+                    anchor: 'end',
+                    align: 'top',
+                    font: { weight: 'bold', size: 11 },
+                    formatter: (value) => fmt(value)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
             }
         }
     });
