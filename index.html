@@ -662,6 +662,15 @@ function getPerfilBadge(perf) {
     return `<span class="badge-perfil ${css}">${perf}</span>`;
 }
 
+/* Filtro de sanidade só para os NOVOS indicadores visuais (KM total e sparkline).
+   Não altera kmInicial/kmFinal/kmRodados exibidos na tabela nem o cálculo original de sync.
+   Ignora registros com KM Rodado fora de uma faixa realista (provável erro de digitação
+   no SharePoint, ex: KMFINAL/KMINICIAL trocados ou com dígito a mais). Ajuste o limite se precisar. */
+function kmValidoFiltro(km) {
+    const KM_MAXIMO_RAZOAVEL = 5000; // nenhuma viagem única deveria passar disso
+    return km > 0 && km <= KM_MAXIMO_RAZOAVEL;
+}
+
 /* Reaproveita a mesma lógica de classificação usada nos badges da tabela,
    apenas devolvendo uma chave curta em vez de HTML. Não altera getStatusBadge. */
 function classifyStatusKey(st) {
@@ -691,8 +700,9 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
 }
 
 function renderMetaMensal(totalNFs) {
-    // AJUSTE AQUI a meta mensal de NFs conforme sua realidade operacional
-    const META_MENSAL_NFS = 24.000;
+    // AJUSTE AQUI a meta mensal de NFs. Operação seg-sáb (~26 dias úteis/mês):
+    // 781 (média diária) x 26 dias úteis ≈ 20.306
+    const META_MENSAL_NFS = 20306;
     const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
     document.getElementById('meta-mensal-fill').style.width = pct + '%';
     document.getElementById('meta-mensal-atual').innerText = fmt(totalNFs);
@@ -786,7 +796,7 @@ function renderOcorrencias(data) {
 
 function updateKmSparkline(data) {
     const dateMap = {};
-    data.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmRodados; });
+    data.forEach(d => { if (kmValidoFiltro(d.kmRodados)) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmRodados; });
     const dates = Object.keys(dateMap).sort().slice(-14);
     const values = dates.map(d => dateMap[d]);
 
@@ -829,16 +839,22 @@ function updateOpTargetChart(data) {
             ctx.save();
             ctx.beginPath();
             ctx.setLineDash([5, 4]);
-            ctx.moveTo(xPixel, yScale.top);
-            ctx.lineTo(xPixel, yScale.bottom);
+            ctx.moveTo(xPixel, chart.chartArea.top);
+            ctx.lineTo(xPixel, chart.chartArea.bottom);
             ctx.strokeStyle = '#f59e0b';
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.setLineDash([]);
             ctx.fillStyle = '#f59e0b';
             ctx.font = 'bold 10px Inter, sans-serif';
+            // trava o texto dentro da área do gráfico pra não cortar nas bordas
+            const labelText = 'Meta: ' + fmt(META_OPERACAO);
+            const halfWidth = ctx.measureText(labelText).width / 2;
+            let labelX = xPixel;
+            if (labelX - halfWidth < chart.chartArea.left) labelX = chart.chartArea.left + halfWidth;
+            if (labelX + halfWidth > chart.chartArea.right) labelX = chart.chartArea.right - halfWidth;
             ctx.textAlign = 'center';
-            ctx.fillText('Meta: ' + fmt(META_OPERACAO), xPixel, yScale.top - 6);
+            ctx.fillText(labelText, labelX, chart.chartArea.top - 8);
             ctx.restore();
         }
     };
@@ -857,6 +873,7 @@ function updateOpTargetChart(data) {
         options: {
             indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 22, right: 46 } },
             animation: { duration: 1000 },
             plugins: {
                 legend: { display: false },
@@ -906,7 +923,7 @@ function updateDashboardUI() {
     updateCharts(nfsProprio, nfsAgregado);
 
     // ===== Novos painéis (v2) — reaproveitam filteredData, sem duplicar cálculo dos KPIs originais =====
-    const totalKm = filteredData.reduce((acc, curr) => acc + curr.kmRodados, 0);
+    const totalKm = filteredData.reduce((acc, curr) => acc + (kmValidoFiltro(curr.kmRodados) ? curr.kmRodados : 0), 0);
     const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
 
     renderIndicadores(totalNFs, totalKm, concluidosCount, filteredData.length);
