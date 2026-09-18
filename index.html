@@ -213,7 +213,6 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 /* Sifrão icon for sidebar */
 .sidebar-item .icon-cifrao { width: 18px; height: 18px; fill: currentColor; }
 
-/* Pulse plugin for despesas line chart */
 @keyframes despesa-pulse-ring {
     0% { transform: scale(1); opacity: 0.6; }
     100% { transform: scale(2.5); opacity: 0; }
@@ -528,7 +527,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
 <script>
 const msalConfig = {
-    auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.origin + window.location.pathname },
+    auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.pathname },
     cache: { cacheLocation: "sessionStorage" }
 };
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
@@ -547,9 +546,6 @@ Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
-/* =========================================================
-   TROCA DE VIEWS (Navegação da Sidebar)
-   ========================================================= */
 function showView(viewName) {
     const mainOp = document.getElementById('operacao-view');
     const mainDesp = document.getElementById('despesas-view');
@@ -568,9 +564,6 @@ function showView(viewName) {
     }
 }
 
-/* =========================================================
-   PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
-   ========================================================= */
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
     afterDatasetsDraw(chart) {
@@ -680,9 +673,6 @@ function padronizarNome(nome) {
     return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-/* =========================================================
-   SINCRONIZAÇÃO COMPLETA SHAREPOINT (LIBERACAO_VEICULO + BD_DESPESAS)
-   ========================================================= */
 async function syncSharePointData(account) {
     if(!account) account = myMSALObj.getAllAccounts()[0];
     if(!account) { iniciarLogin(); return; }
@@ -747,7 +737,7 @@ async function syncSharePointData(account) {
             popularFiltrosDinamicos();
         }
 
-        // 2. BD_DESPESAS (Mapeamento de colunas internas %5F / SharePoint)
+        // 2. BD_DESPESAS
         let urlDesp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
         let allDesp = []; 
         let pagesDesp = 0;
@@ -817,9 +807,7 @@ async function syncSharePointData(account) {
     }
 }
 
-/* =========================================================
-   LÓGICA DESPESAS (BD_DESPESAS)
-   ========================================================= */
+/* ================= DESPESAS LOGIC ================= */
 function applyDespFilters() {
     const s = document.getElementById('desp-filter-start').value;
     const e = document.getElementById('desp-filter-end').value;
@@ -916,7 +904,6 @@ function updateDespDashboardUI() {
 }
 
 function updateDespCharts() {
-    // 1. Linha Temporal
     const dateMap = {};
     filteredDespData.forEach(d => { dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
     const dates = Object.keys(dateMap).sort().slice(-10);
@@ -961,7 +948,6 @@ function updateDespCharts() {
         }
     });
 
-    // 2. Rosca Status
     const stMap = {};
     filteredDespData.forEach(d => { stMap[d.status] = (stMap[d.status] || 0) + 1; });
     const ctxD = document.getElementById('desp-donutChart').getContext('2d');
@@ -987,7 +973,6 @@ function updateDespCharts() {
         }
     });
 
-    // 3. Top 10 Placas
     const placaMap = {};
     filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
     const sortedPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
@@ -1021,7 +1006,6 @@ function updateDespCharts() {
         }
     });
 
-    // 4. Tipo Documento x Valor
     const docMap = {};
     filteredDespData.forEach(d => { docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal; });
     const sortedDocs = Object.entries(docMap).sort((a,b) => b[1] - a[1]);
@@ -1061,9 +1045,7 @@ function closeDespAttachmentModal() {
     document.getElementById('desp-attachment-modal').classList.remove('show');
 }
 
-/* =========================================================
-   LÓGICA OPERAÇÃO (VEICULO_LIBERACAO)
-   ========================================================= */
+/* ================= OPERAÇÃO LOGIC ================= */
 function popularFiltrosDinamicos() {
     const statusSet = new Set();
     rawData.forEach(d => { if(d.status) statusSet.add(d.status); });
@@ -1481,7 +1463,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // Polar Chart
     const ctxP = document.getElementById('polarChart').getContext('2d');
     if(polarChartInstance) polarChartInstance.destroy();
 
@@ -1506,7 +1487,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // Horizontal Status Chart
     const stMap = {};
     filteredData.forEach(d => { stMap[d.status] = (stMap[d.status] || 0) + 1; });
     
@@ -1534,7 +1514,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // State Chart
     const ufMap = {};
     filteredData.forEach(d => { ufMap[d.uf] = (ufMap[d.uf] || 0) + d.qtdNFs; });
     const sortedUfs = Object.entries(ufMap).sort((a,b) => b[1] - a[1]);
