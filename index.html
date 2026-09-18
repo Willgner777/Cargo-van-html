@@ -165,7 +165,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .progress-track { width:100%; height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
 .progress-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius:8px; transition: width 1s ease; }
 
-.funnel-track { position:relative; display:flex; justify-content:space-around; align-items:flex-start; padding:16px 20px 4px; }
+.funnel-track { position:relative; display:flex; justify-space-around; align-items:flex-start; padding:16px 20px 4px; }
 .funnel-track::before { content:''; position:absolute; top:56px; left:70px; right:70px; height:0; border-top:2px dashed var(--border); z-index:0; }
 .funnel-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
 
@@ -693,7 +693,7 @@ async function syncSharePointData(account) {
     try {
         const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
 
-        // 1. LIBERACAO_VEICULO (Lógica original e inalterada)
+        // 1. LIBERACAO_VEICULO
         let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
         let all = []; 
         let pages = 0;
@@ -747,7 +747,7 @@ async function syncSharePointData(account) {
             popularFiltrosDinamicos();
         }
 
-        // 2. BD_DESPESAS (Mesma lógica de sincronização aplicada)
+        // 2. BD_DESPESAS (Mapeamento de colunas internas %5F / SharePoint)
         let urlDesp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
         let allDesp = []; 
         let pagesDesp = 0;
@@ -768,38 +768,39 @@ async function syncSharePointData(account) {
         if (allDesp.length > 0) {
             rawDespData = allDesp.map(it => {
                 const f = it.fields || {};
-                const valTotal = Number(f.VALORTOTAL || f.VALOR_x0020_TOTAL || f.ValorTotal || 0);
-                const valUnit = Number(f.VALORUNIT_x00c1_RIO || f.VALOR_x0020_UNIT_x00c1_RIO || f.ValorUnitario || 0);
-                const qntd = Number(f.QNTD || f.QUANTIDADE || f.Quantidade || 1);
+
+                const valTotal = Number(f.Valor%5Ftotal || f.Valor_total || f.VALORTOTAL || f.VALOR_x0020_TOTAL || 0);
+                const valUnit = Number(f.Valor%5Funitario || f.Valor_unitario || f.VALORUNIT_x00c1_RIO || 0);
+                const qntd = Number(f.Qntd || f.QUANTIDADE || 1);
 
                 return {
                     id: it.id,
-                    placa: String(f.PLACA || f.Placa || 'N/A').toUpperCase(),
-                    servico: String(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A').toUpperCase(),
+                    placa: String(f.Placa || 'N/A').toUpperCase(),
+                    servico: String(f.Servico || 'N/A').toUpperCase(),
                     valorTotal: valTotal,
                     valorUnit: valUnit,
                     qntd: qntd,
-                    dataCompra: (f.DATA_x0020_DE_x0020_COMPRA || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
-                    status: String(f.STATUS || f.Status || 'Pendente').trim(),
-                    aprovador: String(f.APROVADOR || f.Aprovador || 'N/A'),
-                    tipoDoc: String(f.TIPO_x0020_DOCUMENTO || f.TIPODOCUMENTO || f.TipoDoc || 'N/A'),
-                    formaPag: String(f.FORMA_x0020_PAGAMENTO || f.FORMAPAGAMENTO || f.FormaPagamento || 'N/A'),
-                    fornecedor: String(f.FORNECEDOR || f.Fornecedor || 'N/A'),
-                    criadoPor: String(f.CRIADO_x0020_POR || f.CRIADOPOR || f.Author || 'N/A'),
-                    informacao: String(f.INFORMA_x00c7__x00c3_O || f.INFORMACAO || f.Informacao || 'N/A'),
-                    umb: String(f.UMB || f.Umb || 'N/A'),
-                    banco: String(f.BANCO || f.Banco || 'N/A'),
-                    chavePix: String(f.CHAVE_x0020_PIX || f.CHAVEPIX || f.ChavePix || 'N/A'),
-                    bancoAjud: String(f.BANCO_x0020_AJUDANTE || f.BANCOAJUDANTE || f.BancoAjudante || 'N/A'),
-                    chaveAjud: String(f.CHAVE_x0020_AJUDANTE || f.CHAVEAJUDANTE || f.ChaveAjudante || 'N/A'),
-                    recebedor: String(f.RECEBEDOR || f.Recebedor || 'N/A'),
-                    descontos: Number(f.DESCONTOS || f.Descontos || 0),
-                    operacao: String(f.OPERA_x00c7__x00c3_O || f.OPERACAO || f.Operacao || 'N/A'),
-                    anexo: f.ANEXO || f.Anexo || (f.Attachments ? 'Sim' : ''),
-                    descFunc: String(f.DESC_x0020_FUNC || f.DESCFUNC || f.DescFunc || 'N/A'),
-                    parcelado: String(f.PARCELADO || f.Parcelado || 'NÃO'),
-                    numParcelas: Number(f.N_x00ba__x0020_PARCELAS || f.NUMPARCELAS || f.NumParcelas || 1),
-                    periodoParcelamento: String(f.PER_x00cd_ODO_x0020_PARCELAMENTO || f.PERIODOPARCELAMENTO || 'N/A')
+                    dataCompra: (f.Data%5Fcompra || f.Data_compra || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
+                    status: String(f.Status || 'Pendente').trim(),
+                    aprovador: String(f.Aprovador || 'N/A'),
+                    tipoDoc: String(f.Tipo%5Fdocumento || f.Tipo_documento || 'N/A'),
+                    formaPag: String(f.Formas%5Fpagamento || f.Formas_pagamento || 'N/A'),
+                    fornecedor: String(f.Fornecedor || 'N/A'),
+                    criadoPor: String(f.Criado%5Fpor%5Fuser || f.Criado_por_user || f.Author || 'N/A'),
+                    informacao: String(f.Informacao || 'N/A'),
+                    umb: String(f.UMB || 'N/A'),
+                    banco: String(f.Banco || 'N/A'),
+                    chavePix: String(f.ChavePix || 'N/A'),
+                    bancoAjud: String(f.BancoAjudante || 'N/A'),
+                    chaveAjud: String(f.ChaveAjudante || 'N/A'),
+                    recebedor: String(f.Nome%5Frecebedor || f.Nome_recebedor || 'N/A'),
+                    descontos: Number(f.Descontos || 0),
+                    operacao: String(f.Operacao || 'N/A'),
+                    anexo: f.TemAnexo || (f.Attachments ? 'Sim' : ''),
+                    descFunc: String(f.Desconto%5Ffuncionario || f.Desconto_funcionario || 'N/A'),
+                    parcelado: String(f.Parcelado || 'NÃO'),
+                    numParcelas: Number(f.Numero%5Fparcelas || f.Numero_parcelas || 1),
+                    periodoParcelamento: String(f.Periodo%5Fparcelas || f.Periodo_parcelas || 'N/A')
                 };
             });
         }
@@ -814,6 +815,250 @@ async function syncSharePointData(account) {
         applyFilters();
         applyDespFilters();
     }
+}
+
+/* =========================================================
+   LÓGICA DESPESAS (BD_DESPESAS)
+   ========================================================= */
+function applyDespFilters() {
+    const s = document.getElementById('desp-filter-start').value;
+    const e = document.getElementById('desp-filter-end').value;
+    const placa = document.getElementById('desp-filter-placa').value.toLowerCase();
+    const servico = document.getElementById('desp-filter-servico').value.toLowerCase();
+    const idVal = document.getElementById('desp-filter-id').value;
+    const st = document.getElementById('desp-filter-status').value;
+
+    filteredDespData = rawDespData.filter(it => {
+        if(s && it.dataCompra < s) return false;
+        if(e && it.dataCompra > e) return false;
+        if(placa && !it.placa.toLowerCase().includes(placa)) return false;
+        if(servico && !it.servico.toLowerCase().includes(servico)) return false;
+        if(idVal && String(it.id) !== String(idVal)) return false;
+        if(st && it.status.toLowerCase() !== st.toLowerCase()) return false;
+        return true;
+    });
+
+    updateDespDashboardUI();
+}
+
+['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyDespFilters);
+});
+['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => {
+    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyDespFilters, 300));
+});
+
+function getDespStatusBadge(st) {
+    let css = 'status-pendente';
+    const cleanSt = st.toLowerCase();
+    if(cleanSt.includes('aprovado')) css = 'status-aprovado';
+    else if(cleanSt.includes('recusado') || cleanSt.includes('rejeitado')) css = 'status-recusado';
+    return `<span class="badge-despesa ${css}">${st}</span>`;
+}
+
+function updateDespDashboardUI() {
+    const totalGasto = filteredDespData.reduce((acc, curr) => acc + curr.valorTotal, 0);
+    const count = filteredDespData.length;
+    const avg = count > 0 ? totalGasto / count : 0;
+    
+    let lastDate = '--';
+    if (count > 0) {
+        const sortedDates = [...filteredDespData].sort((a,b) => b.dataCompra.localeCompare(a.dataCompra));
+        if (sortedDates[0].dataCompra) {
+            lastDate = sortedDates[0].dataCompra.split('-').reverse().join('/');
+        }
+    }
+
+    document.getElementById('desp-kpi-total').innerText = fmtMoeda(totalGasto);
+    document.getElementById('desp-kpi-count').innerText = fmt(count);
+    document.getElementById('desp-kpi-avg').innerText = fmtMoeda(avg);
+    document.getElementById('desp-kpi-last').innerText = lastDate;
+
+    const tbody = document.getElementById('desp-table-body');
+    tbody.innerHTML = '';
+    document.getElementById('desp-table-count').innerText = `Mostrando ${Math.min(count, 50)} de ${fmt(count)}`;
+
+    filteredDespData.slice(0, 50).forEach(it => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>#${it.id}</strong></td>
+            <td><strong>${it.placa}</strong></td>
+            <td>${it.servico}</td>
+            <td style="color:var(--accent-green); font-weight:700;">${fmtMoeda(it.valorTotal)}</td>
+            <td>${fmtMoeda(it.valorUnit)}</td>
+            <td>${fmt(it.qntd)}</td>
+            <td>${it.dataCompra.split('-').reverse().join('/')}</td>
+            <td>${getDespStatusBadge(it.status)}</td>
+            <td>${it.aprovador}</td>
+            <td>${it.tipoDoc}</td>
+            <td>${it.formaPag}</td>
+            <td>${it.fornecedor}</td>
+            <td>${it.criadoPor}</td>
+            <td>${it.informacao}</td>
+            <td>${it.umb}</td>
+            <td>${it.banco}</td>
+            <td>${it.chavePix}</td>
+            <td>${it.bancoAjud}</td>
+            <td>${it.chaveAjud}</td>
+            <td>${it.recebedor}</td>
+            <td>${fmtMoeda(it.descontos)}</td>
+            <td>${it.operacao}</td>
+            <td>${it.anexo ? '📎 Sim' : 'Não'}</td>
+            <td>${it.descFunc}</td>
+            <td>${it.parcelado}</td>
+            <td>${it.numParcelas}</td>
+            <td>${it.periodoParcelamento}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    updateDespCharts();
+}
+
+function updateDespCharts() {
+    // 1. Linha Temporal
+    const dateMap = {};
+    filteredDespData.forEach(d => { dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
+
+    const ctxL = document.getElementById('desp-lineChart').getContext('2d');
+    if(despLineChartInstance) despLineChartInstance.destroy();
+    
+    let gradL = ctxL.createLinearGradient(0,0,0,250);
+    gradL.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+    gradL.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+    despLineChartInstance = new Chart(ctxL, {
+        type: 'line',
+        data: {
+            labels: lineLabels,
+            datasets: [{
+                data: lineData,
+                borderColor: '#10b981',
+                backgroundColor: gradL,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' } }
+            }
+        }
+    });
+
+    // 2. Rosca Status
+    const stMap = {};
+    filteredDespData.forEach(d => { stMap[d.status] = (stMap[d.status] || 0) + 1; });
+    const ctxD = document.getElementById('desp-donutChart').getContext('2d');
+    if(despDonutChartInstance) despDonutChartInstance.destroy();
+
+    despDonutChartInstance = new Chart(ctxD, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(stMap),
+            datasets: [{
+                data: Object.values(stMap),
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+                borderWidth: 2,
+                borderColor: '#0f1524'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                datalabels: { color: '#fff', font: { weight: 'bold', size: 11 } }
+            }
+        }
+    });
+
+    // 3. Top 10 Placas
+    const placaMap = {};
+    filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
+    const sortedPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+    const ctxB = document.getElementById('desp-barChart').getContext('2d');
+    if(despBarChartInstance) despBarChartInstance.destroy();
+
+    despBarChartInstance = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+            labels: sortedPlacas.map(i => i[0]),
+            datasets: [{
+                data: sortedPlacas.map(i => i[1]),
+                backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    anchor: 'end', align: 'top', color: '#fff', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: false, beginAtZero: true }
+            }
+        }
+    });
+
+    // 4. Tipo Documento x Valor
+    const docMap = {};
+    filteredDespData.forEach(d => { docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal; });
+    const sortedDocs = Object.entries(docMap).sort((a,b) => b[1] - a[1]);
+
+    const ctxN = document.getElementById('desp-neonLineChart').getContext('2d');
+    if(despNeonLineChartInstance) despNeonLineChartInstance.destroy();
+
+    despNeonLineChartInstance = new Chart(ctxN, {
+        type: 'bar',
+        data: {
+            labels: sortedDocs.map(i => i[0]),
+            datasets: [{
+                data: sortedDocs.map(i => i[1]),
+                backgroundColor: 'rgba(139, 92, 246, 0.85)',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    anchor: 'end', align: 'right', color: '#fff', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { display: false, beginAtZero: true },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+function closeDespAttachmentModal() {
+    document.getElementById('desp-attachment-modal').classList.remove('show');
 }
 
 /* =========================================================
@@ -1236,413 +1481,86 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // Polar Chart
     const ctxP = document.getElementById('polarChart').getContext('2d');
     if(polarChartInstance) polarChartInstance.destroy();
 
     polarChartInstance = new Chart(ctxP, {
         type: 'polarArea',
-        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: ['rgba(59, 130, 246, 0.85)', 'rgba(139, 92, 246, 0.85)'], borderWidth: 0 }] },
+        data: {
+            labels: ['Próprio', 'Agregado'],
+            datasets: [{
+                data: [proprios, agregados],
+                backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(139, 92, 246, 0.7)'],
+                borderColor: ['#3b82f6', '#8b5cf6'],
+                borderWidth: 1
+            }]
+        },
         options: {
             responsive: true, maintainAspectRatio: false,
-            animation: { animateRotate: true, animateScale: true, duration: 1200 },
-            scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } },
-            plugins: { 
-                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 15 } }, 
-                datalabels: { 
-                    display: true, 
-                    color: '#fff', 
-                    font: { weight: 'bold', size: 12 },
-                    formatter: (value) => fmt(value)
-                } 
-            }
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: (v) => fmt(v) }
+            },
+            scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } }
         }
     });
 
-    const statusMap = {};
-    filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
-    const statusLabels = Object.keys(statusMap);
-    const statusCounts = Object.values(statusMap);
-
-    const ctxSH = document.getElementById('statusHChart').getContext('2d');
+    // Horizontal Status Chart
+    const stMap = {};
+    filteredData.forEach(d => { stMap[d.status] = (stMap[d.status] || 0) + 1; });
+    
+    const ctxS = document.getElementById('statusHChart').getContext('2d');
     if(statusHChartInstance) statusHChartInstance.destroy();
 
-    statusHChartInstance = new Chart(ctxSH, {
+    statusHChartInstance = new Chart(ctxS, {
         type: 'bar',
         data: {
-            labels: statusLabels,
+            labels: Object.keys(stMap),
             datasets: [{
-                data: statusCounts,
-                backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'],
-                borderRadius: 10,
-                barPercentage: 0.55
+                data: Object.values(stMap),
+                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                borderRadius: 8
             }]
         },
         options: {
             indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: { 
-                legend: { display: false }, 
-                datalabels: { 
-                    display: true, 
-                    color: '#fff', 
-                    anchor: 'end', 
-                    align: 'right', 
-                    font: { weight: 'bold', size: 11 },
-                    formatter: (value) => fmt(value)
-                } 
+            plugins: {
+                legend: { display: false },
+                datalabels: { color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold', size: 10 }, formatter: (v) => fmt(v) }
             },
-            scales: { 
-                x: { display: false, beginAtZero: true, grace: '35%' }, 
-                y: { grid: { display: false } } 
-            }
+            scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false } } }
         }
     });
 
-    const stateMap = {};
-    filteredData.forEach(d => {
-        stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
-    });
-    const sortedStates = Object.entries(stateMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+    // State Chart
+    const ufMap = {};
+    filteredData.forEach(d => { ufMap[d.uf] = (ufMap[d.uf] || 0) + d.qtdNFs; });
+    const sortedUfs = Object.entries(ufMap).sort((a,b) => b[1] - a[1]);
 
-    const ctxSt = document.getElementById('stateChart').getContext('2d');
+    const ctxState = document.getElementById('stateChart').getContext('2d');
     if(stateChartInstance) stateChartInstance.destroy();
 
-    let gradSt = ctxSt.createLinearGradient(0,0,0,260);
-    gradSt.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
-    gradSt.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
-
-    stateChartInstance = new Chart(ctxSt, {
+    stateChartInstance = new Chart(ctxState, {
         type: 'bar',
         data: {
-            labels: sortedStates.map(i => i[0]),
+            labels: sortedUfs.map(i => i[0]),
             datasets: [{
-                label: 'NFs por Estado',
-                data: sortedStates.map(i => i[1]),
-                backgroundColor: gradSt,
-                borderRadius: 10,
-                barPercentage: 0.65
+                data: sortedUfs.map(i => i[1]),
+                backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                borderRadius: 8
             }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
             plugins: {
                 legend: { display: false },
-                datalabels: {
-                    display: true,
-                    color: '#fff',
-                    anchor: 'end',
-                    align: 'top',
-                    font: { weight: 'bold', size: 11 },
-                    formatter: (value) => fmt(value)
-                }
+                datalabels: { anchor: 'end', align: 'top', color: '#fff', font: { weight: 'bold', size: 10 }, formatter: (v) => fmt(v) }
             },
-            scales: {
-                x: { grid: { display: false } },
-                y: { display: false, beginAtZero: true, grace: '30%' }
-            }
+            scales: { x: { grid: { display: false } }, y: { display: false, beginAtZero: true } }
         }
     });
-}
-
-/* =========================================================
-   LÓGICA DESPESAS (BD_DESPESAS)
-   ========================================================= */
-function applyDespFilters() {
-    const s = document.getElementById('desp-filter-start').value;
-    const e = document.getElementById('desp-filter-end').value;
-    const placa = document.getElementById('desp-filter-placa').value.toLowerCase();
-    const servico = document.getElementById('desp-filter-servico').value.toLowerCase();
-    const idVal = document.getElementById('desp-filter-id').value;
-    const st = document.getElementById('desp-filter-status').value;
-
-    filteredDespData = rawDespData.filter(it => {
-        if(s && it.dataCompra < s) return false;
-        if(e && it.dataCompra > e) return false;
-        if(placa && !it.placa.toLowerCase().includes(placa)) return false;
-        if(servico && !it.servico.toLowerCase().includes(servico)) return false;
-        if(idVal && String(it.id) !== String(idVal)) return false;
-        if(st && it.status.toLowerCase() !== st.toLowerCase()) return false;
-        return true;
-    });
-
-    updateDespDashboardUI();
-}
-
-['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => {
-    document.getElementById(id).addEventListener('change', applyDespFilters);
-});
-['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => {
-    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyDespFilters, 300));
-});
-
-function getDespStatusBadge(st) {
-    let css = 'status-pendente';
-    const upper = String(st || '').toUpperCase();
-    if(upper.includes('APROVADO') || upper.includes('CONCLUÍDO') || upper.includes('CONCLUIDO')) css = 'status-aprovado';
-    else if(upper.includes('RECUSADO') || upper.includes('CANCELADO') || upper.includes('REJEITADO')) css = 'status-recusado';
-    return `<span class="badge-despesa ${css}">${st}</span>`;
-}
-
-function updateDespDashboardUI() {
-    const totalGasto = filteredDespData.reduce((acc, curr) => acc + curr.valorTotal, 0);
-    const totalCount = filteredDespData.length;
-    const mediaGasto = totalCount > 0 ? (totalGasto / totalCount) : 0;
-
-    let ultimaData = '--';
-    if(totalCount > 0) {
-        const sorted = [...filteredDespData].sort((a,b) => b.dataCompra.localeCompare(a.dataCompra));
-        ultimaData = sorted[0].dataCompra.split('-').reverse().join('/');
-    }
-
-    document.getElementById('desp-kpi-total').innerText = fmtMoeda(totalGasto);
-    document.getElementById('desp-kpi-count').innerText = fmt(totalCount);
-    document.getElementById('desp-kpi-avg').innerText = fmtMoeda(mediaGasto);
-    document.getElementById('desp-kpi-last').innerText = ultimaData;
-
-    // Tabela Despesas
-    const tbody = document.getElementById('desp-table-body');
-    tbody.innerHTML = '';
-    document.getElementById('desp-table-count').innerText = `Mostrando ${Math.min(filteredDespData.length, 50)} de ${fmt(filteredDespData.length)}`;
-
-    filteredDespData.slice(0, 50).forEach(it => {
-        const tr = document.createElement('tr');
-        const hasAnexo = it.anexo && it.anexo.length > 5;
-        const btnAnexo = hasAnexo 
-            ? `<button onclick='openDespAttachmentModal(${JSON.stringify(it)})' style="background:var(--accent-blue); color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:10px; font-weight:700;">Ver Anexo</button>`
-            : '<span style="color:var(--text-muted)">Sem anexo</span>';
-
-        tr.innerHTML = `
-            <td><strong>#${it.id}</strong></td>
-            <td><strong>${it.placa}</strong></td>
-            <td>${it.servico}</td>
-            <td style="color:var(--accent-green); font-weight:700;">${fmtMoeda(it.valorTotal)}</td>
-            <td>${fmtMoeda(it.valorUnit)}</td>
-            <td>${it.qntd}</td>
-            <td>${it.dataCompra.split('-').reverse().join('/')}</td>
-            <td>${getDespStatusBadge(it.status)}</td>
-            <td>${it.aprovador}</td>
-            <td>${it.tipoDoc}</td>
-            <td>${it.formaPag}</td>
-            <td>${it.fornecedor}</td>
-            <td>${it.criadoPor}</td>
-            <td>${it.informacao}</td>
-            <td>${it.umb}</td>
-            <td>${it.banco}</td>
-            <td>${it.chavePix}</td>
-            <td>${it.bancoAjud}</td>
-            <td>${it.chaveAjud}</td>
-            <td>${it.recebedor}</td>
-            <td>${fmtMoeda(it.descontos)}</td>
-            <td>${it.operacao}</td>
-            <td>${btnAnexo}</td>
-            <td>${it.descFunc}</td>
-            <td>${it.parcelado}</td>
-            <td>${it.numParcelas}</td>
-            <td>${it.periodoParcelamento}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    updateDespCharts();
-}
-
-function updateDespCharts() {
-    // 1. Line Chart: Evolução Temporal de Despesas
-    const dateMap = {};
-    filteredDespData.forEach(d => { dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
-    const dates = Object.keys(dateMap).sort().slice(-10);
-    const lineData = dates.map(d => dateMap[d]);
-    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
-
-    const ctxL = document.getElementById('desp-lineChart').getContext('2d');
-    if(despLineChartInstance) despLineChartInstance.destroy();
-
-    let gradL = ctxL.createLinearGradient(0,0,0,260);
-    gradL.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
-    gradL.addColorStop(1, 'rgba(239, 68, 68, 0)');
-
-    despLineChartInstance = new Chart(ctxL, {
-        type: 'line',
-        data: {
-            labels: lineLabels,
-            datasets: [{
-                data: lineData,
-                borderColor: '#ef4444',
-                backgroundColor: gradL,
-                borderWidth: 3,
-                fill: true,
-                tension: 0.35,
-                pointRadius: 5,
-                pointBackgroundColor: '#ef4444',
-                pointBorderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' }
-            }
-        }
-    });
-
-    // 2. Donut Chart: Status das Despesas
-    const statusMap = {};
-    filteredDespData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
-
-    const ctxD = document.getElementById('desp-donutChart').getContext('2d');
-    if(despDonutChartInstance) despDonutChartInstance.destroy();
-
-    despDonutChartInstance = new Chart(ctxD, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(statusMap),
-            datasets: [{
-                data: Object.values(statusMap),
-                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } },
-                datalabels: {
-                    display: true, color: '#fff', font: { weight: 'bold', size: 11 },
-                    formatter: (v) => fmt(v)
-                }
-            }
-        }
-    });
-
-    // 3. Bar Chart: Gasto por Placa (Top 10)
-    const placaMap = {};
-    filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
-    const sortedPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
-
-    const ctxB = document.getElementById('desp-barChart').getContext('2d');
-    if(despBarChartInstance) despBarChartInstance.destroy();
-
-    let gradB = ctxB.createLinearGradient(0,0,0,260);
-    gradB.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
-    gradB.addColorStop(1, 'rgba(139, 92, 246, 0.2)');
-
-    despBarChartInstance = new Chart(ctxB, {
-        type: 'bar',
-        data: {
-            labels: sortedPlacas.map(i => i[0]),
-            datasets: [{
-                data: sortedPlacas.map(i => i[1]),
-                backgroundColor: gradB,
-                borderRadius: 8,
-                barPercentage: 0.6
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { display: false, beginAtZero: true, grace: '30%' }
-            }
-        }
-    });
-
-    // 4. Neon Line Chart: Tipo Documento × Valor Total
-    const docMap = {};
-    filteredDespData.forEach(d => { docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal; });
-    const sortedDocs = Object.entries(docMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
-
-    const ctxN = document.getElementById('desp-neonLineChart').getContext('2d');
-    if(despNeonLineChartInstance) despNeonLineChartInstance.destroy();
-
-    despNeonLineChartInstance = new Chart(ctxN, {
-        type: 'line',
-        data: {
-            labels: sortedDocs.map(i => i[0]),
-            datasets: [{
-                data: sortedDocs.map(i => i[1]),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.2,
-                pointRadius: 6,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '25%' }
-            }
-        }
-    });
-}
-
-/* =========================================================
-   MODAL DE ANEXO DA DESPESA
-   ========================================================= */
-function openDespAttachmentModal(item) {
-    const modal = document.getElementById('desp-attachment-modal');
-    const img = document.getElementById('desp-modal-image');
-    const noImg = document.getElementById('desp-modal-no-image');
-    const title = document.getElementById('desp-modal-title');
-    const info = document.getElementById('desp-modal-info');
-
-    title.innerText = `Comprovante - ID #${item.id} (${item.placa})`;
-
-    if (item.anexo && item.anexo.startsWith('http')) {
-        img.src = item.anexo;
-        img.style.display = 'block';
-        noImg.style.display = 'none';
-    } else {
-        img.style.display = 'none';
-        noImg.style.display = 'block';
-    }
-
-    info.innerHTML = `
-        <div class="modal-info-item"><span class="modal-info-label">Fornecedor</span><span class="modal-info-value">${item.fornecedor}</span></div>
-        <div class="modal-info-item"><span class="modal-info-label">Valor Total</span><span class="modal-info-value">${fmtMoeda(item.valorTotal)}</span></div>
-        <div class="modal-info-item"><span class="modal-info-label">Forma Pagamento</span><span class="modal-info-value">${item.formaPag}</span></div>
-        <div class="modal-info-item"><span class="modal-info-label">Aprovador</span><span class="modal-info-value">${item.aprovador}</span></div>
-    `;
-
-    modal.classList.add('show');
-}
-
-function closeDespAttachmentModal(e) {
-    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal-close')) {
-        document.getElementById('desp-attachment-modal').classList.remove('show');
-    }
 }
 </script>
 </body>
