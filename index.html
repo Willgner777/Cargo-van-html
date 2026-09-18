@@ -156,7 +156,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .sparkline-canvas-wrap { height:50px; margin-top:10px; }
 
 .ring { width:100px; height:100px; border-radius:50%; background:conic-gradient(var(--ring-color,#3b82f6) calc(var(--pct,0)*1%), rgba(255,255,255,0.06) 0); display:flex; align-items:center; justify-content:center; position:relative; transition: background 1s ease; }
-.ring::before { content:''; position:absolute; inset:9px; background:var(--bg-panel); border-radius:50%; }
+.ring::before { content:'absolute'; inset:9px; background:var(--bg-panel); border-radius:50%; }
 .ring-label { position:relative; z-index:1; font-weight:800; font-size:16px; color:#fff; }
 .ring-title { font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
 
@@ -676,22 +676,6 @@ function fmt(num) {
 
 function fmtMoeda(val) {
     return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function iniciarLogin() {
-    document.getElementById("login-view").style.display = "none";
-    document.getElementById("loading-screen").style.display = "flex";
-    myMSALObj.loginPopup(loginRequest)
-        .then(response => {
-            document.getElementById("display-name").innerText = response.account.name;
-            syncSharePointData(response.account);
-        })
-        .catch(error => {
-            console.error(error);
-            document.getElementById("loading-screen").style.display = "none";
-            document.getElementById("login-view").style.display = "flex";
-            showToast("Erro ao conectar.");
-        });
 }
 
 function showToast(msg) {
