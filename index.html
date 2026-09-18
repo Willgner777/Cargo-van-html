@@ -27,13 +27,10 @@
     --shadow: 0 10px 30px rgba(0,0,0,.35);
     --login-bg: #163C92;
     --login-red: #FF3B30;
-    --ease-out: cubic-bezier(0.16,1,0.3,1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
 body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
-
-*:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; border-radius: 6px; }
 
 /* TELA DE LOGIN */
 #login-view {
@@ -114,16 +111,6 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .kpi-value { font-size: 26px; font-weight: 800; color: #fff; }
 .kpi-sub { font-size: 11px; color: var(--text-muted); }
 
-/* Micro-interações de Hover */
-.panel, .kpi-card {
-    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms var(--ease-out);
-}
-.panel:hover, .kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-    border-color: #2a3a55;
-}
-
 /* Grades de Gráficos e Rankings */
 .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 .content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -160,7 +147,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
 #toast.show { opacity: 1; transform: translateY(0); }
 
-/* COMPONENTES DE GRÁFICO (v2) */
+/* ============ NOVOS COMPONENTES DE GRÁFICO (v2) ============ */
 .perf-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
 .perf-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center; }
 .perf-card.sparkline { align-items:stretch; text-align:left; }
@@ -261,7 +248,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">NFs Realizadas</div></div>
             </div>
 
-            <!-- META MENSAL DE NFS -->
+            <!-- NOVO: META MENSAL DE NFS -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Meta Mensal de NFs</div>
@@ -276,7 +263,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- INDICADORES DE DESEMPENHO -->
+            <!-- NOVO: INDICADORES DE DESEMPENHO (ring conclusão / ring eficiência / km total com sparkline) -->
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Indicadores de Desempenho</div></div>
                 <div class="perf-grid">
@@ -325,7 +312,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- GRÁFICO POR ESTADO (UF) -->
+            <!-- NOVO GRÁFICO POR ESTADO (UF) COM ILUSTRAÇÃO DE MAPA -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header">
@@ -339,7 +326,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- TABELA DE STATUS OPERACIONAL POR UF -->
+            <!-- NOVO: TABELA DE STATUS OPERACIONAL POR UF -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
@@ -352,7 +339,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
+            <!-- NOVO: DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
             <div class="content-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Distribuição de Status</div></div>
@@ -378,7 +365,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- RANKING DE OPERAÇÕES VS META -->
+            <!-- NOVO: RANKING DE OPERAÇÕES VS META -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div>
@@ -393,7 +380,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- FEED DE ÚLTIMAS OCORRÊNCIAS -->
+            <!-- NOVO: FEED DE ÚLTIMAS OCORRÊNCIAS -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div>
@@ -432,22 +419,11 @@ Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
-Chart.defaults.animation.duration = 600;
-Chart.defaults.animation.easing = 'easeOutQuart';
-Chart.defaults.interaction.mode = 'index';
-Chart.defaults.interaction.intersect = false;
-Chart.defaults.plugins.legend.labels.usePointStyle = true;
-Chart.defaults.plugins.legend.labels.padding = 16;
-Chart.defaults.plugins.tooltip.padding = 12;
-Chart.defaults.plugins.tooltip.cornerRadius = 8;
-Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15,21,36,0.95)';
-Chart.defaults.plugins.tooltip.borderColor = '#1e293b';
-Chart.defaults.plugins.tooltip.borderWidth = 1;
-Chart.defaults.scales.x.grid.color = 'rgba(30,41,59,0.3)';
-Chart.defaults.scales.y.grid.color = 'rgba(30,41,59,0.3)';
-
 /* =========================================================
    PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
+   - Todos os pontos: glow suave respirando (lento)
+   - Último ponto (mais recente): pulso mais forte + anel expansivo (efeito "ao vivo")
+   Não interfere em nenhum dado, cálculo ou lógica de sincronização.
    ========================================================= */
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
@@ -462,10 +438,11 @@ const pulsePointsPlugin = {
 
         meta.data.forEach((point, index) => {
             const isLast = index === lastIndex;
-            const speed = isLast ? 1.1 : 0.6;
+            const speed = isLast ? 1.1 : 0.6; // "devagar" = velocidade baixa
             const phase = index * 0.35;
-            const pulse = (Math.sin(t * speed + phase) + 1) / 2;
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2; // 0 -> 1 -> 0
 
+            // Glow suave (respirando) em todos os pontos
             const baseRadius = isLast ? 6 : 5;
             const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
             const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
@@ -479,6 +456,7 @@ const pulsePointsPlugin = {
             ctx.fill();
             ctx.restore();
 
+            // Anel expansivo extra só no ponto mais recente (efeito "ao vivo")
             if (isLast) {
                 const ringRadius = baseRadius + 4 + pulse * 12;
                 const ringAlpha = 0.55 * (1 - pulse);
@@ -519,37 +497,18 @@ const peakAnnotationPlugin = {
 };
 Chart.register(peakAnnotationPlugin);
 
+// Loop de redesenho leve e lento (10 fps) só para animar o pulso, sem re-renderizar dados/eixos
 setInterval(() => {
     if (lineChartInstance) {
         lineChartInstance.draw();
     }
 }, 100);
 
+// Instâncias dos novos gráficos (não interferem nos 5 já existentes)
 let sparklineChartInstance = null, opTargetChartInstance = null;
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('pt-BR');
-}
-
-function countWorkingDays(startStr, endStr) {
-    if (!startStr || !endStr) {
-        const agora = new Date();
-        const inicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
-        const fim = new Date(agora.getFullYear(), agora.getMonth() + 1, 0);
-        startStr = inicio.toISOString().split('T')[0];
-        endStr = fim.toISOString().split('T')[0];
-    }
-    let inicio = new Date(startStr);
-    let fim = new Date(endStr);
-    if (inicio > fim) [inicio, fim] = [fim, inicio];
-    let dias = 0;
-    const cur = new Date(inicio);
-    while (cur <= fim) {
-        const d = cur.getDay();
-        if (d >= 1 && d <= 6) dias++; // Seg-Sáb
-        cur.setDate(cur.getDate() + 1);
-    }
-    return dias;
 }
 
 function iniciarLogin() {
@@ -703,17 +662,25 @@ function getPerfilBadge(perf) {
     return `<span class="badge-perfil ${css}">${perf}</span>`;
 }
 
+/* Filtro de sanidade só para os NOVOS indicadores visuais (KM total e sparkline).
+   Não altera kmInicial/kmFinal/kmRodados exibidos na tabela nem o cálculo original de sync.
+   Ignora registros com KM Rodado fora de uma faixa realista (provável erro de digitação
+   no SharePoint, ex: KMFINAL/KMINICIAL trocados ou com dígito a mais). Ajuste o limite se precisar. */
 function kmValidoFiltro(km) {
-    const KM_MAXIMO_RAZOAVEL = 5000;
+    const KM_MAXIMO_RAZOAVEL = 5000; // nenhuma viagem única deveria passar disso
     return km > 0 && km <= KM_MAXIMO_RAZOAVEL;
 }
 
+/* Reaproveita a mesma lógica de classificação usada nos badges da tabela,
+   apenas devolvendo uma chave curta em vez de HTML. Não altera getStatusBadge. */
 function classifyStatusKey(st) {
     if (st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) return 'concluido';
     if (st.includes('ANDAMENTO') || st.includes('ROTA')) return 'andamento';
     if (st.includes('PERNOITE')) return 'pernoite';
     return 'outro';
 }
+
+/* ================= NOVOS PAINÉIS (v2) ================= */
 
 function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
@@ -723,6 +690,7 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     ringC.style.setProperty('--pct', pctConclusao);
     document.getElementById('ring-conclusao-label').innerText = pctConclusao + '%';
 
+    // Eficiência = NFs por 100km rodados. Referência de 100% = 20 NFs/100km (ajustável).
     const EFICIENCIA_REFERENCIA = 20;
     const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
     const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / EFICIENCIA_REFERENCIA) * 100)));
@@ -732,18 +700,14 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
 }
 
 function renderMetaMensal(totalNFs) {
+    // AJUSTE AQUI a meta mensal de NFs. Operação seg-sáb (~26 dias úteis/mês):
+    // 781 (média diária) x 26 dias úteis ≈ 20.306
     const META_MENSAL_NFS = 20306;
-    const start = document.getElementById('filter-start').value;
-    const end = document.getElementById('filter-end').value;
-    const diasUteis = countWorkingDays(start, end);
-    const metaPeriodo = Math.round((META_MENSAL_NFS / 26) * diasUteis);
-    const pct = metaPeriodo > 0 ? Math.max(0, Math.min(100, Math.round((totalNFs / metaPeriodo) * 100))) : 0;
+    const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
     document.getElementById('meta-mensal-fill').style.width = pct + '%';
     document.getElementById('meta-mensal-atual').innerText = fmt(totalNFs);
-    document.getElementById('meta-mensal-alvo').innerText = fmt(metaPeriodo);
-    const elPct = document.getElementById('meta-mensal-pct');
-    elPct.innerText = pct + '%';
-    elPct.title = diasUteis + ' dias úteis no período (meta diária: ' + fmt(Math.round(META_MENSAL_NFS/26)) + ')';
+    document.getElementById('meta-mensal-alvo').innerText = fmt(META_MENSAL_NFS);
+    document.getElementById('meta-mensal-pct').innerText = pct + '%';
 }
 
 function renderFunil(data) {
@@ -833,7 +797,7 @@ function renderOcorrencias(data) {
 function updateKmSparkline(data) {
     const dateMap = {};
     data.forEach(d => { if (kmValidoFiltro(d.kmRodados)) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmRodados; });
-    const dates = Object.keys(dateMap).sort((a,b) => new Date(a) - new Date(b)).slice(-14);
+    const dates = Object.keys(dateMap).sort().slice(-14);
     const values = dates.map(d => dateMap[d]);
 
     const ctx = document.getElementById('kmSparklineChart').getContext('2d');
@@ -856,12 +820,8 @@ function updateKmSparkline(data) {
 }
 
 function updateOpTargetChart(data) {
-    const META_OPERACAO_MENSAL = 500;
-    const start = document.getElementById('filter-start').value;
-    const end = document.getElementById('filter-end').value;
-    const diasUteis = countWorkingDays(start, end);
-    const META_OPERACAO = Math.round((META_OPERACAO_MENSAL / 26) * diasUteis);
-    
+    // AJUSTE AQUI a meta de NFs por operação/cliente
+    const META_OPERACAO = 500;
     const opMap = {};
     data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
     const sorted = Object.entries(opMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
@@ -873,6 +833,7 @@ function updateOpTargetChart(data) {
         id: 'opTargetLinePlugin',
         afterDatasetsDraw(chart) {
             const xScale = chart.scales.x;
+            const yScale = chart.scales.y;
             const xPixel = xScale.getPixelForValue(META_OPERACAO);
             const { ctx } = chart;
             ctx.save();
@@ -886,6 +847,7 @@ function updateOpTargetChart(data) {
             ctx.setLineDash([]);
             ctx.fillStyle = '#f59e0b';
             ctx.font = 'bold 10px Inter, sans-serif';
+            // trava o texto dentro da área do gráfico pra não cortar nas bordas
             const labelText = 'Meta: ' + fmt(META_OPERACAO);
             const halfWidth = ctx.measureText(labelText).width / 2;
             let labelX = xPixel;
@@ -960,6 +922,7 @@ function updateDashboardUI() {
     renderRankings();
     updateCharts(nfsProprio, nfsAgregado);
 
+    // ===== Novos painéis (v2) — reaproveitam filteredData, sem duplicar cálculo dos KPIs originais =====
     const totalKm = filteredData.reduce((acc, curr) => acc + (kmValidoFiltro(curr.kmRodados) ? curr.kmRodados : 0), 0);
     const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
 
@@ -986,9 +949,10 @@ function renderRankings() {
 }
 
 function updateCharts(proprios, agregados) {
+    // 1. Gráfico de Linhas com Animação e Pontos com Brilho
     const dateMap = {};
     filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
-    const dates = Object.keys(dateMap).sort((a,b) => new Date(a) - new Date(b)).slice(-10);
+    const dates = Object.keys(dateMap).sort().slice(-10);
     const lineData = dates.map(d => dateMap[d]);
     const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
 
@@ -1037,6 +1001,7 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // 2. Gráfico de Barras Verticais (Com proteção contra corte de valores)
     const opMap = {};
     filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
     const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
@@ -1081,6 +1046,7 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // 3. Mix de Frota (Polar Area com pontos formatados com pontuação)
     const ctxP = document.getElementById('polarChart').getContext('2d');
     if(polarChartInstance) polarChartInstance.destroy();
 
@@ -1103,6 +1069,7 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // 4. Gráfico de Status Horizontal (Com espaçamento garantido para evitar corte)
     const statusMap = {};
     filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
     const statusLabels = Object.keys(statusMap);
@@ -1144,6 +1111,7 @@ function updateCharts(proprios, agregados) {
         }
     });
 
+    // 5. Novo Gráfico por Estado (UF) vs NFs
     const stateMap = {};
     filteredData.forEach(d => {
         stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
