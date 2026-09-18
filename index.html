@@ -165,7 +165,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .progress-track { width:100%; height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
 .progress-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius:8px; transition: width 1s ease; }
 
-.funnel-track { position:relative; display:flex; justify-space-around:space-around; align-items:flex-start; padding:16px 20px 4px; }
+.funnel-track { position:relative; display:flex; justify-content:space-around; align-items:flex-start; padding:16px 20px 4px; }
 .funnel-track::before { content:''; position:absolute; top:56px; left:70px; right:70px; height:0; border-top:2px dashed var(--border); z-index:0; }
 .funnel-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
 
@@ -269,7 +269,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </aside>
         
-        <!-- ============ OPERAÇÃO VIEW ============ -->
+        <!-- OPERAÇÃO VIEW -->
         <main class="main-content" id="operacao-view">
             <!-- BARRA DE FILTROS -->
             <div class="filter-bar">
@@ -442,7 +442,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </main>
 
-        <!-- ============ DESPESAS VIEW ============ -->
+        <!-- ============ DESPESAS VIEW (Hidden by default) ============ -->
         <main class="main-content view-hidden" id="despesas-view">
             <!-- BARRA DE FILTROS DESPESAS -->
             <div class="filter-bar" id="desp-filter-bar">
@@ -534,39 +534,43 @@ const msalConfig = {
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 
+/* DADOS DA OPERAÇÃO */
 let rawData = [], filteredData = [];
-let despRawData = [], despFilteredData = [];
-
 let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
 let sparklineChartInstance = null, opTargetChartInstance = null;
 
-let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonChartInstance = null;
+/* DADOS DE DESPESAS */
+let rawDespData = [], filteredDespData = [];
+let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
 
 Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
-/* ================= NAVEGAÇÃO DE ABAS ================= */
+/* =========================================================
+   TROCA DE VIEWS (Navegação da Sidebar)
+   ========================================================= */
 function showView(viewName) {
-    const opView = document.getElementById('operacao-view');
-    const despView = document.getElementById('despesas-view');
-    const menuItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
+    const mainOp = document.getElementById('operacao-view');
+    const mainDesp = document.getElementById('despesas-view');
+    const navItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
 
-    if (viewName === 'operacao') {
-        if(opView) opView.classList.remove('view-hidden');
-        if(despView) despView.classList.add('view-hidden');
-        menuItems[0]?.classList.add('active');
-        menuItems[1]?.classList.remove('active');
-    } else if (viewName === 'despesas') {
-        if(opView) opView.classList.add('view-hidden');
-        if(despView) despView.classList.remove('view-hidden');
-        menuItems[0]?.classList.remove('active');
-        menuItems[1]?.classList.add('active');
-        applyDespFilters();
+    if (viewName === 'despesas') {
+        if (mainOp) mainOp.classList.add('view-hidden');
+        if (mainDesp) mainDesp.classList.remove('view-hidden');
+        navItems[0].classList.remove('active');
+        navItems[1].classList.add('active');
+    } else {
+        if (mainOp) mainOp.classList.remove('view-hidden');
+        if (mainDesp) mainDesp.classList.add('view-hidden');
+        navItems[1].classList.remove('active');
+        navItems[0].classList.add('active');
     }
 }
 
-/* ================= PLUGIN VISUAL DE PULSO ================= */
+/* =========================================================
+   PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
+   ========================================================= */
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
     afterDatasetsDraw(chart) {
@@ -676,7 +680,9 @@ function padronizarNome(nome) {
     return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-/* ================= SINCRONIZAÇÃO COMPLETA SHAREPOINT ================= */
+/* =========================================================
+   SINCRONIZAÇÃO COMPLETA SHAREPOINT (LIBERACAO_VEICULO + BD_DESPESAS)
+   ========================================================= */
 async function syncSharePointData(account) {
     if(!account) account = myMSALObj.getAllAccounts()[0];
     if(!account) { iniciarLogin(); return; }
@@ -686,23 +692,23 @@ async function syncSharePointData(account) {
 
     try {
         const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+
+        // 1. LIBERACAO_VEICULO (Lógica original e inalterada)
+        let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
+        let all = []; 
+        let pages = 0;
         
-        // 1. SINCRONIZAR LIBERACAO_VEICULO (OPERAÇÃO)
-        let urlOp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
-        let allOp = []; 
-        let pagesOp = 0;
-        
-        while(urlOp && pagesOp < 10) {
-            pagesOp++;
-            const res = await fetch(urlOp, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
-            if (!res.ok) throw new Error(`Graph Erro Liberação: ${res.status}`);
+        while(url && pages < 10) {
+            pages++;
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
+            if (!res.ok) throw new Error(`Graph Erro (LIBERACAO_VEICULO): ${res.status}`);
             const data = await res.json();
-            if (data.value) allOp = allOp.concat(data.value);
-            urlOp = data['@odata.nextLink'] || null;
+            if (data.value) all = all.concat(data.value);
+            url = data['@odata.nextLink'] || null;
         }
 
-        if (allOp.length > 0) {
-            rawData = allOp.map(it => {
+        if (all.length > 0) {
+            rawData = all.map(it => {
                 const f = it.fields || {};
                 const perfilStr = String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
                 
@@ -741,59 +747,64 @@ async function syncSharePointData(account) {
             popularFiltrosDinamicos();
         }
 
-        // 2. SINCRONIZAR DESPESAS
-        let urlDesp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/DESPESAS/items?expand=fields&$top=1000`;
-        let allDesp = [];
+        // 2. BD_DESPESAS (Mesma lógica de sincronização aplicada)
+        let urlDesp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
+        let allDesp = []; 
         let pagesDesp = 0;
 
         while(urlDesp && pagesDesp < 10) {
             pagesDesp++;
-            const res = await fetch(urlDesp, { headers: { 'Authorization': `Bearer ${token.accessToken}` } }).catch(() => null);
-            if (res && res.ok) {
-                const data = await res.json();
-                if (data.value) allDesp = allDesp.concat(data.value);
-                urlDesp = data['@odata.nextLink'] || null;
+            const resDesp = await fetch(urlDesp, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
+            if (resDesp.ok) {
+                const dataDesp = await resDesp.json();
+                if (dataDesp.value) allDesp = allDesp.concat(dataDesp.value);
+                urlDesp = dataDesp['@odata.nextLink'] || null;
             } else {
+                console.warn(`Aviso Graph (BD_DESPESAS): ${resDesp.status}`);
                 break;
             }
         }
 
         if (allDesp.length > 0) {
-            despRawData = allDesp.map(it => {
+            rawDespData = allDesp.map(it => {
                 const f = it.fields || {};
+                const valTotal = Number(f.VALORTOTAL || f.VALOR_x0020_TOTAL || f.ValorTotal || 0);
+                const valUnit = Number(f.VALORUNIT_x00c1_RIO || f.VALOR_x0020_UNIT_x00c1_RIO || f.ValorUnitario || 0);
+                const qntd = Number(f.QNTD || f.QUANTIDADE || f.Quantidade || 1);
+
                 return {
-                    id: f.id || it.id,
-                    placa: String(f.PLACA || f.Placa || '').toUpperCase(),
-                    servico: String(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A'),
-                    valorTotal: Number(f.VALORTOTAL || f.ValorTotal || f.VALOR_x0020_TOTAL || 0),
-                    valorUnit: Number(f.VALORUNITARIO || f.ValorUnitario || 0),
-                    qntd: Number(f.QUANTIDADE || f.Quantidade || f.QTD || 1),
-                    dataCompra: (f.DATACOMPRA || f.DataCompra || f.Created || '').split('T')[0],
-                    status: String(f.STATUS || f.Status || 'Pendente'),
-                    aprovador: String(f.APROVADOR || f.Aprovador || '-'),
-                    tipoDoc: String(f.TIPODOCUMENTO || f.TipoDocumento || 'Nota Fiscal'),
-                    formaPag: String(f.FORMAPAGAMENTO || f.FormaPagamento || '-'),
-                    fornecedor: String(f.FORNECEDOR || f.Fornecedor || '-'),
-                    criadoPor: String(f.CRIADOPOR || f.Author0 || '-'),
-                    informacao: String(f.INFORMA_x00c7_AO || f.Informacao || '-'),
-                    umb: String(f.UMB || '-'),
-                    banco: String(f.BANCO || '-'),
-                    chavePix: String(f.CHAVEPIX || '-'),
-                    bancoAjud: String(f.BANCOAJUDANTE || '-'),
-                    chaveAjud: String(f.CHAVEAJUDANTE || '-'),
-                    recebedor: String(f.RECEBEDOR || '-'),
-                    descontos: Number(f.DESCONTOS || 0),
-                    operacao: String(f.OPERA_x00c7_AO || f.Operacao || '-'),
-                    anexoUrl: f.ANEXO || f.Attachments ? (f.ANEXO || '') : '',
-                    descFunc: String(f.DESCFUNCIONARIO || '-'),
-                    parcelado: String(f.PARCELADO || 'Não'),
-                    numParcelas: Number(f.NOPARCELAS || 1),
-                    periodoParcelas: String(f.PERIODOPARCELAS || '-')
+                    id: it.id,
+                    placa: String(f.PLACA || f.Placa || 'N/A').toUpperCase(),
+                    servico: String(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A').toUpperCase(),
+                    valorTotal: valTotal,
+                    valorUnit: valUnit,
+                    qntd: qntd,
+                    dataCompra: (f.DATA_x0020_DE_x0020_COMPRA || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
+                    status: String(f.STATUS || f.Status || 'Pendente').trim(),
+                    aprovador: String(f.APROVADOR || f.Aprovador || 'N/A'),
+                    tipoDoc: String(f.TIPO_x0020_DOCUMENTO || f.TIPODOCUMENTO || f.TipoDoc || 'N/A'),
+                    formaPag: String(f.FORMA_x0020_PAGAMENTO || f.FORMAPAGAMENTO || f.FormaPagamento || 'N/A'),
+                    fornecedor: String(f.FORNECEDOR || f.Fornecedor || 'N/A'),
+                    criadoPor: String(f.CRIADO_x0020_POR || f.CRIADOPOR || f.Author || 'N/A'),
+                    informacao: String(f.INFORMA_x00c7__x00c3_O || f.INFORMACAO || f.Informacao || 'N/A'),
+                    umb: String(f.UMB || f.Umb || 'N/A'),
+                    banco: String(f.BANCO || f.Banco || 'N/A'),
+                    chavePix: String(f.CHAVE_x0020_PIX || f.CHAVEPIX || f.ChavePix || 'N/A'),
+                    bancoAjud: String(f.BANCO_x0020_AJUDANTE || f.BANCOAJUDANTE || f.BancoAjudante || 'N/A'),
+                    chaveAjud: String(f.CHAVE_x0020_AJUDANTE || f.CHAVEAJUDANTE || f.ChaveAjudante || 'N/A'),
+                    recebedor: String(f.RECEBEDOR || f.Recebedor || 'N/A'),
+                    descontos: Number(f.DESCONTOS || f.Descontos || 0),
+                    operacao: String(f.OPERA_x00c7__x00c3_O || f.OPERACAO || f.Operacao || 'N/A'),
+                    anexo: f.ANEXO || f.Anexo || (f.Attachments ? 'Sim' : ''),
+                    descFunc: String(f.DESC_x0020_FUNC || f.DESCFUNC || f.DescFunc || 'N/A'),
+                    parcelado: String(f.PARCELADO || f.Parcelado || 'NÃO'),
+                    numParcelas: Number(f.N_x00ba__x0020_PARCELAS || f.NUMPARCELAS || f.NumParcelas || 1),
+                    periodoParcelamento: String(f.PER_x00cd_ODO_x0020_PARCELAMENTO || f.PERIODOPARCELAMENTO || 'N/A')
                 };
             });
         }
 
-        showToast(`✅ Sincronizado com sucesso! (${allOp.length} ops / ${allDesp.length} despesas)`);
+        showToast(`✅ Sincronizado: ${rawData.length} Veículos | ${rawDespData.length} Despesas`);
     } catch(e) {
         console.error(e);
         showToast('Falha na sincronização.');
@@ -805,6 +816,9 @@ async function syncSharePointData(account) {
     }
 }
 
+/* =========================================================
+   LÓGICA OPERAÇÃO (VEICULO_LIBERACAO)
+   ========================================================= */
 function popularFiltrosDinamicos() {
     const statusSet = new Set();
     rawData.forEach(d => { if(d.status) statusSet.add(d.status); });
@@ -813,7 +827,6 @@ function popularFiltrosDinamicos() {
     statusSet.forEach(st => { selStatus.innerHTML += `<option value="${st}">${st}</option>`; });
 }
 
-/* ================= LÓGICA DE FILTROS E UI DA OPERAÇÃO ================= */
 function applyFilters() {
     const s = document.getElementById('filter-start').value;
     const e = document.getElementById('filter-end').value;
@@ -1333,121 +1346,282 @@ function updateCharts(proprios, agregados) {
     });
 }
 
-/* ================= LÓGICA DE FILTROS E UI DE DESPESAS ================= */
+/* =========================================================
+   LÓGICA DESPESAS (BD_DESPESAS)
+   ========================================================= */
 function applyDespFilters() {
-    const s = document.getElementById('desp-filter-start')?.value;
-    const e = document.getElementById('desp-filter-end')?.value;
-    const placa = document.getElementById('desp-filter-placa')?.value.toLowerCase();
-    const servico = document.getElementById('desp-filter-servico')?.value.toLowerCase();
-    const idVal = document.getElementById('desp-filter-id')?.value;
-    const statusVal = document.getElementById('desp-filter-status')?.value;
+    const s = document.getElementById('desp-filter-start').value;
+    const e = document.getElementById('desp-filter-end').value;
+    const placa = document.getElementById('desp-filter-placa').value.toLowerCase();
+    const servico = document.getElementById('desp-filter-servico').value.toLowerCase();
+    const idVal = document.getElementById('desp-filter-id').value;
+    const st = document.getElementById('desp-filter-status').value;
 
-    despFilteredData = despRawData.filter(it => {
+    filteredDespData = rawDespData.filter(it => {
         if(s && it.dataCompra < s) return false;
         if(e && it.dataCompra > e) return false;
         if(placa && !it.placa.toLowerCase().includes(placa)) return false;
         if(servico && !it.servico.toLowerCase().includes(servico)) return false;
         if(idVal && String(it.id) !== String(idVal)) return false;
-        if(statusVal && it.status.toLowerCase() !== statusVal.toLowerCase()) return false;
+        if(st && it.status.toLowerCase() !== st.toLowerCase()) return false;
         return true;
     });
 
-    updateDespesasUI();
+    updateDespDashboardUI();
 }
 
 ['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.addEventListener('change', applyDespFilters);
+    document.getElementById(id).addEventListener('change', applyDespFilters);
 });
 ['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.addEventListener('keyup', () => setTimeout(applyDespFilters, 300));
+    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyDespFilters, 300));
 });
 
 function getDespStatusBadge(st) {
     let css = 'status-pendente';
-    const s = String(st).toLowerCase();
-    if(s.includes('aprovado')) css = 'status-aprovado';
-    else if(s.includes('recusado')) css = 'status-recusado';
+    const upper = String(st || '').toUpperCase();
+    if(upper.includes('APROVADO') || upper.includes('CONCLUÍDO') || upper.includes('CONCLUIDO')) css = 'status-aprovado';
+    else if(upper.includes('RECUSADO') || upper.includes('CANCELADO') || upper.includes('REJEITADO')) css = 'status-recusado';
     return `<span class="badge-despesa ${css}">${st}</span>`;
 }
 
-function updateDespesasUI() {
-    const totalGasto = despFilteredData.reduce((acc, curr) => acc + curr.valorTotal, 0);
-    const count = despFilteredData.length;
-    const avg = count > 0 ? totalGasto / count : 0;
+function updateDespDashboardUI() {
+    const totalGasto = filteredDespData.reduce((acc, curr) => acc + curr.valorTotal, 0);
+    const totalCount = filteredDespData.length;
+    const mediaGasto = totalCount > 0 ? (totalGasto / totalCount) : 0;
 
-    const dates = despFilteredData.map(d => d.dataCompra).filter(Boolean).sort();
-    const lastDate = dates.length > 0 ? dates[dates.length - 1].split('-').reverse().join('/') : '--';
-
-    if(document.getElementById('desp-kpi-total')) document.getElementById('desp-kpi-total').innerText = fmtMoeda(totalGasto);
-    if(document.getElementById('desp-kpi-count')) document.getElementById('desp-kpi-count').innerText = fmt(count);
-    if(document.getElementById('desp-kpi-avg')) document.getElementById('desp-kpi-avg').innerText = fmtMoeda(avg);
-    if(document.getElementById('desp-kpi-last')) document.getElementById('desp-kpi-last').innerText = lastDate;
-
-    const tbody = document.getElementById('desp-table-body');
-    if(tbody) {
-        tbody.innerHTML = '';
-        if(document.getElementById('desp-table-count')) {
-            document.getElementById('desp-table-count').innerText = `Mostrando ${Math.min(count, 50)} de ${fmt(count)}`;
-        }
-
-        despFilteredData.slice(0, 50).forEach(it => {
-            const tr = document.createElement('tr');
-            const anexoBtn = it.anexoUrl 
-                ? `<button style="background:var(--accent-blue); border:none; color:#fff; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10px;" onclick="openDespAttachmentModal('${it.id}')">Ver Anexo</button>`
-                : `<span style="color:var(--text-muted)">Sem Anexo</span>`;
-
-            tr.innerHTML = `
-                <td><strong>${it.id}</strong></td>
-                <td><strong>${it.placa}</strong></td>
-                <td>${it.servico}</td>
-                <td style="color:var(--accent-green); font-weight:700;">${fmtMoeda(it.valorTotal)}</td>
-                <td>${fmtMoeda(it.valorUnit)}</td>
-                <td>${it.qntd}</td>
-                <td>${it.dataCompra ? it.dataCompra.split('-').reverse().join('/') : '-'}</td>
-                <td>${getDespStatusBadge(it.status)}</td>
-                <td>${it.aprovador}</td>
-                <td>${it.tipoDoc}</td>
-                <td>${it.formaPag}</td>
-                <td>${it.fornecedor}</td>
-                <td>${it.criadoPor}</td>
-                <td>${it.informacao}</td>
-                <td>${it.umb}</td>
-                <td>${it.banco}</td>
-                <td>${it.chavePix}</td>
-                <td>${it.bancoAjud}</td>
-                <td>${it.chaveAjud}</td>
-                <td>${it.recebedor}</td>
-                <td>${fmtMoeda(it.descontos)}</td>
-                <td>${it.operacao}</td>
-                <td>${anexoBtn}</td>
-                <td>${it.descFunc}</td>
-                <td>${it.parcelado}</td>
-                <td>${it.numParcelas}</td>
-                <td>${it.periodoParcelas}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+    let ultimaData = '--';
+    if(totalCount > 0) {
+        const sorted = [...filteredDespData].sort((a,b) => b.dataCompra.localeCompare(a.dataCompra));
+        ultimaData = sorted[0].dataCompra.split('-').reverse().join('/');
     }
+
+    document.getElementById('desp-kpi-total').innerText = fmtMoeda(totalGasto);
+    document.getElementById('desp-kpi-count').innerText = fmt(totalCount);
+    document.getElementById('desp-kpi-avg').innerText = fmtMoeda(mediaGasto);
+    document.getElementById('desp-kpi-last').innerText = ultimaData;
+
+    // Tabela Despesas
+    const tbody = document.getElementById('desp-table-body');
+    tbody.innerHTML = '';
+    document.getElementById('desp-table-count').innerText = `Mostrando ${Math.min(filteredDespData.length, 50)} de ${fmt(filteredDespData.length)}`;
+
+    filteredDespData.slice(0, 50).forEach(it => {
+        const tr = document.createElement('tr');
+        const hasAnexo = it.anexo && it.anexo.length > 5;
+        const btnAnexo = hasAnexo 
+            ? `<button onclick='openDespAttachmentModal(${JSON.stringify(it)})' style="background:var(--accent-blue); color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:10px; font-weight:700;">Ver Anexo</button>`
+            : '<span style="color:var(--text-muted)">Sem anexo</span>';
+
+        tr.innerHTML = `
+            <td><strong>#${it.id}</strong></td>
+            <td><strong>${it.placa}</strong></td>
+            <td>${it.servico}</td>
+            <td style="color:var(--accent-green); font-weight:700;">${fmtMoeda(it.valorTotal)}</td>
+            <td>${fmtMoeda(it.valorUnit)}</td>
+            <td>${it.qntd}</td>
+            <td>${it.dataCompra.split('-').reverse().join('/')}</td>
+            <td>${getDespStatusBadge(it.status)}</td>
+            <td>${it.aprovador}</td>
+            <td>${it.tipoDoc}</td>
+            <td>${it.formaPag}</td>
+            <td>${it.fornecedor}</td>
+            <td>${it.criadoPor}</td>
+            <td>${it.informacao}</td>
+            <td>${it.umb}</td>
+            <td>${it.banco}</td>
+            <td>${it.chavePix}</td>
+            <td>${it.bancoAjud}</td>
+            <td>${it.chaveAjud}</td>
+            <td>${it.recebedor}</td>
+            <td>${fmtMoeda(it.descontos)}</td>
+            <td>${it.operacao}</td>
+            <td>${btnAnexo}</td>
+            <td>${it.descFunc}</td>
+            <td>${it.parcelado}</td>
+            <td>${it.numParcelas}</td>
+            <td>${it.periodoParcelamento}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 
     updateDespCharts();
 }
 
-function openDespAttachmentModal(id) {
-    const item = despFilteredData.find(d => String(d.id) === String(id));
-    if(!item) return;
+function updateDespCharts() {
+    // 1. Line Chart: Evolução Temporal de Despesas
+    const dateMap = {};
+    filteredDespData.forEach(d => { dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
 
+    const ctxL = document.getElementById('desp-lineChart').getContext('2d');
+    if(despLineChartInstance) despLineChartInstance.destroy();
+
+    let gradL = ctxL.createLinearGradient(0,0,0,260);
+    gradL.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+    gradL.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+    despLineChartInstance = new Chart(ctxL, {
+        type: 'line',
+        data: {
+            labels: lineLabels,
+            datasets: [{
+                data: lineData,
+                borderColor: '#ef4444',
+                backgroundColor: gradL,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 5,
+                pointBackgroundColor: '#ef4444',
+                pointBorderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' }
+            }
+        }
+    });
+
+    // 2. Donut Chart: Status das Despesas
+    const statusMap = {};
+    filteredDespData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
+
+    const ctxD = document.getElementById('desp-donutChart').getContext('2d');
+    if(despDonutChartInstance) despDonutChartInstance.destroy();
+
+    despDonutChartInstance = new Chart(ctxD, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(statusMap),
+            datasets: [{
+                data: Object.values(statusMap),
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } },
+                datalabels: {
+                    display: true, color: '#fff', font: { weight: 'bold', size: 11 },
+                    formatter: (v) => fmt(v)
+                }
+            }
+        }
+    });
+
+    // 3. Bar Chart: Gasto por Placa (Top 10)
+    const placaMap = {};
+    filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
+    const sortedPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+    const ctxB = document.getElementById('desp-barChart').getContext('2d');
+    if(despBarChartInstance) despBarChartInstance.destroy();
+
+    let gradB = ctxB.createLinearGradient(0,0,0,260);
+    gradB.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
+    gradB.addColorStop(1, 'rgba(139, 92, 246, 0.2)');
+
+    despBarChartInstance = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+            labels: sortedPlacas.map(i => i[0]),
+            datasets: [{
+                data: sortedPlacas.map(i => i[1]),
+                backgroundColor: gradB,
+                borderRadius: 8,
+                barPercentage: 0.6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
+            }
+        }
+    });
+
+    // 4. Neon Line Chart: Tipo Documento × Valor Total
+    const docMap = {};
+    filteredDespData.forEach(d => { docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal; });
+    const sortedDocs = Object.entries(docMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+
+    const ctxN = document.getElementById('desp-neonLineChart').getContext('2d');
+    if(despNeonLineChartInstance) despNeonLineChartInstance.destroy();
+
+    despNeonLineChartInstance = new Chart(ctxN, {
+        type: 'line',
+        data: {
+            labels: sortedDocs.map(i => i[0]),
+            datasets: [{
+                data: sortedDocs.map(i => i[1]),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 6,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => fmtMoeda(v)
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '25%' }
+            }
+        }
+    });
+}
+
+/* =========================================================
+   MODAL DE ANEXO DA DESPESA
+   ========================================================= */
+function openDespAttachmentModal(item) {
     const modal = document.getElementById('desp-attachment-modal');
     const img = document.getElementById('desp-modal-image');
     const noImg = document.getElementById('desp-modal-no-image');
-    const info = document.getElementById('desp-modal-info');
     const title = document.getElementById('desp-modal-title');
+    const info = document.getElementById('desp-modal-info');
 
-    if(title) title.innerText = `Anexo - ID #${item.id} (${item.placa})`;
+    title.innerText = `Comprovante - ID #${item.id} (${item.placa})`;
 
-    if(item.anexoUrl) {
-        img.src = item.anexoUrl;
+    if (item.anexo && item.anexo.startsWith('http')) {
+        img.src = item.anexo;
         img.style.display = 'block';
         noImg.style.display = 'none';
     } else {
@@ -1455,146 +1629,19 @@ function openDespAttachmentModal(id) {
         noImg.style.display = 'block';
     }
 
-    if(info) {
-        info.innerHTML = `
-            <div class="modal-info-item"><span class="modal-info-label">Serviço</span><span class="modal-info-value">${item.servico}</span></div>
-            <div class="modal-info-item"><span class="modal-info-label">Valor Total</span><span class="modal-info-value">${fmtMoeda(item.valorTotal)}</span></div>
-            <div class="modal-info-item"><span class="modal-info-label">Fornecedor</span><span class="modal-info-value">${item.fornecedor}</span></div>
-            <div class="modal-info-item"><span class="modal-info-label">Data Compra</span><span class="modal-info-value">${item.dataCompra ? item.dataCompra.split('-').reverse().join('/') : '-'}</span></div>
-        `;
-    }
+    info.innerHTML = `
+        <div class="modal-info-item"><span class="modal-info-label">Fornecedor</span><span class="modal-info-value">${item.fornecedor}</span></div>
+        <div class="modal-info-item"><span class="modal-info-label">Valor Total</span><span class="modal-info-value">${fmtMoeda(item.valorTotal)}</span></div>
+        <div class="modal-info-item"><span class="modal-info-label">Forma Pagamento</span><span class="modal-info-value">${item.formaPag}</span></div>
+        <div class="modal-info-item"><span class="modal-info-label">Aprovador</span><span class="modal-info-value">${item.aprovador}</span></div>
+    `;
 
     modal.classList.add('show');
 }
 
-function closeDespAttachmentModal(event) {
-    if(!event || event.target.id === 'desp-attachment-modal' || event.target.classList.contains('modal-close')) {
+function closeDespAttachmentModal(e) {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal-close')) {
         document.getElementById('desp-attachment-modal').classList.remove('show');
-    }
-}
-
-function updateDespCharts() {
-    const dateMap = {};
-    despFilteredData.forEach(d => {
-        if(d.dataCompra) dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal;
-    });
-    const dates = Object.keys(dateMap).sort().slice(-10);
-    const lineData = dates.map(d => dateMap[d]);
-    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
-
-    const ctxL = document.getElementById('desp-lineChart')?.getContext('2d');
-    if(ctxL) {
-        if(despLineChartInstance) despLineChartInstance.destroy();
-        let gradL = ctxL.createLinearGradient(0,0,0,250);
-        gradL.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-        gradL.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
-        despLineChartInstance = new Chart(ctxL, {
-            type: 'line',
-            data: {
-                labels: lineLabels,
-                datasets: [{
-                    label: 'Gasto Total',
-                    data: lineData,
-                    borderColor: '#10b981',
-                    backgroundColor: gradL,
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) }
-                },
-                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' } } }
-            }
-        });
-    }
-
-    const statusMap = {};
-    despFilteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
-    const ctxD = document.getElementById('desp-donutChart')?.getContext('2d');
-    if(ctxD) {
-        if(despDonutChartInstance) despDonutChartInstance.destroy();
-        despDonutChartInstance = new Chart(ctxD, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(statusMap),
-                datasets: [{
-                    data: Object.values(statusMap),
-                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6']
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: '#e2e8f0' } },
-                    datalabels: { display: true, color: '#fff', font: { weight: 'bold' } }
-                }
-            }
-        });
-    }
-
-    const placaMap = {};
-    despFilteredData.forEach(d => {
-        if(d.placa) placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal;
-    });
-    const topPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
-
-    const ctxB = document.getElementById('desp-barChart')?.getContext('2d');
-    if(ctxB) {
-        if(despBarChartInstance) despBarChartInstance.destroy();
-        despBarChartInstance = new Chart(ctxB, {
-            type: 'bar',
-            data: {
-                labels: topPlacas.map(i => i[0]),
-                datasets: [{
-                    data: topPlacas.map(i => i[1]),
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', formatter: (v) => fmtMoeda(v) }
-                },
-                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, display: false } }
-            }
-        });
-    }
-
-    const docMap = {};
-    despFilteredData.forEach(d => {
-        if(d.tipoDoc) docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal;
-    });
-    const ctxN = document.getElementById('desp-neonLineChart')?.getContext('2d');
-    if(ctxN) {
-        if(despNeonChartInstance) despNeonChartInstance.destroy();
-        despNeonChartInstance = new Chart(ctxN, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(docMap),
-                datasets: [{
-                    data: Object.values(docMap),
-                    backgroundColor: '#8b5cf6',
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', formatter: (v) => fmtMoeda(v) }
-                },
-                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, display: false } }
-            }
-        });
     }
 }
 </script>
