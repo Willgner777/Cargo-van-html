@@ -27,11 +27,9 @@
     --shadow: 0 10px 30px rgba(0,0,0,.35);
     --login-bg: #163C92;
     --login-red: #FF3B30;
-    --ease-out: cubic-bezier(0.16,1,0.3,1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
-*:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; border-radius: 6px; }
 body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
 
 /* TELA DE LOGIN */
@@ -106,8 +104,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 
 /* KPIS */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-.kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms var(--ease-out); }
-.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: #2a3a55; }
+.kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
 .kpi-card.highlight { background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; }
 .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); font-weight: 700; }
 .highlight .kpi-title { color: rgba(255,255,255,.8); }
@@ -119,8 +116,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media(max-width: 1200px) { .content-grid, .content-grid-3 { grid-template-columns: 1fr; } }
 
-.panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.2); transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms var(--ease-out); }
-.panel:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: #2a3a55; }
+.panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
 .panel-header { display: flex; justify-content: space-between; align-items: center; }
 .panel-title { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
 .chart-container { position: relative; height: 260px; width: 100%; }
@@ -422,19 +418,6 @@ let lineChartInstance = null, barChartInstance = null, polarChartInstance = null
 Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
-Chart.defaults.animation.duration = 600;
-Chart.defaults.animation.easing = 'easeOutQuart';
-Chart.defaults.interaction.mode = 'index';
-Chart.defaults.interaction.intersect = false;
-Chart.defaults.plugins.legend.labels.usePointStyle = true;
-Chart.defaults.plugins.legend.labels.padding = 16;
-Chart.defaults.plugins.tooltip.padding = 12;
-Chart.defaults.plugins.tooltip.cornerRadius = 8;
-Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15,21,36,0.95)';
-Chart.defaults.plugins.tooltip.borderColor = '#1e293b';
-Chart.defaults.plugins.tooltip.borderWidth = 1;
-Chart.defaults.scales.x.grid.color = 'rgba(30,41,59,0.3)';
-Chart.defaults.scales.y.grid.color = 'rgba(30,41,59,0.3)';
 
 /* =========================================================
    PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
@@ -526,27 +509,6 @@ let sparklineChartInstance = null, opTargetChartInstance = null;
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('pt-BR');
-}
-
-function countWorkingDays(startStr, endStr) {
-    if (!startStr || !endStr) {
-        const agora = new Date();
-        const inicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
-        const fim = new Date(agora.getFullYear(), agora.getMonth() + 1, 0);
-        startStr = inicio.toISOString().split('T')[0];
-        endStr = fim.toISOString().split('T')[0];
-    }
-    let inicio = new Date(startStr);
-    let fim = new Date(endStr);
-    if (inicio > fim) [inicio, fim] = [fim, inicio];
-    let dias = 0;
-    const cur = new Date(inicio);
-    while (cur <= fim) {
-        const d = cur.getDay();
-        if (d >= 1 && d <= 6) dias++;
-        cur.setDate(cur.getDate() + 1);
-    }
-    return dias;
 }
 
 function iniciarLogin() {
@@ -738,18 +700,14 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
 }
 
 function renderMetaMensal(totalNFs) {
+    // AJUSTE AQUI a meta mensal de NFs. Operação seg-sáb (~26 dias úteis/mês):
+    // 781 (média diária) x 26 dias úteis ≈ 20.306
     const META_MENSAL_NFS = 20306;
-    const start = document.getElementById('filter-start').value;
-    const end = document.getElementById('filter-end').value;
-    const diasUteis = countWorkingDays(start, end);
-    const metaPeriodo = Math.round((META_MENSAL_NFS / 26) * diasUteis);
-    const pct = metaPeriodo > 0 ? Math.max(0, Math.min(100, Math.round((totalNFs / metaPeriodo) * 100))) : 0;
+    const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
     document.getElementById('meta-mensal-fill').style.width = pct + '%';
     document.getElementById('meta-mensal-atual').innerText = fmt(totalNFs);
-    document.getElementById('meta-mensal-alvo').innerText = fmt(metaPeriodo);
-    const elPct = document.getElementById('meta-mensal-pct');
-    elPct.innerText = pct + '%';
-    elPct.title = diasUteis + ' dias úteis no período (meta diária: ' + fmt(Math.round(META_MENSAL_NFS/26)) + ')';
+    document.getElementById('meta-mensal-alvo').innerText = fmt(META_MENSAL_NFS);
+    document.getElementById('meta-mensal-pct').innerText = pct + '%';
 }
 
 function renderFunil(data) {
@@ -839,7 +797,7 @@ function renderOcorrencias(data) {
 function updateKmSparkline(data) {
     const dateMap = {};
     data.forEach(d => { if (kmValidoFiltro(d.kmRodados)) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmRodados; });
-    const dates = Object.keys(dateMap).sort((a,b) => new Date(a) - new Date(b)).slice(-14);
+    const dates = Object.keys(dateMap).sort().slice(-14);
     const values = dates.map(d => dateMap[d]);
 
     const ctx = document.getElementById('kmSparklineChart').getContext('2d');
@@ -862,11 +820,8 @@ function updateKmSparkline(data) {
 }
 
 function updateOpTargetChart(data) {
-    const META_OPERACAO_MENSAL = 500;
-    const start = document.getElementById('filter-start').value;
-    const end = document.getElementById('filter-end').value;
-    const diasUteis = countWorkingDays(start, end);
-    const META_OPERACAO = Math.round((META_OPERACAO_MENSAL / 26) * diasUteis);
+    // AJUSTE AQUI a meta de NFs por operação/cliente
+    const META_OPERACAO = 500;
     const opMap = {};
     data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
     const sorted = Object.entries(opMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
@@ -997,7 +952,7 @@ function updateCharts(proprios, agregados) {
     // 1. Gráfico de Linhas com Animação e Pontos com Brilho
     const dateMap = {};
     filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
-    const dates = Object.keys(dateMap).sort((a,b) => new Date(a) - new Date(b)).slice(-10);
+    const dates = Object.keys(dateMap).sort().slice(-10);
     const lineData = dates.map(d => dateMap[d]);
     const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
 
