@@ -165,7 +165,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .progress-track { width:100%; height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; }
 .progress-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius:8px; transition: width 1s ease; }
 
-.funnel-track { position:relative; display:flex; justify-content:space-around; align-items:flex-start; padding:16px 20px 4px; }
+.funnel-track { position:relative; display:flex; justify-space-around:space-around; align-items:flex-start; padding:16px 20px 4px; }
 .funnel-track::before { content:''; position:absolute; top:56px; left:70px; right:70px; height:0; border-top:2px dashed var(--border); z-index:0; }
 .funnel-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
 
@@ -181,6 +181,43 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .timeline-body { display:flex; flex-direction:column; gap:2px; }
 .timeline-title { font-size:12px; font-weight:700; color:#e6edf3; }
 .timeline-sub { font-size:11px; color:var(--text-muted); }
+
+/* ============ DESPESAS MODULE ============ */
+.view-hidden { display: none !important; }
+
+/* Despesas Status Badges */
+.badge-despesa { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+.status-aprovado { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-pendente { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+.status-recusado { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+/* Attachment Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: .3s; }
+.modal-overlay.show { opacity: 1; visibility: visible; }
+.modal-content { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; max-width: 90vw; max-height: 90vh; width: 800px; overflow: hidden; transform: scale(0.95); transition: .3s; }
+.modal-overlay.show .modal-content { transform: scale(1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 14px; font-weight: 700; color: #fff; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 4px; line-height: 1; }
+.modal-close:hover { color: #fff; }
+.modal-body { padding: 20px; max-height: 70vh; overflow: auto; }
+.modal-image { max-width: 100%; max-height: 70vh; border-radius: 8px; display: block; margin: 0 auto; }
+.modal-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.modal-info-item { display: flex; flex-direction: column; gap: 4px; }
+.modal-info-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: .5px; }
+.modal-info-value { font-size: 13px; color: var(--text-main); font-weight: 600; }
+
+/* Despesas specific chart containers */
+.desp-chart-container { position: relative; height: 280px; width: 100%; }
+
+/* Sifrão icon for sidebar */
+.sidebar-item .icon-cifrao { width: 18px; height: 18px; fill: currentColor; }
+
+/* Pulse plugin for despesas line chart */
+@keyframes despesa-pulse-ring {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
 </style>
 </head>
 <body>
@@ -214,9 +251,13 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 TechSolutions Analytics
             </div>
             <div class="sidebar-menu">
-                <a href="#" class="sidebar-item active">
+                <a href="#" class="sidebar-item active" onclick="showView('operacao')">
                     <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
                     Operação
+                </a>
+                <a href="#" class="sidebar-item" onclick="showView('despesas')">
+                    <svg class="icon-cifrao" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-1.1 0-2-.9-2-2h-1c0 1.66 1.34 3 3 3s3-1.34 3-3h-1c0 1.1-.9 2-2 2zm0-4c-1.1 0-2-.9-2-2h-1c0 1.66 1.34 3 3 3s3-1.34 3-3h-1c0 1.1-.9 2-2 2zm6-8h-2v-2h2v2zm-4 0h-2v-2h2v2zm-4 0h-2v-2h2v2zm8 4h-2v-2h2v2zm-4 0h-2v-2h2v2zm-4 0h-2v-2h2v2z"/></svg>
+                    Despesas
                 </a>
                 <a class="sidebar-item" onclick="syncSharePointData()">
                     <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
@@ -228,7 +269,8 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             </div>
         </aside>
         
-        <main class="main-content">
+        <!-- ============ OPERAÇÃO VIEW ============ -->
+        <main class="main-content" id="operacao-view">
             <!-- BARRA DE FILTROS -->
             <div class="filter-bar">
                 <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
@@ -248,7 +290,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">NFs Realizadas</div></div>
             </div>
 
-            <!-- NOVO: META MENSAL DE NFS -->
+            <!-- META MENSAL DE NFS -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Meta Mensal de NFs</div>
@@ -263,7 +305,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: INDICADORES DE DESEMPENHO (ring conclusão / ring eficiência / km total com sparkline) -->
+            <!-- INDICADORES DE DESEMPENHO -->
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Indicadores de Desempenho</div></div>
                 <div class="perf-grid">
@@ -312,7 +354,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO GRÁFICO POR ESTADO (UF) COM ILUSTRAÇÃO DE MAPA -->
+            <!-- GRÁFICO POR ESTADO (UF) -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header">
@@ -326,7 +368,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: TABELA DE STATUS OPERACIONAL POR UF -->
+            <!-- TABELA DE STATUS OPERACIONAL POR UF -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
@@ -339,7 +381,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
+            <!-- DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
             <div class="content-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Distribuição de Status</div></div>
@@ -365,7 +407,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: RANKING DE OPERAÇÕES VS META -->
+            <!-- RANKING DE OPERAÇÕES VS META -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div>
@@ -380,7 +422,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- NOVO: FEED DE ÚLTIMAS OCORRÊNCIAS -->
+            <!-- FEED DE ÚLTIMAS OCORRÊNCIAS -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div>
@@ -399,10 +441,90 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
         </main>
+
+        <!-- ============ DESPESAS VIEW ============ -->
+        <main class="main-content view-hidden" id="despesas-view">
+            <!-- BARRA DE FILTROS DESPESAS -->
+            <div class="filter-bar" id="desp-filter-bar">
+                <div class="filter-group"><label>Data Inicial</label><input type="date" id="desp-filter-start" class="filter-input"></div>
+                <div class="filter-group"><label>Data Final</label><input type="date" id="desp-filter-end" class="filter-input"></div>
+                <div class="filter-group"><label>Placa</label><input type="text" id="desp-filter-placa" class="filter-input" placeholder="Filtrar placa..."></div>
+                <div class="filter-group"><label>Serviço</label><input type="text" id="desp-filter-servico" class="filter-input" placeholder="Filtrar serviço..."></div>
+                <div class="filter-group"><label>ID</label><input type="number" id="desp-filter-id" class="filter-input" placeholder="ID ACESSOS"></div>
+                <div class="filter-group"><label>Status</label><select id="desp-filter-status" class="filter-input"><option value="">Todos</option><option value="Aprovado">Aprovado</option><option value="Pendente">Pendente</option><option value="Recusado">Recusado</option></select></div>
+            </div>
+
+            <!-- KPIS DESPESAS -->
+            <div class="kpi-grid" id="desp-kpi-grid">
+                <div class="kpi-card highlight"><div class="kpi-title">Total Gasto</div><div class="kpi-value" id="desp-kpi-total">R$ 0,00</div><div class="kpi-sub">Soma Valor Total</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">Qtd Registros</div><div class="kpi-value" id="desp-kpi-count">0</div><div class="kpi-sub">Linhas Filtradas</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Média / Registro</div><div class="kpi-value" id="desp-kpi-avg">R$ 0,00</div><div class="kpi-sub">Valor Total ÷ Qtd</div></div>
+                <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Última Compra</div><div class="kpi-value" id="desp-kpi-last">--</div><div class="kpi-sub">Data mais recente</div></div>
+            </div>
+
+            <!-- GRÁFICOS DESPESAS -->
+            <div class="content-grid-3">
+                <div class="panel" style="grid-column: span 2;">
+                    <div class="panel-header"><div class="panel-title">Evolução Temporal (Data × Valor Total)</div></div>
+                    <div class="desp-chart-container"><canvas id="desp-lineChart"></canvas></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Distribuição por Status</div></div>
+                    <div class="desp-chart-container"><canvas id="desp-donutChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Gasto por Placa (Top 10)</div></div>
+                    <div class="desp-chart-container"><canvas id="desp-barChart"></canvas></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Tipo Documento × Valor Total</div></div>
+                    <div class="desp-chart-container"><canvas id="desp-neonLineChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- TABELA DESPESAS -->
+            <div class="panel">
+                <div class="panel-header"><div class="panel-title">Registros de Despesas</div><span id="desp-table-count" style="font-size:11px;color:var(--text-muted);"></span></div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Placa</th><th>Serviço</th><th>Valor Total</th><th>Valor Unit.</th><th>Qntd</th>
+                                <th>Data Compra</th><th>Status</th><th>Aprovador</th><th>Tipo Doc.</th>
+                                <th>Forma Pag.</th><th>Fornecedor</th><th>Criado Por</th><th>Informação</th>
+                                <th>UMB</th><th>Banco</th><th>Chave Pix</th><th>Banco Ajud.</th>
+                                <th>Chave Ajud.</th><th>Recebedor</th><th>Descontos</th>
+                                <th>Operação</th><th>Anexo</th><th>Desc. Func.</th>
+                                <th>Parcelado</th><th>Nº Parcelas</th><th>Período Parc.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="desp-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 </div>
 
 <div id="toast"></div>
+
+<!-- MODAL ANEXO DESPESAS -->
+<div class="modal-overlay" id="desp-attachment-modal" onclick="closeDespAttachmentModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title" id="desp-modal-title">Comprovante / Anexo</div>
+            <button class="modal-close" onclick="closeDespAttachmentModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <img class="modal-image" id="desp-modal-image" src="" alt="Comprovante" style="display:none;">
+            <div id="desp-modal-no-image" style="display:none; text-align:center; padding:40px; color:var(--text-muted);">Sem anexo disponível</div>
+            <div class="modal-info" id="desp-modal-info"></div>
+        </div>
+    </div>
+</div>
 
 <script>
 const msalConfig = {
@@ -413,18 +535,38 @@ const myMSALObj = new msal.PublicClientApplication(msalConfig);
 const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 
 let rawData = [], filteredData = [];
+let despRawData = [], despFilteredData = [];
+
 let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
+let sparklineChartInstance = null, opTargetChartInstance = null;
+
+let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonChartInstance = null;
 
 Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
-/* =========================================================
-   PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
-   - Todos os pontos: glow suave respirando (lento)
-   - Último ponto (mais recente): pulso mais forte + anel expansivo (efeito "ao vivo")
-   Não interfere em nenhum dado, cálculo ou lógica de sincronização.
-   ========================================================= */
+/* ================= NAVEGAÇÃO DE ABAS ================= */
+function showView(viewName) {
+    const opView = document.getElementById('operacao-view');
+    const despView = document.getElementById('despesas-view');
+    const menuItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
+
+    if (viewName === 'operacao') {
+        if(opView) opView.classList.remove('view-hidden');
+        if(despView) despView.classList.add('view-hidden');
+        menuItems[0]?.classList.add('active');
+        menuItems[1]?.classList.remove('active');
+    } else if (viewName === 'despesas') {
+        if(opView) opView.classList.add('view-hidden');
+        if(despView) despView.classList.remove('view-hidden');
+        menuItems[0]?.classList.remove('active');
+        menuItems[1]?.classList.add('active');
+        applyDespFilters();
+    }
+}
+
+/* ================= PLUGIN VISUAL DE PULSO ================= */
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
     afterDatasetsDraw(chart) {
@@ -438,11 +580,10 @@ const pulsePointsPlugin = {
 
         meta.data.forEach((point, index) => {
             const isLast = index === lastIndex;
-            const speed = isLast ? 1.1 : 0.6; // "devagar" = velocidade baixa
+            const speed = isLast ? 1.1 : 0.6;
             const phase = index * 0.35;
-            const pulse = (Math.sin(t * speed + phase) + 1) / 2; // 0 -> 1 -> 0
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2;
 
-            // Glow suave (respirando) em todos os pontos
             const baseRadius = isLast ? 6 : 5;
             const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
             const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
@@ -456,7 +597,6 @@ const pulsePointsPlugin = {
             ctx.fill();
             ctx.restore();
 
-            // Anel expansivo extra só no ponto mais recente (efeito "ao vivo")
             if (isLast) {
                 const ringRadius = baseRadius + 4 + pulse * 12;
                 const ringAlpha = 0.55 * (1 - pulse);
@@ -473,7 +613,6 @@ const pulsePointsPlugin = {
 };
 Chart.register(pulsePointsPlugin);
 
-/* Plugin: marca o dia de pico (maior volume) na linha de Evolução de Entregas */
 const peakAnnotationPlugin = {
     id: 'peakAnnotationPlugin',
     afterDatasetsDraw(chart) {
@@ -497,18 +636,16 @@ const peakAnnotationPlugin = {
 };
 Chart.register(peakAnnotationPlugin);
 
-// Loop de redesenho leve e lento (10 fps) só para animar o pulso, sem re-renderizar dados/eixos
 setInterval(() => {
-    if (lineChartInstance) {
-        lineChartInstance.draw();
-    }
+    if (lineChartInstance) lineChartInstance.draw();
 }, 100);
-
-// Instâncias dos novos gráficos (não interferem nos 5 já existentes)
-let sparklineChartInstance = null, opTargetChartInstance = null;
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('pt-BR');
+}
+
+function fmtMoeda(val) {
+    return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function iniciarLogin() {
@@ -539,6 +676,7 @@ function padronizarNome(nome) {
     return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
+/* ================= SINCRONIZAÇÃO COMPLETA SHAREPOINT ================= */
 async function syncSharePointData(account) {
     if(!account) account = myMSALObj.getAllAccounts()[0];
     if(!account) { iniciarLogin(); return; }
@@ -548,21 +686,23 @@ async function syncSharePointData(account) {
 
     try {
         const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
-        let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
-        let all = []; 
-        let pages = 0;
         
-        while(url && pages < 10) {
-            pages++;
-            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
-            if (!res.ok) throw new Error(`Graph Erro: ${res.status}`);
+        // 1. SINCRONIZAR LIBERACAO_VEICULO (OPERAÇÃO)
+        let urlOp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
+        let allOp = []; 
+        let pagesOp = 0;
+        
+        while(urlOp && pagesOp < 10) {
+            pagesOp++;
+            const res = await fetch(urlOp, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
+            if (!res.ok) throw new Error(`Graph Erro Liberação: ${res.status}`);
             const data = await res.json();
-            if (data.value) all = all.concat(data.value);
-            url = data['@odata.nextLink'] || null;
+            if (data.value) allOp = allOp.concat(data.value);
+            urlOp = data['@odata.nextLink'] || null;
         }
 
-        if (all.length > 0) {
-            rawData = all.map(it => {
+        if (allOp.length > 0) {
+            rawData = allOp.map(it => {
                 const f = it.fields || {};
                 const perfilStr = String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
                 
@@ -599,8 +739,61 @@ async function syncSharePointData(account) {
                 };
             });
             popularFiltrosDinamicos();
-            showToast(`✅ ${all.length} registros sincronizados com sucesso!`);
         }
+
+        // 2. SINCRONIZAR DESPESAS
+        let urlDesp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/DESPESAS/items?expand=fields&$top=1000`;
+        let allDesp = [];
+        let pagesDesp = 0;
+
+        while(urlDesp && pagesDesp < 10) {
+            pagesDesp++;
+            const res = await fetch(urlDesp, { headers: { 'Authorization': `Bearer ${token.accessToken}` } }).catch(() => null);
+            if (res && res.ok) {
+                const data = await res.json();
+                if (data.value) allDesp = allDesp.concat(data.value);
+                urlDesp = data['@odata.nextLink'] || null;
+            } else {
+                break;
+            }
+        }
+
+        if (allDesp.length > 0) {
+            despRawData = allDesp.map(it => {
+                const f = it.fields || {};
+                return {
+                    id: f.id || it.id,
+                    placa: String(f.PLACA || f.Placa || '').toUpperCase(),
+                    servico: String(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A'),
+                    valorTotal: Number(f.VALORTOTAL || f.ValorTotal || f.VALOR_x0020_TOTAL || 0),
+                    valorUnit: Number(f.VALORUNITARIO || f.ValorUnitario || 0),
+                    qntd: Number(f.QUANTIDADE || f.Quantidade || f.QTD || 1),
+                    dataCompra: (f.DATACOMPRA || f.DataCompra || f.Created || '').split('T')[0],
+                    status: String(f.STATUS || f.Status || 'Pendente'),
+                    aprovador: String(f.APROVADOR || f.Aprovador || '-'),
+                    tipoDoc: String(f.TIPODOCUMENTO || f.TipoDocumento || 'Nota Fiscal'),
+                    formaPag: String(f.FORMAPAGAMENTO || f.FormaPagamento || '-'),
+                    fornecedor: String(f.FORNECEDOR || f.Fornecedor || '-'),
+                    criadoPor: String(f.CRIADOPOR || f.Author0 || '-'),
+                    informacao: String(f.INFORMA_x00c7_AO || f.Informacao || '-'),
+                    umb: String(f.UMB || '-'),
+                    banco: String(f.BANCO || '-'),
+                    chavePix: String(f.CHAVEPIX || '-'),
+                    bancoAjud: String(f.BANCOAJUDANTE || '-'),
+                    chaveAjud: String(f.CHAVEAJUDANTE || '-'),
+                    recebedor: String(f.RECEBEDOR || '-'),
+                    descontos: Number(f.DESCONTOS || 0),
+                    operacao: String(f.OPERA_x00c7_AO || f.Operacao || '-'),
+                    anexoUrl: f.ANEXO || f.Attachments ? (f.ANEXO || '') : '',
+                    descFunc: String(f.DESCFUNCIONARIO || '-'),
+                    parcelado: String(f.PARCELADO || 'Não'),
+                    numParcelas: Number(f.NOPARCELAS || 1),
+                    periodoParcelas: String(f.PERIODOPARCELAS || '-')
+                };
+            });
+        }
+
+        showToast(`✅ Sincronizado com sucesso! (${allOp.length} ops / ${allDesp.length} despesas)`);
     } catch(e) {
         console.error(e);
         showToast('Falha na sincronização.');
@@ -608,6 +801,7 @@ async function syncSharePointData(account) {
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
         applyFilters();
+        applyDespFilters();
     }
 }
 
@@ -619,6 +813,7 @@ function popularFiltrosDinamicos() {
     statusSet.forEach(st => { selStatus.innerHTML += `<option value="${st}">${st}</option>`; });
 }
 
+/* ================= LÓGICA DE FILTROS E UI DA OPERAÇÃO ================= */
 function applyFilters() {
     const s = document.getElementById('filter-start').value;
     const e = document.getElementById('filter-end').value;
@@ -662,25 +857,17 @@ function getPerfilBadge(perf) {
     return `<span class="badge-perfil ${css}">${perf}</span>`;
 }
 
-/* Filtro de sanidade só para os NOVOS indicadores visuais (KM total e sparkline).
-   Não altera kmInicial/kmFinal/kmRodados exibidos na tabela nem o cálculo original de sync.
-   Ignora registros com KM Rodado fora de uma faixa realista (provável erro de digitação
-   no SharePoint, ex: KMFINAL/KMINICIAL trocados ou com dígito a mais). Ajuste o limite se precisar. */
 function kmValidoFiltro(km) {
-    const KM_MAXIMO_RAZOAVEL = 5000; // nenhuma viagem única deveria passar disso
+    const KM_MAXIMO_RAZOAVEL = 5000;
     return km > 0 && km <= KM_MAXIMO_RAZOAVEL;
 }
 
-/* Reaproveita a mesma lógica de classificação usada nos badges da tabela,
-   apenas devolvendo uma chave curta em vez de HTML. Não altera getStatusBadge. */
 function classifyStatusKey(st) {
     if (st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) return 'concluido';
     if (st.includes('ANDAMENTO') || st.includes('ROTA')) return 'andamento';
     if (st.includes('PERNOITE')) return 'pernoite';
     return 'outro';
 }
-
-/* ================= NOVOS PAINÉIS (v2) ================= */
 
 function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
@@ -690,7 +877,6 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
     ringC.style.setProperty('--pct', pctConclusao);
     document.getElementById('ring-conclusao-label').innerText = pctConclusao + '%';
 
-    // Eficiência = NFs por 100km rodados. Referência de 100% = 20 NFs/100km (ajustável).
     const EFICIENCIA_REFERENCIA = 20;
     const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
     const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / EFICIENCIA_REFERENCIA) * 100)));
@@ -700,8 +886,6 @@ function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
 }
 
 function renderMetaMensal(totalNFs) {
-    // AJUSTE AQUI a meta mensal de NFs. Operação seg-sáb (~26 dias úteis/mês):
-    // 781 (média diária) x 26 dias úteis ≈ 20.306
     const META_MENSAL_NFS = 20306;
     const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
     document.getElementById('meta-mensal-fill').style.width = pct + '%';
@@ -820,7 +1004,6 @@ function updateKmSparkline(data) {
 }
 
 function updateOpTargetChart(data) {
-    // AJUSTE AQUI a meta de NFs por operação/cliente
     const META_OPERACAO = 500;
     const opMap = {};
     data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
@@ -833,7 +1016,6 @@ function updateOpTargetChart(data) {
         id: 'opTargetLinePlugin',
         afterDatasetsDraw(chart) {
             const xScale = chart.scales.x;
-            const yScale = chart.scales.y;
             const xPixel = xScale.getPixelForValue(META_OPERACAO);
             const { ctx } = chart;
             ctx.save();
@@ -847,7 +1029,6 @@ function updateOpTargetChart(data) {
             ctx.setLineDash([]);
             ctx.fillStyle = '#f59e0b';
             ctx.font = 'bold 10px Inter, sans-serif';
-            // trava o texto dentro da área do gráfico pra não cortar nas bordas
             const labelText = 'Meta: ' + fmt(META_OPERACAO);
             const halfWidth = ctx.measureText(labelText).width / 2;
             let labelX = xPixel;
@@ -899,7 +1080,6 @@ function updateDashboardUI() {
     document.getElementById('kpi-proprio').innerText = fmt(nfsProprio);
     document.getElementById('kpi-agregado').innerText = fmt(nfsAgregado);
 
-    // Tabela
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
     document.getElementById('table-count').innerText = `Mostrando ${Math.min(filteredData.length, 50)} de ${fmt(filteredData.length)}`;
@@ -922,7 +1102,6 @@ function updateDashboardUI() {
     renderRankings();
     updateCharts(nfsProprio, nfsAgregado);
 
-    // ===== Novos painéis (v2) — reaproveitam filteredData, sem duplicar cálculo dos KPIs originais =====
     const totalKm = filteredData.reduce((acc, curr) => acc + (kmValidoFiltro(curr.kmRodados) ? curr.kmRodados : 0), 0);
     const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
 
@@ -949,7 +1128,6 @@ function renderRankings() {
 }
 
 function updateCharts(proprios, agregados) {
-    // 1. Gráfico de Linhas com Animação e Pontos com Brilho
     const dateMap = {};
     filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
     const dates = Object.keys(dateMap).sort().slice(-10);
@@ -1001,7 +1179,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 2. Gráfico de Barras Verticais (Com proteção contra corte de valores)
     const opMap = {};
     filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
     const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
@@ -1046,7 +1223,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 3. Mix de Frota (Polar Area com pontos formatados com pontuação)
     const ctxP = document.getElementById('polarChart').getContext('2d');
     if(polarChartInstance) polarChartInstance.destroy();
 
@@ -1069,7 +1245,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 4. Gráfico de Status Horizontal (Com espaçamento garantido para evitar corte)
     const statusMap = {};
     filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
     const statusLabels = Object.keys(statusMap);
@@ -1111,7 +1286,6 @@ function updateCharts(proprios, agregados) {
         }
     });
 
-    // 5. Novo Gráfico por Estado (UF) vs NFs
     const stateMap = {};
     filteredData.forEach(d => {
         stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
@@ -1157,6 +1331,271 @@ function updateCharts(proprios, agregados) {
             }
         }
     });
+}
+
+/* ================= LÓGICA DE FILTROS E UI DE DESPESAS ================= */
+function applyDespFilters() {
+    const s = document.getElementById('desp-filter-start')?.value;
+    const e = document.getElementById('desp-filter-end')?.value;
+    const placa = document.getElementById('desp-filter-placa')?.value.toLowerCase();
+    const servico = document.getElementById('desp-filter-servico')?.value.toLowerCase();
+    const idVal = document.getElementById('desp-filter-id')?.value;
+    const statusVal = document.getElementById('desp-filter-status')?.value;
+
+    despFilteredData = despRawData.filter(it => {
+        if(s && it.dataCompra < s) return false;
+        if(e && it.dataCompra > e) return false;
+        if(placa && !it.placa.toLowerCase().includes(placa)) return false;
+        if(servico && !it.servico.toLowerCase().includes(servico)) return false;
+        if(idVal && String(it.id) !== String(idVal)) return false;
+        if(statusVal && it.status.toLowerCase() !== statusVal.toLowerCase()) return false;
+        return true;
+    });
+
+    updateDespesasUI();
+}
+
+['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', applyDespFilters);
+});
+['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('keyup', () => setTimeout(applyDespFilters, 300));
+});
+
+function getDespStatusBadge(st) {
+    let css = 'status-pendente';
+    const s = String(st).toLowerCase();
+    if(s.includes('aprovado')) css = 'status-aprovado';
+    else if(s.includes('recusado')) css = 'status-recusado';
+    return `<span class="badge-despesa ${css}">${st}</span>`;
+}
+
+function updateDespesasUI() {
+    const totalGasto = despFilteredData.reduce((acc, curr) => acc + curr.valorTotal, 0);
+    const count = despFilteredData.length;
+    const avg = count > 0 ? totalGasto / count : 0;
+
+    const dates = despFilteredData.map(d => d.dataCompra).filter(Boolean).sort();
+    const lastDate = dates.length > 0 ? dates[dates.length - 1].split('-').reverse().join('/') : '--';
+
+    if(document.getElementById('desp-kpi-total')) document.getElementById('desp-kpi-total').innerText = fmtMoeda(totalGasto);
+    if(document.getElementById('desp-kpi-count')) document.getElementById('desp-kpi-count').innerText = fmt(count);
+    if(document.getElementById('desp-kpi-avg')) document.getElementById('desp-kpi-avg').innerText = fmtMoeda(avg);
+    if(document.getElementById('desp-kpi-last')) document.getElementById('desp-kpi-last').innerText = lastDate;
+
+    const tbody = document.getElementById('desp-table-body');
+    if(tbody) {
+        tbody.innerHTML = '';
+        if(document.getElementById('desp-table-count')) {
+            document.getElementById('desp-table-count').innerText = `Mostrando ${Math.min(count, 50)} de ${fmt(count)}`;
+        }
+
+        despFilteredData.slice(0, 50).forEach(it => {
+            const tr = document.createElement('tr');
+            const anexoBtn = it.anexoUrl 
+                ? `<button style="background:var(--accent-blue); border:none; color:#fff; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10px;" onclick="openDespAttachmentModal('${it.id}')">Ver Anexo</button>`
+                : `<span style="color:var(--text-muted)">Sem Anexo</span>`;
+
+            tr.innerHTML = `
+                <td><strong>${it.id}</strong></td>
+                <td><strong>${it.placa}</strong></td>
+                <td>${it.servico}</td>
+                <td style="color:var(--accent-green); font-weight:700;">${fmtMoeda(it.valorTotal)}</td>
+                <td>${fmtMoeda(it.valorUnit)}</td>
+                <td>${it.qntd}</td>
+                <td>${it.dataCompra ? it.dataCompra.split('-').reverse().join('/') : '-'}</td>
+                <td>${getDespStatusBadge(it.status)}</td>
+                <td>${it.aprovador}</td>
+                <td>${it.tipoDoc}</td>
+                <td>${it.formaPag}</td>
+                <td>${it.fornecedor}</td>
+                <td>${it.criadoPor}</td>
+                <td>${it.informacao}</td>
+                <td>${it.umb}</td>
+                <td>${it.banco}</td>
+                <td>${it.chavePix}</td>
+                <td>${it.bancoAjud}</td>
+                <td>${it.chaveAjud}</td>
+                <td>${it.recebedor}</td>
+                <td>${fmtMoeda(it.descontos)}</td>
+                <td>${it.operacao}</td>
+                <td>${anexoBtn}</td>
+                <td>${it.descFunc}</td>
+                <td>${it.parcelado}</td>
+                <td>${it.numParcelas}</td>
+                <td>${it.periodoParcelas}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    updateDespCharts();
+}
+
+function openDespAttachmentModal(id) {
+    const item = despFilteredData.find(d => String(d.id) === String(id));
+    if(!item) return;
+
+    const modal = document.getElementById('desp-attachment-modal');
+    const img = document.getElementById('desp-modal-image');
+    const noImg = document.getElementById('desp-modal-no-image');
+    const info = document.getElementById('desp-modal-info');
+    const title = document.getElementById('desp-modal-title');
+
+    if(title) title.innerText = `Anexo - ID #${item.id} (${item.placa})`;
+
+    if(item.anexoUrl) {
+        img.src = item.anexoUrl;
+        img.style.display = 'block';
+        noImg.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        noImg.style.display = 'block';
+    }
+
+    if(info) {
+        info.innerHTML = `
+            <div class="modal-info-item"><span class="modal-info-label">Serviço</span><span class="modal-info-value">${item.servico}</span></div>
+            <div class="modal-info-item"><span class="modal-info-label">Valor Total</span><span class="modal-info-value">${fmtMoeda(item.valorTotal)}</span></div>
+            <div class="modal-info-item"><span class="modal-info-label">Fornecedor</span><span class="modal-info-value">${item.fornecedor}</span></div>
+            <div class="modal-info-item"><span class="modal-info-label">Data Compra</span><span class="modal-info-value">${item.dataCompra ? item.dataCompra.split('-').reverse().join('/') : '-'}</span></div>
+        `;
+    }
+
+    modal.classList.add('show');
+}
+
+function closeDespAttachmentModal(event) {
+    if(!event || event.target.id === 'desp-attachment-modal' || event.target.classList.contains('modal-close')) {
+        document.getElementById('desp-attachment-modal').classList.remove('show');
+    }
+}
+
+function updateDespCharts() {
+    const dateMap = {};
+    despFilteredData.forEach(d => {
+        if(d.dataCompra) dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal;
+    });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
+
+    const ctxL = document.getElementById('desp-lineChart')?.getContext('2d');
+    if(ctxL) {
+        if(despLineChartInstance) despLineChartInstance.destroy();
+        let gradL = ctxL.createLinearGradient(0,0,0,250);
+        gradL.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+        gradL.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        despLineChartInstance = new Chart(ctxL, {
+            type: 'line',
+            data: {
+                labels: lineLabels,
+                datasets: [{
+                    label: 'Gasto Total',
+                    data: lineData,
+                    borderColor: '#10b981',
+                    backgroundColor: gradL,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) }
+                },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' } } }
+            }
+        });
+    }
+
+    const statusMap = {};
+    despFilteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
+    const ctxD = document.getElementById('desp-donutChart')?.getContext('2d');
+    if(ctxD) {
+        if(despDonutChartInstance) despDonutChartInstance.destroy();
+        despDonutChartInstance = new Chart(ctxD, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusMap),
+                datasets: [{
+                    data: Object.values(statusMap),
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6']
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#e2e8f0' } },
+                    datalabels: { display: true, color: '#fff', font: { weight: 'bold' } }
+                }
+            }
+        });
+    }
+
+    const placaMap = {};
+    despFilteredData.forEach(d => {
+        if(d.placa) placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal;
+    });
+    const topPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+    const ctxB = document.getElementById('desp-barChart')?.getContext('2d');
+    if(ctxB) {
+        if(despBarChartInstance) despBarChartInstance.destroy();
+        despBarChartInstance = new Chart(ctxB, {
+            type: 'bar',
+            data: {
+                labels: topPlacas.map(i => i[0]),
+                datasets: [{
+                    data: topPlacas.map(i => i[1]),
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', formatter: (v) => fmtMoeda(v) }
+                },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, display: false } }
+            }
+        });
+    }
+
+    const docMap = {};
+    despFilteredData.forEach(d => {
+        if(d.tipoDoc) docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal;
+    });
+    const ctxN = document.getElementById('desp-neonLineChart')?.getContext('2d');
+    if(ctxN) {
+        if(despNeonChartInstance) despNeonChartInstance.destroy();
+        despNeonChartInstance = new Chart(ctxN, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(docMap),
+                datasets: [{
+                    data: Object.values(docMap),
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', formatter: (v) => fmtMoeda(v) }
+                },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, display: false } }
+            }
+        });
+    }
 }
 </script>
 </body>
