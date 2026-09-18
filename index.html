@@ -527,11 +527,44 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
 <script>
 const msalConfig = {
-    auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.pathname },
+    auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.origin + window.location.pathname },
     cache: { cacheLocation: "sessionStorage" }
 };
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
+
+// Inicializa o MSAL assim que a página carrega
+myMSALObj.initialize().then(() => {
+    const accounts = myMSALObj.getAllAccounts();
+    if (accounts.length > 0) {
+        document.getElementById("display-name").innerText = accounts[0].name;
+    }
+}).catch(error => {
+    console.error("Erro ao inicializar MSAL:", error);
+});
+
+async function iniciarLogin() {
+    document.getElementById("login-view").style.display = "none";
+    document.getElementById("loading-screen").style.display = "flex";
+    
+    try {
+        await myMSALObj.initialize(); // Garante o carregamento correto exigido pela v2.x
+        const response = await myMSALObj.loginPopup(loginRequest);
+        
+        document.getElementById("display-name").innerText = response.account.name;
+        syncSharePointData(response.account);
+    } catch (error) {
+        console.error(error);
+        document.getElementById("loading-screen").style.display = "none";
+        document.getElementById("login-view").style.display = "flex";
+        
+        if (error.errorCode === "popup_window_error" || error.name === "BrowserAuthError") {
+            myMSALObj.loginRedirect(loginRequest);
+            return;
+        }
+        showToast("Erro ao conectar.");
+    }
+}
 
 /* DADOS DA OPERAÇÃO */
 let rawData = [], filteredData = [];
