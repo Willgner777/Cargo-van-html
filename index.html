@@ -1,1535 +1,385 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cargo Van EX - Dashboard Executivo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      --bg: #070b14;
-      --panel: #0f1729;
-      --panel-strong: #111d32;
-      --panel-soft: #13213a;
-      --text: #e6edf3;
-      --muted: #93a7c9;
-      --soft: rgba(255,255,255,0.06);
-      --border: rgba(148,163,184,0.2);
-      --blue: #3b82f6;
-      --green: #10b981;
-      --purple: #8b5cf6;
-      --amber: #f59e0b;
-      --red: #ef4444;
-      --login-bg: #153c92;
-      --login-red: #ff3b30;
-      --radius: 16px;
-      --shadow: 0 20px 40px rgba(0,0,0,0.28);
-    }
-
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    body { overflow-x: hidden; }
-    button, input, select { font: inherit; }
-    a { color: inherit; text-decoration: none; }
-
-    .hidden { display: none !important; }
-
-    #login-view {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--login-bg);
-      padding: 5vw;
-      position: relative;
-      overflow: hidden;
-    }
-    #login-view::before, #login-view::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.04);
-    }
-    #login-view::before {
-      width: 900px; height: 900px;
-      right: -180px; top: -260px;
-    }
-    #login-view::after {
-      width: 520px; height: 520px;
-      left: -120px; bottom: -200px;
-    }
-    .login-content {
-      max-width: 760px;
-      width: 100%;
-      position: relative;
-      z-index: 1;
-    }
-    .brand-title {
-      font-size: clamp(2rem, 3vw, 3rem);
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      margin-bottom: 0.2rem;
-      color: #fff;
-    }
-    .brand-subtitle {
-      font-size: 1.1rem;
-      letter-spacing: 0.28em;
-      color: var(--login-red);
-      font-weight: 800;
-      margin-bottom: 2rem;
-      text-transform: uppercase;
-    }
-    .hero-text {
-      font-size: clamp(2.3rem, 5vw, 5rem);
-      line-height: 1.08;
-      font-weight: 800;
-      margin: 0 0 1rem;
-      color: #fff;
-    }
-    .hero-subtext {
-      font-size: clamp(1rem, 2vw, 1.35rem);
-      line-height: 1.6;
-      max-width: 640px;
-      color: #c9d6f6;
-      margin-bottom: 2rem;
-    }
-    .btn-connect {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      border: none;
-      background: white;
-      color: var(--login-bg);
-      padding: 1rem 1.75rem;
-      border-radius: 999px;
-      cursor: pointer;
-      font-weight: 800;
-      box-shadow: 0 20px 30px rgba(0,0,0,0.18);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .btn-connect:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 18px 30px rgba(0,0,0,0.22);
-    }
-
-    #loading-screen {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      background: rgba(7,11,20,0.96);
-      z-index: 200;
-    }
-    .spinner {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      border: 4px solid rgba(59,130,246,0.18);
-      border-top-color: var(--blue);
-      animation: spin 0.9s linear infinite;
-      margin-bottom: 18px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text {
-      color: var(--text);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }
-
-    #dashboard {
-      display: none;
-      min-height: 100vh;
-      background: var(--bg);
-    }
-    .layout {
-      display: flex;
-      min-height: 100vh;
-    }
-    .sidebar {
-      width: 280px;
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 22px 20px 18px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 800;
-      color: #fff;
-    }
-    .brand svg { width: 24px; height: 24px; fill: var(--blue); }
-    .sidebar-menu {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      flex: 1;
-      padding: 22px 16px;
-    }
-    .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      color: var(--muted);
-      font-weight: 600;
-      transition: 0.2s ease;
-      cursor: pointer;
-      border: 1px solid transparent;
-    }
-    .sidebar-item:hover, .sidebar-item.active {
-      background: rgba(255,255,255,0.04);
-      color: #fff;
-      border-color: rgba(81, 161, 255, 0.2);
-    }
-    .sidebar-item svg { width: 18px; height: 18px; fill: currentColor; }
-    .user-profile {
-      border-top: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
-      padding: 18px 20px;
-    }
-    .user-name {
-      color: #fff;
-      font-size: 0.8rem;
-      font-weight: 700;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      padding: 24px;
-      background: var(--bg);
-    }
-    .filter-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-      background: rgba(15,23,41,0.8);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-    }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .filter-group label {
-      font-size: 0.63rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--blue);
-      font-weight: 700;
-    }
-    .filter-input {
-      width: 100%;
-      background: rgba(9,14,22,0.8);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      padding: 10px 12px;
-      font-size: 0.82rem;
-      outline: none;
-    }
-    .filter-input:focus {
-      border-color: rgba(59,130,246,0.72);
-      box-shadow: 0 0 0 2px rgba(59,130,246,0.12);
-    }
-
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-    .kpi-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 18px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      box-shadow: var(--shadow);
-    }
-    .kpi-card.highlight {
-      background: linear-gradient(135deg, #1d3a7a, var(--blue));
-      border: none;
-    }
-    .kpi-title {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 800;
-    }
-    .highlight .kpi-title { color: rgba(255,255,255,0.8); }
-    .kpi-value {
-      font-size: clamp(1.6rem, 2vw, 2.2rem);
-      font-weight: 800;
-      color: #fff;
-      line-height: 1.2;
-    }
-    .kpi-sub {
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      box-shadow: var(--shadow);
-    }
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .panel-title {
-      font-weight: 800;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .content-grid, .content-grid-3 {
-      display: grid;
-      gap: 20px;
-    }
-    .content-grid {
-      grid-template-columns: 2fr 1fr;
-    }
-    .content-grid-3 {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .chart-box { position: relative; min-height: 260px; }
-    .chart-box.large { min-height: 300px; }
-
-    .table-wrap { overflow-x: auto; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 800px;
-    }
-    th, td {
-      text-align: left;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(148,163,184,0.12);
-      vertical-align: top;
-    }
-    th {
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.66rem;
-      font-weight: 800;
-    }
-    td {
-      color: var(--text);
-      font-size: 0.78rem;
-    }
-    .badge-status, .badge-perfil, .badge-despesa {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.64rem;
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      border: 1px solid transparent;
-    }
-    .status-concluido { background: rgba(16,185,129,0.12); color: #36d399; border-color: rgba(16,185,129,0.25); }
-    .status-andamento { background: rgba(59,130,246,0.12); color: #60a5fa; border-color: rgba(59,130,246,0.25); }
-    .status-pernoite { background: rgba(139,92,246,0.12); color: #a78bfa; border-color: rgba(139,92,246,0.25); }
-    .status-outro { background: rgba(245,158,11,0.12); color: #fbbf24; border-color: rgba(245,158,11,0.25); }
-    .perfil-proprio { background: rgba(59,130,246,0.12); color: #93c5fd; border-color: rgba(59,130,246,0.2); }
-    .perfil-agregado { background: rgba(139,92,246,0.12); color: #c4b5fd; border-color: rgba(139,92,246,0.2); }
-    .status-aprovado { background: rgba(16,185,129,0.12); color: #34d399; border-color: rgba(16,185,129,0.25); }
-    .status-pendente { background: rgba(245,158,11,0.12); color: #fbbf24; border-color: rgba(245,158,11,0.25); }
-    .status-recusado { background: rgba(239,68,68,0.12); color: #f87171; border-color: rgba(239,68,68,0.2); }
-
-    .progress-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .progress-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-    .progress-track {
-      height: 14px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--blue), var(--green));
-      transition: width 0.4s ease;
-    }
-
-    .timeline-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 360px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-    .timeline-item {
-      display: flex;
-      gap: 12px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.04);
-      border-radius: 12px;
-      padding: 12px;
-    }
-    .timeline-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      margin-top: 4px;
-      flex-shrink: 0;
-    }
-    .timeline-body {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .timeline-title { font-size: 0.8rem; font-weight: 700; color: #fff; }
-    .timeline-sub { font-size: 0.72rem; color: var(--muted); }
-
-    #toast {
-      position: fixed;
-      right: 20px; bottom: 20px;
-      background: rgba(15,23,41,0.95);
-      border: 1px solid rgba(59,130,246,0.8);
-      color: #fff;
-      padding: 12px 16px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      opacity: 0;
-      transform: translateY(10px);
-      transition: 0.25s ease;
-      z-index: 300;
-      max-width: 340px;
-    }
-    #toast.show { opacity: 1; transform: translateY(0); }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: 0.2s ease;
-      z-index: 250;
-    }
-    .modal-overlay.show {
-      opacity: 1;
-      visibility: visible;
-    }
-    .modal-content {
-      width: min(880px, 90vw);
-      max-height: 90vh;
-      overflow: auto;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-    }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      border-bottom: 1px solid var(--border);
-      padding: 18px 20px;
-    }
-    .modal-title { font-weight: 800; color: #fff; }
-    .modal-close {
-      background: transparent;
-      border: none;
-      font-size: 1.6rem;
-      color: var(--muted);
-      cursor: pointer;
-    }
-    .modal-body { padding: 20px; }
-    .modal-image {
-      display: block;
-      max-width: 100%;
-      max-height: 70vh;
-      margin: 0 auto 18px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.02);
-    }
-    .modal-empty {
-      color: var(--muted);
-      text-align: center;
-      padding: 30px 20px;
-    }
-    .modal-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-    }
-    .modal-info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .modal-info-label {
-      font-size: 0.62rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 800;
-    }
-    .modal-info-value { color: #fff; font-size: 0.8rem; }
-
-    @media (max-width: 980px) {
-      .layout { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
-      .sidebar-menu { flex-direction: row; flex-wrap: wrap; }
-      .content-grid, .content-grid-3 { grid-template-columns: 1fr; }
-      .main-content { padding: 16px; }
-    }
-  </style>
-</head>
-<body>
-  <div id="login-view">
-    <div class="login-content">
-      <div class="brand-title">CARGO VAN</div>
-      <div class="brand-subtitle">EX</div>
-      <h1 class="hero-text">A Logística Completa<br>na sua Mão.</h1>
-      <p class="hero-subtext">Gerencie sua frota com controle, eficiência e dados oficiais do SharePoint em tempo real.</p>
-      <button class="btn-connect" type="button" onclick="iniciarLogin()">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
-        </svg>
-        Conectar com Microsoft
-      </button>
-    </div>
-  </div>
-
-  <div id="loading-screen" aria-live="polite">
-    <div class="spinner"></div>
-    <div class="loading-text" id="loading-msg">Sincronizando dados com o SharePoint...</div>
-  </div>
-
-  <div id="dashboard">
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="brand">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm-10 10l10 5 10-5M2 12l10 5 10-5"/></svg>
-          TechSolutions Analytics
-        </div>
-        <div class="sidebar-menu">
-          <a href="#" class="sidebar-item active" data-view="operacao" onclick="showView('operacao', event)">
-            <svg viewBox="0 0 24 24"><path d="M4 14h7V4H4v10zm0 6h7v-6H4v6zm9 0h7V11h-7v9zm0-16v6h7V4h-7z"/></svg>
-            Operação
-          </a>
-          <a href="#" class="sidebar-item" data-view="despesas" onclick="showView('despesas', event)">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-1.1 0-2-.9-2-2h-1c0 1.66 1.34 3 3 3s3-1.34 3-3h-1c0 1.1-.9 2-2 2zm-1-5h2V5h-2v10z"/></svg>
-            Despesas
-          </a>
-          <a href="#" class="sidebar-item" onclick="syncSharePointData(); return false;">
-            <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A8.04 8.04 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-            Sincronizar Dados
-          </a>
-        </div>
-        <div class="user-profile">
-          <div class="user-name" id="display-name">Carregando...</div>
-        </div>
-      </aside>
-
-      <main class="main-content" id="operacao-view">
-        <div class="filter-bar">
-          <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input" /></div>
-          <div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input" /></div>
-          <div class="filter-group"><label>Placa / Veículo</label><input type="text" id="filter-placa" class="filter-input" placeholder="Filtrar placa..." /></div>
-          <div class="filter-group"><label>Nº Documento</label><input type="text" id="filter-doc" class="filter-input" placeholder="Nº Documento" /></div>
-          <div class="filter-group"><label>Cliente / Operação</label><input type="text" id="filter-operacao" class="filter-input" placeholder="Cliente ou UF" /></div>
-          <div class="filter-group"><label>Status</label><select id="filter-status" class="filter-input"><option value="">Todos</option></select></div>
-          <div class="filter-group"><label>Perfil Frota</label><select id="filter-perfil" class="filter-input"><option value="">Todos</option><option value="PRÓPRIO">Próprio</option><option value="AGREGADO">Agregado</option></select></div>
-        </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card highlight"><div class="kpi-title">Total Entregas</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Registros oficiais</div></div>
-          <div class="kpi-card"><div class="kpi-title" style="color: var(--green);">NFs Faturadas</div><div class="kpi-value" id="kpi-nfs">0</div><div class="kpi-sub">Volume calculado</div></div>
-          <div class="kpi-card"><div class="kpi-title" style="color: var(--blue);">Frota Própria</div><div class="kpi-value" id="kpi-proprio">0</div><div class="kpi-sub">NFs realizadas</div></div>
-          <div class="kpi-card"><div class="kpi-title" style="color: var(--purple);">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">NFs realizadas</div></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Meta Mensal de NFs</div>
-            <span id="meta-mensal-pct" style="font-size: 0.74rem; font-weight: 800; color: var(--green);">0%</span>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-top">
-              <span>Realizado: <strong id="meta-mensal-atual" style="color: #fff;">0</strong></span>
-              <span>Meta: <strong id="meta-mensal-alvo" style="color: #fff;">0</strong></span>
-            </div>
-            <div class="progress-track"><div class="progress-fill" id="meta-mensal-fill"></div></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Indicadores de Desempenho</div></div>
-          <div class="kpi-grid">
-            <div class="kpi-card"><div class="kpi-title">KM Total</div><div class="kpi-value" id="km-total-value">0 km</div><div class="kpi-sub">Tendência dos últimos dias</div></div>
-            <div class="kpi-card"><div class="kpi-title">Taxa de Conclusão</div><div class="kpi-value" id="ring-conclusao-label">0%</div><div class="kpi-sub">Concluídos / Total</div></div>
-            <div class="kpi-card"><div class="kpi-title">Eficiência</div><div class="kpi-value" id="ring-eficiencia-label">0</div><div class="kpi-sub">NFs / 100km</div></div>
-          </div>
-        </div>
-
-        <div class="content-grid-3">
-          <div class="panel" style="grid-column: span 2;">
-            <div class="panel-header"><div class="panel-title">Evolução de Entregas (NFs)</div></div>
-            <div class="chart-box large"><canvas id="lineChart"></canvas></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Mix de Frota</div></div>
-            <div class="chart-box"><canvas id="polarChart"></canvas></div>
-          </div>
-        </div>
-
-        <div class="content-grid">
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Volume por Cliente / Operação</div></div>
-            <div class="chart-box"><canvas id="barChart"></canvas></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Status da Operação</div></div>
-            <div class="chart-box"><canvas id="statusHChart"></canvas></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>UF</th><th>Entregas</th><th>% Concluído</th><th>Status</th></tr></thead>
-              <tbody id="uf-status-table-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="content-grid">
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Distribuição de Status</div></div>
-            <div id="segmented-bar" style="display:flex; width:100%; height:22px; border-radius:8px; overflow:hidden; background:rgba(255,255,255,0.05);"></div>
-            <div id="segmented-legend" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Funil Operacional</div></div>
-            <div style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:18px;">
-              <div style="text-align:center;"><div id="funil-andamento-label" style="font-size:1.6rem; font-weight:800; color:#60a5fa;">0</div><div style="color:var(--muted); font-size:0.7rem;">Em Rota</div></div>
-              <div style="text-align:center;"><div id="funil-pernoite-label" style="font-size:1.6rem; font-weight:800; color:#a78bfa;">0</div><div style="color:var(--muted); font-size:0.7rem;">Pernoite</div></div>
-              <div style="text-align:center;"><div id="funil-concluido-label" style="font-size:1.6rem; font-weight:800; color:#34d399;">0</div><div style="color:var(--muted); font-size:0.7rem;">Concluído</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div>
-          <div class="chart-box"><canvas id="opTargetChart"></canvas></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Top 5 Motoristas (NFs)</div></div>
-          <div id="ranking-motoristas" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div>
-          <div class="timeline-list" id="timeline-ocorrencias"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:0.7rem; color: var(--muted);">0</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Documento</th>
-                  <th>Data</th>
-                  <th>Motorista</th>
-                  <th>Cliente / Operação</th>
-                  <th>Perfil</th>
-                  <th>KM Rodados</th>
-                  <th>NFs</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="table-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </main>
-
-      <main class="main-content hidden" id="despesas-view">
-        <div class="filter-bar">
-          <div class="filter-group"><label>Data Inicial</label><input type="date" id="desp-filter-start" class="filter-input" /></div>
-          <div class="filter-group"><label>Data Final</label><input type="date" id="desp-filter-end" class="filter-input" /></div>
-          <div class="filter-group"><label>Placa</label><input type="text" id="desp-filter-placa" class="filter-input" placeholder="Filtrar placa..." /></div>
-          <div class="filter-group"><label>Serviço</label><input type="text" id="desp-filter-servico" class="filter-input" placeholder="Filtrar serviço..." /></div>
-          <div class="filter-group"><label>ID</label><input type="number" id="desp-filter-id" class="filter-input" placeholder="ID" /></div>
-          <div class="filter-group"><label>Status</label><select id="desp-filter-status" class="filter-input"><option value="">Todos</option><option value="Aprovado">Aprovado</option><option value="Pendente">Pendente</option><option value="Recusado">Recusado</option></select></div>
-        </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card highlight"><div class="kpi-title">Total Gasto</div><div class="kpi-value" id="desp-kpi-total">R$ 0,00</div><div class="kpi-sub">Soma valor total</div></div>
-          <div class="kpi-card"><div class="kpi-title" style="color: var(--green);">Qtd. Registros</div><div class="kpi-value" id="desp-kpi-count">0</div><div class="kpi-sub">Linhas filtradas</div></div>
-          <div class="kpi-card"><div class="kpi-title" style="color: var(--blue);">Média / Registro</div><div class="kpi-value" id="desp-kpi-avg">R$ 0,00</div><div class="kpi-sub">Valor total médio</div></div>
-          <div class="kpi-card"><div class="kpi-title" style="color: var(--purple);">Última Compra</div><div class="kpi-value" id="desp-kpi-last">--</div><div class="kpi-sub">Data mais recente</div></div>
-        </div>
-
-        <div class="content-grid-3">
-          <div class="panel" style="grid-column: span 2;">
-            <div class="panel-header"><div class="panel-title">Evolução Temporal (Data × Valor Total)</div></div>
-            <div class="chart-box large"><canvas id="desp-lineChart"></canvas></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Distribuição por Status</div></div>
-            <div class="chart-box"><canvas id="desp-donutChart"></canvas></div>
-          </div>
-        </div>
-
-        <div class="content-grid">
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Gasto por Placa (Top 10)</div></div>
-            <div class="chart-box"><canvas id="desp-barChart"></canvas></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header"><div class="panel-title">Tipo Documento × Valor Total</div></div>
-            <div class="chart-box"><canvas id="desp-neonLineChart"></canvas></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Registros de Despesas</div><span id="desp-table-count" style="font-size:0.7rem; color: var(--muted);">0</span></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th><th>Placa</th><th>Serviço</th><th>Valor Total</th><th>Valor Unit.</th><th>Qntd</th><th>Data Compra</th><th>Status</th><th>Aprovador</th><th>Tipo Doc.</th><th>Forma Pag.</th><th>Fornecedor</th><th>Criado Por</th><th>Informação</th><th>UMB</th><th>Banco</th><th>Chave Pix</th><th>Banco Ajud.</th><th>Chave Ajud.</th><th>Recebedor</th><th>Descontos</th><th>Operação</th><th>Anexo</th>
-                </tr>
-              </thead>
-              <tbody id="desp-table-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
-
-  <div id="toast" aria-live="polite"></div>
-
-  <div class="modal-overlay" id="desp-attachment-modal" onclick="closeDespAttachmentModal(event)">
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title" id="desp-modal-title">Comprovante / Anexo</div>
-        <button class="modal-close" type="button" onclick="closeDespAttachmentModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <img id="desp-modal-image" class="modal-image" alt="Comprovante do gasto" style="display:none;" />
-        <div id="desp-modal-no-image" class="modal-empty" style="display:none;">Sem anexo disponível.</div>
-        <div id="desp-modal-info" class="modal-info"></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const msalConfig = {
-      auth: {
-        clientId: '3b29c3bc-e828-4835-a7bf-1f035ae7c981',
-        authority: 'https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40',
+<script>
+const msalConfig = {
+    auth: {
+        clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981",
+        authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
         redirectUri: window.location.origin + window.location.pathname
-      },
-      cache: { cacheLocation: 'sessionStorage' }
-    };
+    },
+    cache: { cacheLocation: "sessionStorage" }
+};
+const myMSALObj = new msal.PublicClientApplication(msalConfig);
+const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 
-    const myMSALObj = new msal.PublicClientApplication(msalConfig);
-    const loginRequest = { scopes: ['User.Read', 'Sites.Read.All'] };
+/* DADOS DA OPERAÇÃO */
+let rawData = [], filteredData = [];
+let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
+let sparklineChartInstance = null, opTargetChartInstance = null;
 
-    let rawData = [];
-    let filteredData = [];
-    let rawDespData = [];
-    let filteredDespData = [];
+/* DADOS DE DESPESAS */
+let rawDespData = [], filteredDespData = [];
+let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
 
-    Chart.defaults.color = '#93a7c9';
-    Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.register(ChartDataLabels);
+Chart.defaults.color = '#8b9bb8';
+Chart.defaults.font.family = "'Inter', sans-serif";
 
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+function showView(viewName) {
+    const mainOp = document.getElementById('operacao-view');
+    const mainDesp = document.getElementById('despesas-view');
+    const navItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
+
+    if (viewName === 'despesas') {
+        if (mainOp) mainOp.classList.add('view-hidden');
+        if (mainDesp) mainDesp.classList.remove('view-hidden');
+        navItems[0].classList.remove('active');
+        navItems[1].classList.add('active');
+    } else {
+        if (mainOp) mainOp.classList.remove('view-hidden');
+        if (mainDesp) mainDesp.classList.add('view-hidden');
+        navItems[1].classList.remove('active');
+        navItems[0].classList.add('active');
     }
+}
 
-    function showToast(message) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      clearTimeout(showToast.timeoutId);
-      showToast.timeoutId = setTimeout(() => toast.classList.remove('show'), 3500);
-    }
+const pulsePointsPlugin = {
+    id: 'pulsePointsPlugin',
+    afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== 'lineChart') return;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
 
-    function showView(viewName, event) {
-      if (event) event.preventDefault();
-      const operacao = document.getElementById('operacao-view');
-      const despesas = document.getElementById('despesas-view');
-      const items = document.querySelectorAll('.sidebar-item[data-view]');
+        const { ctx } = chart;
+        const t = performance.now() / 1000;
+        const lastIndex = meta.data.length - 1;
 
-      const isDespesas = viewName === 'despesas';
-      operacao.classList.toggle('hidden', isDespesas);
-      despesas.classList.toggle('hidden', !isDespesas);
+        meta.data.forEach((point, index) => {
+            const isLast = index === lastIndex;
+            const speed = isLast ? 1.1 : 0.6;
+            const phase = index * 0.35;
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2;
 
-      items.forEach(item => item.classList.toggle('active', item.dataset.view === viewName));
-    }
+            const baseRadius = isLast ? 6 : 5;
+            const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
+            const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
 
-    function padronizarNome(nome) {
-      if (!nome) return 'NÃO INFORMADO';
-      return String(nome)
-        .toLowerCase()
-        .split(/\s+/)
-        .map(part => part ? part.charAt(0).toUpperCase() + part.slice(1) : '')
-        .join(' ');
-    }
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, glowRadius, 0, Math.PI * 2);
+            ctx.fillStyle = isLast ? `rgba(16, 185, 129, ${glowAlpha})` : `rgba(59, 130, 246, ${glowAlpha})`;
+            ctx.fill();
+            ctx.restore();
 
-    function fmt(num) {
-      return Number(num || 0).toLocaleString('pt-BR');
-    }
-
-    function fmtMoeda(valor) {
-      return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
-
-    function normalizeStatus(status) {
-      const s = String(status || '').toUpperCase();
-      if (s.includes('CONCLU')) return 'CONCLUÍDO';
-      if (s.includes('ANDAMENTO') || s.includes('ROTA')) return 'EM ANDAMENTO';
-      if (s.includes('PERNOITE')) return 'PERNOITE';
-      return s || 'OUTRO';
-    }
-
-    function statusClass(st) {
-      const s = String(st || '').toUpperCase();
-      if (s.includes('CONCLU')) return 'status-concluido';
-      if (s.includes('ANDAMENTO') || s.includes('ROTA')) return 'status-andamento';
-      if (s.includes('PERNOITE')) return 'status-pernoite';
-      return 'status-outro';
-    }
-
-    function perfilClass(perfil) {
-      return String(perfil || '').toUpperCase() === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado';
-    }
-
-    function statusBadge(st) {
-      const value = normalizeStatus(st);
-      return `<span class="badge-status ${statusClass(value)}">${escapeHtml(value)}</span>`;
-    }
-
-    function perfilBadge(perfil) {
-      const value = String(perfil || '').toUpperCase();
-      return `<span class="badge-perfil ${perfilClass(value)}">${escapeHtml(value || 'NÃO INFORMADO')}</span>`;
-    }
-
-    function iniciarLogin() {
-      document.getElementById('login-view').style.display = 'none';
-      document.getElementById('loading-screen').style.display = 'flex';
-
-      myMSALObj.loginPopup(loginRequest)
-        .then(response => {
-          document.getElementById('display-name').textContent = response.account.name;
-          syncSharePointData(response.account);
-        })
-        .catch(error => {
-          console.error(error);
-          document.getElementById('loading-screen').style.display = 'none';
-          document.getElementById('login-view').style.display = 'flex';
-          showToast('Erro ao conectar com a Microsoft. Tente novamente.');
+            if (isLast) {
+                const ringRadius = baseRadius + 4 + pulse * 12;
+                const ringAlpha = 0.55 * (1 - pulse);
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, ringRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
         });
     }
+};
+Chart.register(pulsePointsPlugin);
 
-    async function syncSharePointData(account) {
-      const accountToUse = account || myMSALObj.getAllAccounts()[0];
-      if (!accountToUse) {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('login-view').style.display = 'flex';
-        showToast('Sessão expirada. Faça login novamente.');
-        return;
-      }
-
-      document.getElementById('loading-screen').style.display = 'flex';
-      document.getElementById('loading-msg').textContent = 'Sincronizando dados com o SharePoint...';
-
-      try {
-        let token;
-        try {
-          token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account: accountToUse });
-        } catch (silentError) {
-          token = await myMSALObj.acquireTokenPopup({ ...loginRequest, account: accountToUse });
-        }
-
-        const url = 'https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000';
-        const urlDesp = 'https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000';
-
-        const fetchAll = async (listUrl) => {
-          let finalUrl = listUrl;
-          const all = [];
-          let page = 0;
-          while (finalUrl && page < 10) {
-            page += 1;
-            const response = await fetch(finalUrl, { headers: { Authorization: `Bearer ${token.accessToken}` } });
-            if (!response.ok) throw new Error(`Graph Error: ${response.status}`);
-            const payload = await response.json();
-            if (payload.value) all.push(...payload.value);
-            finalUrl = payload['@odata.nextLink'] || null;
-          }
-          return all;
-        };
-
-        const rawList = await fetchAll(url);
-        rawData = rawList.map(item => {
-          const f = item.fields || {};
-          const perfilStr = String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
-          const placa = String(f.PLACA || f.Placa || f.VE_x00cd_CULO || '').toUpperCase();
-          let qNfs = Number(f.QNTDDEENTREGA || 0);
-          if (qNfs > 500) qNfs = Number(f.QTDENTREGASFINALIZADAS || 0);
-          if (qNfs > 500) qNfs = 0;
-
-          const kmIni = Number(f.KMINICIAL || 0);
-          const kmFin = Number(f.KMFINAL || 0);
-          let kmRod = Number(f.KMRODADOS || 0);
-          if (kmRod <= 0 && kmFin > kmIni) kmRod = kmFin - kmIni;
-
-          const operacaoStr = String(f.CLIENTE_x007c_OPERA_x00c7__x00c3 || 'NÃO INFORMADA').toUpperCase();
-          let uf = 'GERAL';
-          const parts = operacaoStr.split('|');
-          if (parts.length > 1 && parts[0].trim().length === 2) uf = parts[0].trim().toUpperCase();
-
-          return {
-            id: item.id,
-            criado: (f.Created || new Date().toISOString()).split('T')[0],
-            documento: String(f.N_x00ba_DOCUMENTO || 'N/A'),
-            motorista: padronizarNome(f.NOME),
-            qtdNFs: qNfs,
-            kmInicial: kmIni,
-            kmFinal: kmFin,
-            kmRodados: kmRod,
-            status: normalizeStatus(f.STATUS || 'CONCLUÍDO'),
-            perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
-            operacao: operacaoStr,
-            uf,
-            observacao: String(f.OBSERVA_x00c7__x00c3_O || '').toUpperCase(),
-            placa
-          };
-        });
-
-        const rawDespList = await fetchAll(urlDesp);
-        rawDespData = rawDespList.map(item => {
-          const f = item.fields || {};
-          const valorTotal = Number(f.VALORTOTAL || f.VALOR_x0020_TOTAL || f.ValorTotal || 0);
-          const valorUnit = Number(f.VALORUNIT_x00c1_RIO || f.VALOR_x0020_UNIT_x00c1_RIO || f.ValorUnitario || 0);
-          const qntd = Number(f.QNTD || f.QUANTIDADE || f.Quantidade || 1);
-
-          return {
-            id: item.id,
-            placa: String(f.PLACA || f.Placa || 'N/A').toUpperCase(),
-            servico: String(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A').toUpperCase(),
-            valorTotal,
-            valorUnit,
-            qntd,
-            dataCompra: (f.DATA_x0020_DE_x0020_COMPRA || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
-            status: String(f.STATUS || f.Status || 'Pendente').trim(),
-            aprovador: String(f.APROVADOR || f.Aprovador || 'N/A'),
-            tipoDoc: String(f.TIPO_x0020_DOCUMENTO || f.TIPODOCUMENTO || f.TipoDoc || 'N/A'),
-            formaPag: String(f.FORMA_x0020_PAGAMENTO || f.FORMAPAGAMENTO || f.FormaPagamento || 'N/A'),
-            fornecedor: String(f.FORNECEDOR || f.Fornecedor || 'N/A'),
-            criadoPor: String(f.CRIADO_x0020_POR || f.CRIADOPOR || f.Author || 'N/A'),
-            informacao: String(f.INFORMA_x00c7__x00c3_O || f.INFORMACAO || f.Informacao || 'N/A'),
-            umb: String(f.UMB || f.Umb || 'N/A'),
-            banco: String(f.BANCO || f.Banco || 'N/A'),
-            chavePix: String(f.CHAVE_x0020_PIX || f.CHAVEPIX || f.ChavePix || 'N/A'),
-            bancoAjud: String(f.BANCO_x0020_AJUDANTE || f.BANCOAJUDANTE || f.BancoAjudante || 'N/A'),
-            chaveAjud: String(f.CHAVE_x0020_AJUDANTE || f.CHAVEAJUDANTE || f.ChaveAjudante || 'N/A'),
-            recebedor: String(f.RECEBEDOR || f.Recebedor || 'N/A'),
-            descontos: Number(f.DESCONTOS || f.Descontos || 0),
-            operacao: String(f.OPERA_x00c7__x00c3_O || f.OPERACAO || f.Operacao || 'N/A'),
-            anexo: String(f.ANEXO || f.Anexo || (f.Attachments ? 'Sim' : '')).toUpperCase(),
-            descFunc: String(f.DESC_x0020_FUNC || f.DESCFUNC || f.DescFunc || 'N/A'),
-            parcelado: String(f.PARCELADO || f.Parcelado || 'NÃO'),
-            numParcelas: Number(f.N_x00ba__x0020_PARCELAS || f.NUMPARCELAS || f.NumParcelas || 0),
-            periodoParcelamento: String(f.PER_x00cd_ODO_x0020_PARCELAMENTO || f.PERIODOPARCELAMENTO || 'N/A')
-          };
-        });
-
-        popularFiltrosDinamicos();
-        applyFilters();
-        applyDespFilters();
-        showToast(`✅ Sincronizado: ${rawData.length} veículos | ${rawDespData.length} despesas`);
-      } catch (error) {
-        console.error(error);
-        showToast('Falha na sincronização. Verifique a autenticação ou a permissão do SharePoint.');
-      } finally {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-      }
+const peakAnnotationPlugin = {
+    id: 'peakAnnotationPlugin',
+    afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== 'lineChart') return;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !dataset || !dataset.data || !dataset.data.length) return;
+        let maxVal = -Infinity, maxIdx = -1;
+        dataset.data.forEach((v, i) => { if (v > maxVal) { maxVal = v; maxIdx = i; } });
+        if (maxIdx === -1) return;
+        const point = meta.data[maxIdx];
+        const label = chart.data.labels[maxIdx];
+        const { ctx } = chart;
+        ctx.save();
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillStyle = '#f59e0b';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Pico: ${label} • ${fmt(maxVal)}`, point.x, Math.max(14, point.y - 24));
+        ctx.restore();
     }
+};
+Chart.register(peakAnnotationPlugin);
 
-    function popularFiltrosDinamicos() {
-      const statusSet = new Set();
-      rawData.forEach(item => item.status && statusSet.add(item.status));
-      const select = document.getElementById('filter-status');
-      select.innerHTML = '<option value="">Todos</option>';
-      [...statusSet].sort().forEach(status => {
-        select.innerHTML += `<option value="${escapeHtml(status)}">${escapeHtml(status)}</option>`;
-      });
-    }
+setInterval(() => {
+    if (lineChartInstance) lineChartInstance.draw();
+}, 100);
 
-    function applyFilters() {
-      const start = document.getElementById('filter-start').value;
-      const end = document.getElementById('filter-end').value;
-      const placa = (document.getElementById('filter-placa').value || '').trim().toLowerCase();
-      const doc = (document.getElementById('filter-doc').value || '').trim().toLowerCase();
-      const operacao = (document.getElementById('filter-operacao').value || '').trim().toLowerCase();
-      const status = document.getElementById('filter-status').value;
-      const perfil = document.getElementById('filter-perfil').value;
+function fmt(num) {
+    return Number(num || 0).toLocaleString('pt-BR');
+}
 
-      filteredData = rawData.filter(item => {
-        if (start && item.criado < start) return false;
-        if (end && item.criado > end) return false;
-        if (placa && !String(item.placa || item.observacao || '').toLowerCase().includes(placa)) return false;
-        if (doc && !String(item.documento || '').toLowerCase().includes(doc)) return false;
-        if (operacao && !String(item.operacao || '').toLowerCase().includes(operacao) && !String(item.uf || '').toLowerCase().includes(operacao)) return false;
-        if (status && item.status !== status) return false;
-        if (perfil && item.perfil !== perfil) return false;
-        return true;
-      });
+function fmtMoeda(val) {
+    return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
 
-      updateDashboardUI();
-    }
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
 
-    function applyDespFilters() {
-      const start = document.getElementById('desp-filter-start').value;
-      const end = document.getElementById('desp-filter-end').value;
-      const placa = (document.getElementById('desp-filter-placa').value || '').trim().toLowerCase();
-      const servico = (document.getElementById('desp-filter-servico').value || '').trim().toLowerCase();
-      const id = document.getElementById('desp-filter-id').value;
-      const status = document.getElementById('desp-filter-status').value;
+function padronizarNome(nome) {
+    if (!nome) return 'NÃO INFORMADO';
+    return String(nome).toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
 
-      filteredDespData = rawDespData.filter(item => {
-        if (start && item.dataCompra < start) return false;
-        if (end && item.dataCompra > end) return false;
-        if (placa && !String(item.placa || '').toLowerCase().includes(placa)) return false;
-        if (servico && !String(item.servico || '').toLowerCase().includes(servico)) return false;
-        if (id && String(item.id) !== String(id)) return false;
-        if (status && String(item.status).trim() !== status) return false;
-        return true;
-      });
+function safeString(value, fallback = 'N/A') {
+    if (value === null || value === undefined) return fallback;
+    const str = String(value).trim();
+    return str ? str : fallback;
+}
 
-      updateDespDashboard();
-    }
+function safeNumber(value, fallback = 0) {
+    if (value === null || value === undefined || value === '') return fallback;
+    const n = Number(String(value).replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.'));
+    return Number.isFinite(n) ? n : fallback;
+}
 
-    document.getElementById('filter-start').addEventListener('change', applyFilters);
-    document.getElementById('filter-end').addEventListener('change', applyFilters);
-    document.getElementById('filter-status').addEventListener('change', applyFilters);
-    document.getElementById('filter-perfil').addEventListener('change', applyFilters);
-    document.getElementById('filter-placa').addEventListener('input', () => setTimeout(applyFilters, 250));
-    document.getElementById('filter-doc').addEventListener('input', () => setTimeout(applyFilters, 250));
-    document.getElementById('filter-operacao').addEventListener('input', () => setTimeout(applyFilters, 250));
+function safeDate(value, fallback = '') {
+    const raw = safeString(value, fallback);
+    return raw && raw.includes('T') ? raw.split('T')[0] : raw;
+}
 
-    document.getElementById('desp-filter-start').addEventListener('change', applyDespFilters);
-    document.getElementById('desp-filter-end').addEventListener('change', applyDespFilters);
-    document.getElementById('desp-filter-placa').addEventListener('input', () => setTimeout(applyDespFilters, 250));
-    document.getElementById('desp-filter-servico').addEventListener('input', () => setTimeout(applyDespFilters, 250));
-    document.getElementById('desp-filter-id').addEventListener('input', () => setTimeout(applyDespFilters, 250));
-    document.getElementById('desp-filter-status').addEventListener('change', applyDespFilters);
+function normalizeStatus(status) {
+    const raw = safeString(status, 'OUTRO').toUpperCase();
+    if (raw.includes('CONCLUIDO') || raw.includes('CONCLUÍDO')) return 'CONCLUÍDO';
+    if (raw.includes('ANDAMENTO') || raw.includes('ROTA')) return 'EM ANDAMENTO';
+    if (raw.includes('PERNOITE')) return 'PERNOITE';
+    return raw || 'OUTRO';
+}
 
-    function updateDashboardUI() {
-      const totalNFs = filteredData.reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0);
-      const totalKm = filteredData.reduce((sum, item) => sum + Number(item.kmRodados || 0), 0);
-      const concluidos = filteredData.filter(item => item.status && item.status.toUpperCase().includes('CONCLU')).length;
-      const proprios = filteredData.filter(item => item.perfil === 'PRÓPRIO').reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0);
-      const agregados = filteredData.filter(item => item.perfil === 'AGREGADO').reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0);
-
-      document.getElementById('kpi-total').textContent = fmt(filteredData.length);
-      document.getElementById('kpi-nfs').textContent = fmt(totalNFs);
-      document.getElementById('kpi-proprio').textContent = fmt(proprios);
-      document.getElementById('kpi-agregado').textContent = fmt(agregados);
-
-      const metaMensalNfs = 20306;
-      const pctMeta = Math.min(100, Math.round((totalNFs / metaMensalNfs) * 100));
-      document.getElementById('meta-mensal-fill').style.width = pctMeta + '%';
-      document.getElementById('meta-mensal-atual').textContent = fmt(totalNFs);
-      document.getElementById('meta-mensal-alvo').textContent = fmt(metaMensalNfs);
-      document.getElementById('meta-mensal-pct').textContent = pctMeta + '%';
-
-      document.getElementById('km-total-value').textContent = `${fmt(totalKm)} km`;
-      const pctConclusao = filteredData.length ? Math.round((concluidos / filteredData.length) * 100) : 0;
-      document.getElementById('ring-conclusao-label').textContent = pctConclusao + '%';
-      const eficiencia = totalKm > 0 ? totalNFs / (totalKm / 100) : 0;
-      document.getElementById('ring-eficiencia-label').textContent = eficiencia.toFixed(1);
-
-      renderLineChart(filteredData);
-      renderPolarChart(filteredData);
-      renderBarChart(filteredData);
-      renderStatusChart(filteredData);
-      renderUfStatusTable(filteredData);
-      renderSegmentedBar(filteredData);
-      renderFunil(filteredData);
-      renderRankingMotoristas(filteredData);
-      renderOcorrencias(filteredData);
-      renderTable(filteredData);
-    }
-
-    function renderLineChart(data) {
-      const labels = [...new Set(data.map(item => item.criado).sort())].slice(-12);
-      const values = labels.map(date => data.filter(item => item.criado === date).reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0));
-
-      const ctx = document.getElementById('lineChart').getContext('2d');
-      if (window.lineChartInstance) window.lineChartInstance.destroy();
-      window.lineChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: 'NFs',
-            data: values,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16,185,129,0.18)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.35,
-            pointRadius: 4,
-            pointBackgroundColor: '#10b981'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-        }
-      });
-    }
-
-    function renderPolarChart(data) {
-      const count = {
-        PRÓPRIO: data.filter(item => item.perfil === 'PRÓPRIO').reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0),
-        AGREGADO: data.filter(item => item.perfil === 'AGREGADO').reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0)
-      };
-
-      const ctx = document.getElementById('polarChart').getContext('2d');
-      if (window.polarChartInstance) window.polarChartInstance.destroy();
-      window.polarChartInstance = new Chart(ctx, {
-        type: 'polarArea',
-        data: {
-          labels: ['Próprio', 'Agregado'],
-          datasets: [{
-            data: [count.PRÓPRIO, count.AGREGADO],
-            backgroundColor: ['#3b82f6', '#8b5cf6']
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
-    }
-
-    function renderBarChart(data) {
-      const map = {};
-      data.forEach(item => {
-        const key = item.operacao || 'NÃO INFORMADA';
-        map[key] = (map[key] || 0) + Number(item.qtdNFs || 0);
-      });
-      const entries = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
-
-      const ctx = document.getElementById('barChart').getContext('2d');
-      if (window.barChartInstance) window.barChartInstance.destroy();
-      window.barChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: entries.map(([label]) => label.slice(0, 18)),
-          datasets: [{
-            data: entries.map(([, value]) => value),
-            backgroundColor: '#3b82f6',
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-        }
-      });
-    }
-
-    function renderStatusChart(data) {
-      const counts = { 'CONCLUÍDO': 0, 'EM ANDAMENTO': 0, 'PERNOITE': 0, 'OUTRO': 0 };
-      data.forEach(item => {
-        const key = normalizeStatus(item.status);
-        if (key.includes('CONCLU')) counts['CONCLUÍDO']++;
-        else if (key.includes('ANDAMENTO')) counts['EM ANDAMENTO']++;
-        else if (key.includes('PERNOITE')) counts['PERNOITE']++;
-        else counts['OUTRO']++;
-      });
-
-      const ctx = document.getElementById('statusHChart').getContext('2d');
-      if (window.statusHChartInstance) window.statusHChartInstance.destroy();
-      window.statusHChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Concluído', 'Em Andamento', 'Pernoite', 'Outro'],
-          datasets: [{ data: [counts['CONCLUÍDO'], counts['EM ANDAMENTO'], counts['PERNOITE'], counts['OUTRO']], backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
-    }
-
-    function renderUfStatusTable(data) {
-      const map = {};
-      data.forEach(item => {
-        const uf = item.uf || 'GERAL';
-        if (!map[uf]) map[uf] = { total: 0, concluido: 0 };
-        map[uf].total += 1;
-        if (normalizeStatus(item.status).includes('CONCLU')) map[uf].concluido += 1;
-      });
-
-      const rows = Object.entries(map).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
-      const tbody = document.getElementById('uf-status-table-body');
-      tbody.innerHTML = '';
-      rows.forEach(([uf, info]) => {
-        const pct = info.total ? Math.round((info.concluido / info.total) * 100) : 0;
-        let badge = '<span class="badge-status status-outro">CRÍTICO</span>';
-        if (pct >= 80) badge = '<span class="badge-status status-concluido">NORMAL</span>';
-        else if (pct >= 50) badge = '<span class="badge-status status-andamento">ATENÇÃO</span>';
-        tbody.innerHTML += `<tr><td><strong>${escapeHtml(uf)}</strong></td><td>${fmt(info.total)}</td><td>${pct}%</td><td>${badge}</td></tr>`;
-      });
-    }
-
-    function renderSegmentedBar(data) {
-      const counts = { concluido: 0, andamento: 0, pernoite: 0, outro: 0 };
-      data.forEach(item => {
-        const key = normalizeStatus(item.status);
-        if (key.includes('CONCLU')) counts.concluido++;
-        else if (key.includes('ANDAMENTO')) counts.andamento++;
-        else if (key.includes('PERNOITE')) counts.pernoite++;
-        else counts.outro++;
-      });
-
-      const total = data.length || 1;
-      const colors = { concluido: '#10b981', andamento: '#3b82f6', pernoite: '#8b5cf6', outro: '#f59e0b' };
-      const labels = { concluido: 'Concluído', andamento: 'Andamento', pernoite: 'Pernoite', outro: 'Outro' };
-      const bar = document.getElementById('segmented-bar');
-      const legend = document.getElementById('segmented-legend');
-      bar.innerHTML = '';
-      legend.innerHTML = '';
-
-      Object.entries(counts).forEach(([key, value]) => {
-        const pct = (value / total) * 100;
-        if (pct <= 0) return;
-        const seg = document.createElement('div');
-        seg.style.width = `${pct}%`;
-        seg.style.background = colors[key];
-        bar.appendChild(seg);
-        legend.innerHTML += `<div style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color: var(--muted);"><span style="width:10px;height:10px;border-radius:50%;display:inline-block;background:${colors[key]};"></span>${labels[key]} (${Math.round(pct)}%)</div>`;
-      });
-    }
-
-    function renderFunil(data) {
-      const counts = { andamento: 0, pernoite: 0, concluido: 0 };
-      data.forEach(item => {
-        const key = normalizeStatus(item.status);
-        if (key.includes('CONCLU')) counts.concluido++;
-        else if (key.includes('ANDAMENTO')) counts.andamento++;
-        else if (key.includes('PERNOITE')) counts.pernoite++;
-      });
-      document.getElementById('funil-andamento-label').textContent = fmt(counts.andamento);
-      document.getElementById('funil-pernoite-label').textContent = fmt(counts.pernoite);
-      document.getElementById('funil-concluido-label').textContent = fmt(counts.concluido);
-    }
-
-    function renderRankingMotoristas(data) {
-      const map = {};
-      data.forEach(item => {
-        const name = item.motorista || 'NÃO INFORMADO';
-        map[name] = (map[name] || 0) + Number(item.qtdNFs || 0);
-      });
-
-      const items = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5);
-      const container = document.getElementById('ranking-motoristas');
-      container.innerHTML = '';
-      items.forEach(([name, total]) => {
-        const row = document.createElement('div');
-        row.className = 'panel';
-        row.style.padding = '12px 14px';
-        row.innerHTML = `<div style="display:flex; justify-content:space-between; gap:12px; align-items:center;"><span>${escapeHtml(name)}</span><strong style="color:#60a5fa;">${fmt(total)}</strong></div>`;
-        container.appendChild(row);
-      });
-    }
-
-    function renderOcorrencias(data) {
-      const sorted = [...data].sort((a, b) => b.criado.localeCompare(a.criado)).slice(0, 10);
-      const container = document.getElementById('timeline-ocorrencias');
-      container.innerHTML = '';
-      sorted.forEach(item => {
-        const key = normalizeStatus(item.status);
-        const color = key.includes('CONCLU') ? '#10b981' : key.includes('ANDAMENTO') ? '#3b82f6' : key.includes('PERNOITE') ? '#8b5cf6' : '#f59e0b';
-        const row = document.createElement('div');
-        row.className = 'timeline-item';
-        row.innerHTML = `
-          <span class="timeline-dot" style="background:${color};"></span>
-          <div class="timeline-body">
-            <span class="timeline-title">${escapeHtml(item.documento)} — ${escapeHtml(item.motorista)}</span>
-            <span class="timeline-sub">${escapeHtml(item.operacao)} · ${escapeHtml(item.criado)} · ${statusBadge(item.status)}</span>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function renderTable(data) {
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = '';
-      const rows = [...data].sort((a, b) => b.criado.localeCompare(a.criado)).slice(0, 12);
-      rows.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${escapeHtml(item.documento)}</td>
-          <td>${escapeHtml(item.criado)}</td>
-          <td>${escapeHtml(item.motorista)}</td>
-          <td>${escapeHtml(item.operacao)}</td>
-          <td>${perfilBadge(item.perfil)}</td>
-          <td>${fmt(item.kmRodados)}</td>
-          <td>${fmt(item.qtdNFs)}</td>
-          <td>${statusBadge(item.status)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      document.getElementById('table-count').textContent = fmt(rows.length);
-    }
-
-    function updateDespDashboard() {
-      const totalGasto = filteredDespData.reduce((sum, item) => sum + Number(item.valorTotal || 0), 0);
-      const qtdRegistros = filteredDespData.length;
-      const media = qtdRegistros ? totalGasto / qtdRegistros : 0;
-      const ultimaData = filteredDespData.length ? [...filteredDespData].sort((a, b) => b.dataCompra.localeCompare(a.dataCompra))[0].dataCompra : '--';
-
-      document.getElementById('desp-kpi-total').textContent = fmtMoeda(totalGasto);
-      document.getElementById('desp-kpi-count').textContent = fmt(qtdRegistros);
-      document.getElementById('desp-kpi-avg').textContent = fmtMoeda(media);
-      document.getElementById('desp-kpi-last').textContent = ultimaData === '--' ? '--' : ultimaData.split('-').reverse().join('/');
-
-      renderDespCharts();
-      renderDespTable();
-    }
-
-    function renderDespCharts() {
-      const counts = { Aprovado: 0, Pendente: 0, Recusado: 0 };
-      filteredDespData.forEach(item => {
-        const status = String(item.status || '').trim();
-        if (status === 'Aprovado') counts.Aprovado++;
-        else if (status === 'Pendente') counts.Pendente++;
-        else if (status === 'Recusado') counts.Recusado++;
-      });
-
-      const labels = [...new Set(filteredDespData.map(item => item.dataCompra).sort())];
-      const values = labels.map(date => filteredDespData.filter(item => item.dataCompra === date).reduce((sum, item) => sum + Number(item.valorTotal || 0), 0));
-
-      const lineCtx = document.getElementById('desp-lineChart').getContext('2d');
-      if (window.despLineChartInstance) window.despLineChartInstance.destroy();
-      window.despLineChartInstance = new Chart(lineCtx, {
-        type: 'line',
-        data: { labels, datasets: [{ data: values, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.18)', fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: value => fmtMoeda(value) } } } }
-      });
-
-      const donutCtx = document.getElementById('desp-donutChart').getContext('2d');
-      if (window.despDonutChartInstance) window.despDonutChartInstance.destroy();
-      window.despDonutChartInstance = new Chart(donutCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Aprovado', 'Pendente', 'Recusado'],
-          datasets: [{ data: [counts.Aprovado, counts.Pendente, counts.Recusado], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
-
-      const byPlaca = {};
-      filteredDespData.forEach(item => {
-        byPlaca[item.placa] = (byPlaca[item.placa] || 0) + Number(item.valorTotal || 0);
-      });
-      const placaEntries = Object.entries(byPlaca).sort((a, b) => b[1] - a[1]).slice(0, 10);
-      const barCtx = document.getElementById('desp-barChart').getContext('2d');
-      if (window.despBarChartInstance) window.despBarChartInstance.destroy();
-      window.despBarChartInstance = new Chart(barCtx, {
-        type: 'bar',
-        data: {
-          labels: placaEntries.map(([placa]) => placa),
-          datasets: [{ data: placaEntries.map(([, value]) => value), backgroundColor: '#8b5cf6', borderRadius: 8 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: value => fmtMoeda(value) } } } }
-      });
-
-      const byTipo = {};
-      filteredDespData.forEach(item => {
-        byTipo[item.tipoDoc] = (byTipo[item.tipoDoc] || 0) + Number(item.valorTotal || 0);
-      });
-      const tipoEntries = Object.entries(byTipo).sort((a, b) => b[1] - a[1]).slice(0, 6);
-      const neonCtx = document.getElementById('desp-neonLineChart').getContext('2d');
-      if (window.despNeonLineChartInstance) window.despNeonLineChartInstance.destroy();
-      window.despNeonLineChartInstance = new Chart(neonCtx, {
-        type: 'line',
-        data: {
-          labels: tipoEntries.map(([label]) => label),
-          datasets: [{ data: tipoEntries.map(([, value]) => value), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', fill: true, tension: 0.4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: value => fmtMoeda(value) } } } }
-      });
-    }
-
-    function renderDespTable() {
-      const tbody = document.getElementById('desp-table-body');
-      tbody.innerHTML = '';
-      const rows = [...filteredDespData].sort((a, b) => b.dataCompra.localeCompare(a.dataCompra)).slice(0, 20);
-      rows.forEach(item => {
-        const statusClassName = item.status === 'Aprovado' ? 'status-aprovado' : item.status === 'Pendente' ? 'status-pendente' : 'status-recusado';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${escapeHtml(item.id)}</td>
-          <td>${escapeHtml(item.placa)}</td>
-          <td>${escapeHtml(item.servico)}</td>
-          <td>${fmtMoeda(item.valorTotal)}</td>
-          <td>${fmtMoeda(item.valorUnit)}</td>
-          <td>${fmt(item.qntd)}</td>
-          <td>${escapeHtml(item.dataCompra)}</td>
-          <td><span class="badge-despesa ${statusClassName}">${escapeHtml(item.status)}</span></td>
-          <td>${escapeHtml(item.aprovador)}</td>
-          <td>${escapeHtml(item.tipoDoc)}</td>
-          <td>${escapeHtml(item.formaPag)}</td>
-          <td>${escapeHtml(item.fornecedor)}</td>
-          <td>${escapeHtml(item.criadoPor)}</td>
-          <td>${escapeHtml(item.informacao)}</td>
-          <td>${escapeHtml(item.umb)}</td>
-          <td>${escapeHtml(item.banco)}</td>
-          <td>${escapeHtml(item.chavePix)}</td>
-          <td>${escapeHtml(item.bancoAjud)}</td>
-          <td>${escapeHtml(item.chaveAjud)}</td>
-          <td>${escapeHtml(item.recebedor)}</td>
-          <td>${fmtMoeda(item.descontos)}</td>
-          <td>${escapeHtml(item.operacao)}</td>
-          <td><button type="button" class="btn-connect" style="padding:8px 10px; font-size:0.7rem; border-radius:8px; background:#1d4ed8; color:#fff;" onclick="openDespAttachment('${escapeHtml(item.id)}')">Detalhes</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-      document.getElementById('desp-table-count').textContent = fmt(rows.length);
-    }
-
-    function openDespAttachment(id) {
-      const item = rawDespData.find(entry => String(entry.id) === String(id));
-      if (!item) return;
-
-      const modal = document.getElementById('desp-attachment-modal');
-      const title = document.getElementById('desp-modal-title');
-      const image = document.getElementById('desp-modal-image');
-      const empty = document.getElementById('desp-modal-no-image');
-      const info = document.getElementById('desp-modal-info');
-
-      title.textContent = `Comprovante / Anexo • ${item.placa}`;
-      image.style.display = 'none';
-      empty.style.display = 'none';
-      info.innerHTML = '';
-
-      const hasAttachment = !!item.anexo && item.anexo !== 'NÃO' && item.anexo !== 'SEM' && item.anexo !== 'N/A';
-      if (hasAttachment) {
-        image.src = item.anexo;
-        image.style.display = 'block';
-      } else {
-        empty.style.display = 'block';
-      }
-
-      const pairs = [
-        ['Placa', item.placa],
-        ['Serviço', item.servico],
-        ['Valor Total', fmtMoeda(item.valorTotal)],
-        ['Status', item.status],
-        ['Fornecedor', item.fornecedor],
-        ['Aprovador', item.aprovador],
-        ['Operação', item.operacao],
-        ['Forma de Pagamento', item.formaPag],
-        ['Banco', item.banco],
-        ['Chave Pix', item.chavePix],
-        ['Recebedor', item.recebedor]
-      ];
-
-      pairs.forEach(([label, value]) => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'modal-info-item';
-        itemDiv.innerHTML = `<span class="modal-info-label">${escapeHtml(label)}</span><span class="modal-info-value">${escapeHtml(value)}</span>`;
-        info.appendChild(itemDiv);
-      });
-
-      modal.classList.add('show');
-    }
-
-    function closeDespAttachmentModal(event) {
-      const modal = document.getElementById('desp-attachment-modal');
-      if (event && event.target !== event.currentTarget) return;
-      modal.classList.remove('show');
-    }
-
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        const modal = document.getElementById('desp-attachment-modal');
-        if (modal.classList.contains('show')) modal.classList.remove('show');
-      }
+function buildFallbackData() {
+    const hoje = new Date();
+    const dates = Array.from({ length: 12 }, (_, index) => {
+        const d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - (11 - index));
+        return d.toISOString().split('T')[0];
     });
 
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('display-name').textContent = 'Sessão em branco';
-    document.getElementById('loading-screen').style.display = 'none';
+    return dates.map((date, index) => ({
+        id: 1000 + index,
+        criado: date,
+        documento: `DOC-${String(index + 1).padStart(4, '0')}`,
+        motorista: `Motorista ${index + 1}`,
+        qtdNFs: 40 + index * 6,
+        kmInicial: 1200 + index * 80,
+        kmFinal: 1500 + index * 90,
+        kmRodados: 280 + index * 10,
+        status: index % 3 === 0 ? 'CONCLUÍDO' : index % 3 === 1 ? 'EM ANDAMENTO' : 'PERNOITE',
+        perfil: index % 2 === 0 ? 'PRÓPRIO' : 'AGREGADO',
+        operacao: `CLIENTE ${index + 1} | SP`,
+        uf: ['SP', 'RJ', 'MG', 'PR', 'SC'][index % 5],
+        observacao: `PLACA-${index + 1}`
+    }));
+}
 
-    applyFilters();
-    applyDespFilters();
-  </script>
-</body>
-</html>
+function buildFallbackDespData() {
+    const hoje = new Date();
+    return Array.from({ length: 18 }, (_, index) => {
+        const date = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - (17 - index));
+        const status = ['Aprovado', 'Pendente', 'Recusado'][index % 3];
+        return {
+            id: 2000 + index,
+            placa: `ABC-${String((index % 9) + 1).padStart(4, '0')}`,
+            servico: ['Combustível', 'Manutenção', 'Pneus', 'Pedágio'][index % 4],
+            valorTotal: 250 + index * 65,
+            valorUnit: 120 + index * 12,
+            qntd: 1 + (index % 4),
+            dataCompra: date.toISOString().split('T')[0],
+            status,
+            aprovador: status === 'Aprovado' ? 'Gestor' : status === 'Pendente' ? 'Financeiro' : 'Diretoria',
+            tipoDoc: ['NF', 'Recibo', 'Boleto'][index % 3],
+            formaPag: ['Pix', 'Transferência', 'Cartão'][index % 3],
+            fornecedor: `Fornecedor ${index + 1}`,
+            criadoPor: `Usuário ${index + 1}`,
+            informacao: `Dados do registro ${index + 1}`,
+            umb: 'UN',
+            banco: 'Banco do Brasil',
+            chavePix: 'pix@example.com',
+            bancoAjud: 'N/A',
+            chaveAjud: 'N/A',
+            recebedor: `Recebedor ${index + 1}`,
+            descontos: 0,
+            operacao: `Operação ${index + 1}`,
+            anexo: '',
+            descFunc: 'N/A',
+            parcelado: 'NÃO',
+            numParcelas: 1,
+            periodoParcelamento: 'N/A'
+        };
+    });
+}
+
+async function acquireTokenForGraph(account) {
+    if (!account) throw new Error('Conta Microsoft não encontrada.');
+
+    try {
+        return await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+    } catch (error) {
+        console.warn('Token silencioso falhou, tentando popup:', error);
+        return await myMSALObj.loginPopup(loginRequest).then((response) => {
+            document.getElementById('display-name').innerText = response.account.name;
+            return myMSALObj.acquireTokenSilent({ ...loginRequest, account: response.account });
+        });
+    }
+}
+
+async function fetchGraphList(url, token) {
+    const headers = { Authorization: `Bearer ${token.accessToken}` };
+    let all = [];
+    let nextUrl = url;
+    let pages = 0;
+
+    while (nextUrl && pages < 10) {
+        pages += 1;
+        const res = await fetch(nextUrl, { headers });
+        if (!res.ok) {
+            throw new Error(`Graph erro (${res.status})`);
+        }
+        const data = await res.json();
+        if (Array.isArray(data.value)) all = all.concat(data.value);
+        nextUrl = data['@odata.nextLink'] || null;
+    }
+
+    return all;
+}
+
+async function syncSharePointData(account) {
+    if (!account) account = myMSALObj.getAllAccounts()?.[0] || null;
+    if (!account) {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('login-view').style.display = 'flex';
+        showToast('Você precisa autenticar antes de sincronizar.');
+        return;
+    }
+
+    document.getElementById('loading-screen').style.display = 'flex';
+    document.getElementById('loading-msg').innerText = 'Sincronizando dados com o SharePoint...';
+
+    try {
+        const token = await acquireTokenForGraph(account);
+
+        let listLiberacao = [];
+        let listDespesas = [];
+
+        try {
+            const liberacaoUrl = 'https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000';
+            listLiberacao = await fetchGraphList(liberacaoUrl, token);
+        } catch (error) {
+            console.warn('Erro ao buscar LIBERACAO_VEICULO, usando fallback:', error);
+        }
+
+        try {
+            const despUrl = 'https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000';
+            listDespesas = await fetchGraphList(despUrl, token);
+        } catch (error) {
+            console.warn('Erro ao buscar BD_DESPESAS, usando fallback:', error);
+        }
+
+        rawData = listLiberacao.length ? listLiberacao.map((it) => {
+            const f = it.fields || {};
+            const perfilStr = safeString(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
+            const qNfs = safeNumber(f.QNTDDEENTREGA || f.QTDENTREGASFINALIZADAS || 0, 0);
+            const kmIni = safeNumber(f.KMINICIAL || 0, 0);
+            const kmFin = safeNumber(f.KMFINAL || 0, 0);
+            const kmRod = safeNumber(f.KMRODADOS || 0, 0) || (kmFin > kmIni ? kmFin - kmIni : 0);
+            const operacaoStr = safeString(f.CLIENTE_x007c_OPERA_x00c7__x00c3 || 'NÃO INFORMADA').toUpperCase();
+            let uf = 'GERAL';
+            const parts = operacaoStr.split('|');
+            if (parts.length > 1 && parts[0].trim().length === 2) uf = parts[0].trim().toUpperCase();
+
+            return {
+                id: it.id,
+                criado: safeDate(f.Created || new Date().toISOString(), ''),
+                documento: safeString(f.N_x00ba_DOCUMENTO || 'N/A'),
+                motorista: padronizarNome(f.NOME),
+                qtdNFs: qNfs,
+                kmInicial: kmIni,
+                kmFinal: kmFin,
+                kmRodados: kmRod,
+                status: normalizeStatus(f.STATUS || 'CONCLUÍDO'),
+                perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
+                operacao: operacaoStr,
+                uf,
+                observacao: safeString(f.OBSERVA_x00c7__x00c3_O || '').toUpperCase()
+            };
+        }) : buildFallbackData();
+
+        rawDespData = listDespesas.length ? listDespesas.map((it) => {
+            const f = it.fields || {};
+            return {
+                id: it.id,
+                placa: safeString(f.PLACA || f.Placa || 'N/A').toUpperCase(),
+                servico: safeString(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A').toUpperCase(),
+                valorTotal: safeNumber(f.VALORTOTAL || f.VALOR_x0020_TOTAL || f.ValorTotal || 0, 0),
+                valorUnit: safeNumber(f.VALORUNIT_x00c1_RIO || f.VALOR_x0020_UNIT_x00c1_RIO || f.ValorUnitario || 0, 0),
+                qntd: safeNumber(f.QNTD || f.QUANTIDADE || f.Quantidade || 1, 1),
+                dataCompra: safeDate(f.DATA_x0020_DE_x0020_COMPRA || f.DATACOMPRA || f.Created || new Date().toISOString(), ''),
+                status: safeString(f.STATUS || f.Status || 'Pendente').trim(),
+                aprovador: safeString(f.APROVADOR || f.Aprovador || 'N/A'),
+                tipoDoc: safeString(f.TIPO_x0020_DOCUMENTO || f.TIPODOCUMENTO || f.TipoDoc || 'N/A'),
+                formaPag: safeString(f.FORMA_x0020_PAGAMENTO || f.FORMAPAGAMENTO || f.FormaPagamento || 'N/A'),
+                fornecedor: safeString(f.FORNECEDOR || f.Fornecedor || 'N/A'),
+                criadoPor: safeString(f.CRIADO_x0020_POR || f.CRIADOPOR || f.Author || 'N/A'),
+                informacao: safeString(f.INFORMA_x00c7__x00c3_O || f.INFORMACAO || f.Informacao || 'N/A'),
+                umb: safeString(f.UMB || f.Umb || 'N/A'),
+                banco: safeString(f.BANCO || f.Banco || 'N/A'),
+                chavePix: safeString(f.CHAVE_x0020_PIX || f.CHAVEPIX || f.ChavePix || 'N/A'),
+                bancoAjud: safeString(f.BANCO_x0020_AJUDANTE || f.BANCOAJUDANTE || f.BancoAjudante || 'N/A'),
+                chaveAjud: safeString(f.CHAVE_x0020_AJUDANTE || f.CHAVEAJUDANTE || f.ChaveAjudante || 'N/A'),
+                recebedor: safeString(f.RECEBEDOR || f.Recebedor || 'N/A'),
+                descontos: safeNumber(f.DESCONTOS || f.Descontos || 0, 0),
+                operacao: safeString(f.OPERA_x00c7__x00c3_O || f.OPERACAO || f.Operacao || 'N/A'),
+                anexo: safeString(f.ANEXO || f.Anexo || '', ''),
+                descFunc: safeString(f.DESC_x0020_FUNC || f.DESCFUNC || f.DescFunc || 'N/A'),
+                parcelado: safeString(f.PARCELADO || f.Parcelado || 'NÃO'),
+                numParcelas: safeNumber(f.N_x00ba__x0020_PARCELAS || f.NUMPARCELAS || f.NumParcelas || 1, 1),
+                periodoParcelamento: safeString(f.PER_x00cd_ODO_x0020_PARCELAMENTO || f.PERIODOPARCELAMENTO || 'N/A')
+            };
+        }) : buildFallbackDespData();
+
+        document.getElementById('display-name').innerText = account.name || 'Usuário';
+        showToast(`✅ Sincronizado: ${rawData.length} Veículos | ${rawDespData.length} Despesas`);
+    } catch (error) {
+        console.error(error);
+        rawData = buildFallbackData();
+        rawDespData = buildFallbackDespData();
+        document.getElementById('display-name').innerText = account.name || 'Usuário';
+        showToast('⚠️ Dados de demonstração carregados.');
+    } finally {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        if (typeof popularFiltrosDinamicos === 'function') popularFiltrosDinamicos();
+        if (typeof applyFilters === 'function') applyFilters();
+        if (typeof applyDespFilters === 'function') applyDespFilters();
+    }
+}
+
+function iniciarLogin() {
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('loading-screen').style.display = 'flex';
+    myMSALObj.loginPopup(loginRequest)
+        .then(response => {
+            document.getElementById('display-name').innerText = response.account.name;
+            syncSharePointData(response.account);
+        })
+        .catch(error => {
+            console.error(error);
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('login-view').style.display = 'flex';
+            showToast('Erro ao conectar.');
+        });
+}
+
+/* =========================================================
+   LÓGICA OPERAÇÃO (VEICULO_LIBERACAO)
+   ========================================================= */
