@@ -1101,43 +1101,233 @@ function normalizarAnexo(v) {
 
 function mapDespesaItem(it) {
     const f = it.fields || {};
-    const num = (v, def = 0) => { const n = parseNumberBR(v); return n === null ? def : n; };
+
+    console.log("ITEM DESPESA:", f);
+    console.log("CHAVES:", Object.keys(f));
+
+    const num = (v, def = 0) => {
+        const n = parseNumberBR(v);
+        return n === null ? def : n;
+    };
+
     return {
         id: it.id,
-        placa: safeStr(pick(f, 'PLACA', 'Placa')).toUpperCase(),
-        servico: safeStr(pick(f, 'SERVI_x00c7_O', 'SERVICO', 'Servico')).toUpperCase(),
-        valorTotal: num(pick(f, 'VALORTOTAL', 'VALOR_x0020_TOTAL', 'ValorTotal')),
-        valorUnit: num(pick(f, 'VALORUNIT_x00c1_RIO', 'VALOR_x0020_UNIT_x00c1_RIO', 'ValorUnitario')),
-        qntd: num(pick(f, 'QNTD', 'QUANTIDADE', 'Quantidade'), 1),
-        dataCompra: toISODate(pick(f, 'DATA_x0020_DE_x0020_COMPRA', 'DATACOMPRA', 'Created')),
-        status: safeStr(pick(f, 'STATUS', 'Status'), 'Pendente'),
-        aprovador: safeStr(pick(f, 'APROVADOR', 'Aprovador')),
-        tipoDoc: safeStr(pick(f, 'TIPO_x0020_DOCUMENTO', 'TIPODOCUMENTO', 'TipoDoc')),
-        formaPag: safeStr(pick(f, 'FORMA_x0020_PAGAMENTO', 'FORMAPAGAMENTO', 'FormaPagamento')),
-        fornecedor: safeStr(pick(f, 'FORNECEDOR', 'Fornecedor')),
-        criadoPor: safeStr(pick(f, 'CRIADO_x0020_POR', 'CRIADOPOR', 'Author')),
-        informacao: safeStr(pick(f, 'INFORMA_x00c7__x00c3_O', 'INFORMACAO', 'Informacao')),
-        umb: safeStr(pick(f, 'UMB', 'Umb')),
-        banco: safeStr(pick(f, 'BANCO', 'Banco')),
-        chavePix: safeStr(pick(f, 'CHAVE_x0020_PIX', 'CHAVEPIX', 'ChavePix')),
-        bancoAjud: safeStr(pick(f, 'BANCO_x0020_AJUDANTE', 'BANCOAJUDANTE', 'BancoAjudante')),
-        chaveAjud: safeStr(pick(f, 'CHAVE_x0020_AJUDANTE', 'CHAVEAJUDANTE', 'ChaveAjudante')),
-        recebedor: safeStr(pick(f, 'RECEBEDOR', 'Recebedor')),
-        descontos: num(pick(f, 'DESCONTOS', 'Descontos')),
-        operacao: safeStr(pick(f, 'OPERA_x00c7__x00c3_O', 'OPERACAO', 'Operacao')),
-        anexo: normalizarAnexo(pick(f, 'ANEXO', 'Anexo')) || (f.Attachments ? 'Sim' : ''),
-        descFunc: safeStr(pick(f, 'DESC_x0020_FUNC', 'DESCFUNC', 'DescFunc')),
-        parcelado: safeStr(pick(f, 'PARCELADO', 'Parcelado'), 'NÃO'),
-        numParcelas: num(pick(f, 'N_x00ba__x0020_PARCELAS', 'NUMPARCELAS', 'NumParcelas'), 1),
-        periodoParcelamento: safeStr(pick(f, 'PER_x00cd_ODO_x0020_PARCELAMENTO', 'PERIODOPARCELAMENTO'))
+
+        placa: safeStr(pick(f,'Placa','PLACA')).toUpperCase(),
+
+        servico: safeStr(pick(f,'Servico','SERVICO')).toUpperCase(),
+
+        valorTotal: num(
+            pick(
+                f,
+                'Valor_total',
+                'VALORTOTAL',
+                'VALOR_x0020_TOTAL',
+                'ValorTotal'
+            )
+        ),
+
+        valorUnit: num(
+            pick(
+                f,
+                'Valor_unitario',
+                'VALORUNIT_x00c1_RIO',
+                'VALOR_x0020_UNIT_x00c1_RIO',
+                'ValorUnitario'
+            )
+        ),
+
+        qntd: num(
+            pick(
+                f,
+                'Qntd',
+                'QNTD',
+                'Quantidade'
+            ),
+            1
+        ),
+
+        dataCompra: toISODate(
+            pick(
+                f,
+                'Data_compra',
+                'DATACOMPRA',
+                'Created'
+            )
+        ),
+
+        status: safeStr(
+            pick(
+                f,
+                'Status',
+                'STATUS'
+            ),
+            'Pendente'
+        ),
+
+        aprovador: safeStr(
+            pick(
+                f,
+                'Aprovador',
+                'APROVADOR'
+            )
+        ),
+
+        tipoDoc: safeStr(
+            pick(
+                f,
+                'Tipo_documento',
+                'TIPODOCUMENTO'
+            )
+        ),
+
+        formaPag: safeStr(
+            pick(
+                f,
+                'Formas_pagamento',
+                'FORMAPAGAMENTO'
+            )
+        ),
+
+        fornecedor: safeStr(
+            pick(
+                f,
+                'Fornecedor',
+                'FORNECEDOR'
+            )
+        ),
+
+        criadoPor: safeStr(
+            pick(
+                f,
+                'Criado_por_user',
+                'CRIADOPOR'
+            )
+        ),
+
+        informacao: safeStr(
+            pick(
+                f,
+                'Informacao',
+                'INFORMACAO'
+            )
+        ),
+
+        umb: safeStr(
+            pick(
+                f,
+                'UMB'
+            )
+        ),
+
+        banco: safeStr(
+            pick(
+                f,
+                'Banco',
+                'BANCO'
+            )
+        ),
+
+        chavePix: safeStr(
+            pick(
+                f,
+                'ChavePix',
+                'CHAVEPIX'
+            )
+        ),
+
+        bancoAjud: safeStr(
+            pick(
+                f,
+                'BancoAjudante',
+                'BANCOAJUDANTE'
+            )
+        ),
+
+        chaveAjud: safeStr(
+            pick(
+                f,
+                'ChaveAjudante',
+                'CHAVEAJUDANTE'
+            )
+        ),
+
+        recebedor: safeStr(
+            pick(
+                f,
+                'Nome_recebedor',
+                'RECEBEDOR'
+            )
+        ),
+
+        descontos: num(
+            pick(
+                f,
+                'Descontos',
+                'DESCONTOS'
+            )
+        ),
+
+        operacao: safeStr(
+            pick(
+                f,
+                'Operacao',
+                'OPERACAO'
+            )
+        ),
+
+        anexo: normalizarAnexo(
+            pick(
+                f,
+                'Anexo',
+                'ANEXO'
+            )
+        ) || (f.Attachments ? 'Sim' : ''),
+
+        descFunc: safeStr(
+            pick(
+                f,
+                'Desconto_funcionario',
+                'DESCFUNC'
+            )
+        ),
+
+        parcelado: safeStr(
+            pick(
+                f,
+                'Parcelado',
+                'PARCELADO'
+            ),
+            'NÃO'
+        ),
+
+        numParcelas: safeStr(
+            pick(
+                f,
+                'Numero_parcelas',
+                'NUMPARCELAS'
+            )
+        ),
+
+        periodoParcelamento: safeStr(
+            pick(
+                f,
+                'Periodo_parcelas',
+                'PERIODOPARCELAMENTO'
+            )
+        )
     };
 }
 function mapDespesasLista(items) {
     const lista = items.map(mapDespesaItem);
-    lista.sort((a, b) => b.dataCompra.localeCompare(a.dataCompra) || Number(b.id) - Number(a.id));
+
+    lista.sort((a, b) =>
+        (b.dataCompra || '').localeCompare(a.dataCompra || '') ||
+        Number(b.id) - Number(a.id)
+    );
+
     return lista;
 }
-
 /* ---------- Orquestração da sincronização ---------- */
 const LISTAS_SYNC = [
     {
