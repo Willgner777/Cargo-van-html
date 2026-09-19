@@ -1,385 +1,1174 @@
-<script>
-const msalConfig = {
-    auth: {
-        clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981",
-        authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40",
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cargo Van EX - Dashboard Executivo v1.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <style>
+    :root {
+      --bg-base: #070b14;
+      --bg-panel: #0f1524;
+      --bg-panel-hover: #141c30;
+      --bg-glass: rgba(15,21,36,.85);
+      --text-main: #e6edf3;
+      --text-muted: #8b9bb8;
+      --accent-blue: #3b82f6;
+      --accent-blue-dark: #2563eb;
+      --accent-green: #10b981;
+      --accent-warning: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --border: #1e293b;
+      --radius: 14px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --login-bg: #163C92;
+      --login-red: #FF3B30;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+    body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
+    a { color: inherit; text-decoration: none; }
+    input, button, select { font: inherit; }
+    .view-hidden { display: none !important; }
+
+    #login-view {
+      display: flex; flex-direction: column; justify-content: center;
+      height: 100vh; width: 100vw; background-color: var(--login-bg);
+      padding: 10%; position: relative; overflow: hidden; z-index: 10;
+    }
+    #login-view::before, #login-view::after {
+      content: ''; position: absolute; border-radius: 50%; background: rgba(255,255,255,0.04); z-index: 0;
+    }
+    #login-view::before { width: 800px; height: 800px; top: -200px; right: -200px; }
+    #login-view::after { width: 400px; height: 400px; bottom: -100px; right: 20%; }
+    .login-content { position: relative; z-index: 1; max-width: 800px; }
+    .brand-title { color: #fff; font-size: 2.5rem; font-weight: 800; letter-spacing: 2px; margin-bottom: 2px; }
+    .brand-subtitle { color: var(--login-red); font-size: 1rem; font-weight: 800; letter-spacing: 5px; margin-bottom: 60px; text-transform: uppercase; }
+    .hero-text { color: #fff; font-size: 3.5rem; font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+    .hero-subtext { color: #A5C0FA; font-size: 1.2rem; margin-bottom: 50px; font-weight: 500; }
+    .btn-connect {
+      background-color: #fff; color: var(--login-bg); padding: 16px 36px; font-size: 1.1rem; font-weight: 700;
+      border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 10px;
+    }
+    .btn-connect:hover { transform: translateY(-3px); background-color: #f8f9fa; }
+
+    #loading-screen {
+      display: none; height: 100vh; width: 100vw; background-color: var(--bg-base);
+      flex-direction: column; justify-content: center; align-items: center; z-index: 20; position: fixed; top: 0; left: 0;
+    }
+    .spinner {
+      width: 65px; height: 65px; border: 4px solid rgba(59,130,246,0.15); border-left-color: var(--accent-blue);
+      border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;
+    }
+    .loading-text { color: var(--text-main); font-size: 1.2rem; font-weight: 600; letter-spacing: 0.5px; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    #dashboard { display: none; height: 100vh; overflow: hidden; }
+    .layout { display: flex; height: 100%; width: 100%; }
+    .sidebar {
+      width: 280px; min-width: 280px; background: var(--bg-panel); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 24px 0; z-index: 5;
+    }
+    .brand { padding: 0 24px 24px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #fff; border-bottom: 1px solid var(--border); }
+    .brand svg { width: 24px; height: 24px; fill: var(--accent-blue); }
+    .sidebar-menu { padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: all .2s; }
+    .sidebar-item svg { width: 18px; height: 18px; fill: currentColor; }
+    .sidebar-item:hover, .sidebar-item.active { background: var(--bg-panel-hover); color: #fff; }
+    .user-profile { padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
+    .user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 24px; gap: 20px; background: var(--bg-base); }
+    .filter-bar {
+      background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: center;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label { font-size: 10px; color: var(--accent-blue); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .filter-input {
+      background: rgba(7,11,20,.8); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 8px;
+      font-size: 12px; outline: none; width: 100%; transition: .2s;
+    }
+    .filter-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .kpi-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+    .kpi-card.highlight { background: linear-gradient(135deg, #1e3a8a, #2563eb); border: none; }
+    .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); font-weight: 700; }
+    .highlight .kpi-title { color: rgba(255,255,255,.8); }
+    .kpi-value { font-size: 26px; font-weight: 800; color: #fff; }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); }
+    .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media(max-width: 1200px) { .content-grid, .content-grid-3 { grid-template-columns: 1fr; } }
+    .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; }
+    .panel-title { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .chart-container { position: relative; height: 260px; width: 100%; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { color: var(--text-muted); padding: 12px 10px; border-bottom: 1px solid var(--border); font-weight: 700; text-transform: uppercase; font-size: 10px; text-align: left; }
+    td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd5e1; vertical-align: middle; }
+    .badge-status { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+    .status-concluido { background: rgba(16,185,129,.15); color: #10b981; border: 1px solid rgba(16,185,129,.3); }
+    .status-andamento { background: rgba(59,130,246,.15); color: #3b82f6; border: 1px solid rgba(59,130,246,.3); }
+    .status-pernoite { background: rgba(139,92,246,.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,.3); }
+    .status-outro { background: rgba(245,158,11,.15); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
+    .badge-perfil { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+    .perfil-proprio { background: rgba(59,130,246,.12); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
+    .perfil-agregado { background: rgba(139,92,246,.12); color: #a78bfa; border: 1px solid rgba(139,92,246,.25); }
+    #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: .2s; z-index: 1000; }
+    .modal-overlay.show { opacity: 1; visibility: visible; }
+    .modal-content { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; max-width: 90vw; max-height: 90vh; width: 800px; overflow: hidden; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .modal-title { font-size: 14px; font-weight: 700; color: #fff; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 4px; }
+    .modal-body { padding: 20px; max-height: 70vh; overflow: auto; }
+    .modal-image { max-width: 100%; max-height: 70vh; border-radius: 8px; display: block; margin: 0 auto; }
+    .modal-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+    .modal-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .modal-info-item { display: flex; flex-direction: column; gap: 4px; }
+    .modal-info-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: .5px; }
+    .modal-info-value { font-size: 13px; color: var(--text-main); font-weight: 600; }
+
+    .badge-despesa { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
+    .status-aprovado { background: rgba(16,185,129,.15); color: #10b981; border: 1px solid rgba(16,185,129,.3); }
+    .status-pendente { background: rgba(245,158,11,.15); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
+    .status-recusado { background: rgba(239,68,68,.15); color: #ef4444; border: 1px solid rgba(239,68,68,.3); }
+
+    @media(max-width: 980px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; min-width: 100%; }
+      .sidebar-menu { flex-direction: row; flex-wrap: wrap; }
+      .main-content { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="login-view">
+    <div class="login-content">
+      <div class="brand-title">CARGO VAN</div>
+      <div class="brand-subtitle">EX</div>
+      <h1 class="hero-text">A Logística Completa<br>na sua Mão.</h1>
+      <p class="hero-subtext">Gerencie sua frota com controle, eficiência e dados oficiais do SharePoint em tempo real.</p>
+      <button class="btn-connect" onclick="iniciarLogin()">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        Conectar com Microsoft
+      </button>
+    </div>
+  </div>
+
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-msg">Sincronizando dados com o SharePoint...</div>
+  </div>
+
+  <div id="dashboard">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          TechSolutions Analytics
+        </div>
+        <div class="sidebar-menu">
+          <a href="#" class="sidebar-item active" onclick="showView('operacao')"> <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg> Operação </a>
+          <a href="#" class="sidebar-item" onclick="showView('despesas')"> <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-1.1 0-2-.9-2-2h-1c0 1.66 1.34 3 3 3s3-1.34 3-3h-1c0 1.1-.9 2-2 2zm-1-5h2V5h-2v10z"/></svg> Despesas </a>
+          <a href="#" class="sidebar-item" onclick="syncSharePointData(); return false;"> <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A8.04 8.04 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> Sincronizar Dados </a>
+        </div>
+        <div class="user-profile">
+          <div class="user-name" id="display-name">Carregando...</div>
+        </div>
+      </aside>
+
+      <main class="main-content" id="operacao-view">
+        <div class="filter-bar">
+          <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
+          <div class="filter-group"><label>Data Final</label><input type="date" id="filter-end" class="filter-input"></div>
+          <div class="filter-group"><label>Placa / Veículo</label><input type="text" id="filter-placa" class="filter-input" placeholder="Filtrar placa..."></div>
+          <div class="filter-group"><label>Nº Documento</label><input type="text" id="filter-doc" class="filter-input" placeholder="Nº Documento"></div>
+          <div class="filter-group"><label>Cliente / Operação</label><input type="text" id="filter-operacao" class="filter-input" placeholder="Cliente ou UF"></div>
+          <div class="filter-group"><label>Status</label><select id="filter-status" class="filter-input"><option value="">Todos</option></select></div>
+          <div class="filter-group"><label>Perfil Frota</label><select id="filter-perfil" class="filter-input"><option value="">Todos</option><option value="PRÓPRIO">Próprio</option><option value="AGREGADO">Agregado</option></select></div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card highlight"><div class="kpi-title">Total Entregas</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub">Registros Oficiais</div></div>
+          <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">NFs Faturadas</div><div class="kpi-value" id="kpi-nfs">0</div><div class="kpi-sub">Volume Calculado</div></div>
+          <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Frota Própria</div><div class="kpi-value" id="kpi-proprio">0</div><div class="kpi-sub">NFs Realizadas</div></div>
+          <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Agregados</div><div class="kpi-value" id="kpi-agregado">0</div><div class="kpi-sub">NFs Realizadas</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Meta Mensal de NFs</div><span id="meta-mensal-pct" style="font-size:12px;font-weight:700;color:var(--accent-green)">0%</span></div>
+          <div class="progress-wrap" style="display:flex;flex-direction:column;gap:10px;">
+            <div class="progress-top" style="display:flex;justify-content:space-between;align-items:baseline;">
+              <span style="font-size:12px;color:var(--text-muted)">Realizado: <strong id="meta-mensal-atual" style="color:#fff">0</strong></span>
+              <span style="font-size:12px;color:var(--text-muted)">Meta: <strong id="meta-mensal-alvo" style="color:#fff">0</strong></span>
+            </div>
+            <div class="progress-track" style="width:100%;height:14px;background:rgba(255,255,255,0.06);border-radius:8px;overflow:hidden;"><div class="progress-fill" id="meta-mensal-fill" style="height:100%;width:0;background:linear-gradient(90deg,var(--accent-blue),var(--accent-green));border-radius:8px;transition:width 1s ease;"></div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Indicadores de Desempenho</div></div>
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-title">KM Total</div><div class="kpi-value" id="km-total-value">0 km</div><div class="kpi-sub">Total KM rodado no período</div></div>
+            <div class="kpi-card"><div class="kpi-title">Taxa de Conclusão</div><div class="kpi-value" id="ring-conclusao-label">0%</div><div class="kpi-sub">Concluídos / total</div></div>
+            <div class="kpi-card"><div class="kpi-title">Eficiência</div><div class="kpi-value" id="ring-eficiencia-label">0</div><div class="kpi-sub">NFs / 100km</div></div>
+          </div>
+        </div>
+
+        <div class="content-grid-3">
+          <div class="panel" style="grid-column: span 2;">
+            <div class="panel-header"><div class="panel-title">Evolução de Entregas (NFs)</div></div>
+            <div class="chart-container"><canvas id="lineChart"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Mix de Frota</div></div>
+            <div class="chart-container"><canvas id="polarChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel"><div class="panel-header"><div class="panel-title">Volume por Cliente / Operação</div></div><div class="chart-container"><canvas id="barChart"></canvas></div></div>
+          <div class="panel"><div class="panel-header"><div class="panel-title">Status da Operação</div></div><div class="chart-container"><canvas id="statusHChart"></canvas></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
+          <div class="table-container"><table><thead><tr><th>UF</th><th>Entregas</th><th>% Concluído</th><th>Status</th></tr></thead><tbody id="uf-status-table-body"></tbody></table></div>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel"><div class="panel-header"><div class="panel-title">Distribuição de Status</div></div><div id="segmented-bar" style="display:flex;width:100%;height:22px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.05);"></div><div id="segmented-legend" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;"></div></div>
+          <div class="panel"><div class="panel-header"><div class="panel-title">Funil Operacional</div></div><div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:18px;">
+            <div style="text-align:center;"><div id="funil-andamento-label" style="font-size:1.6rem;font-weight:800;color:#60a5fa;">0</div><div style="color:var(--text-muted);font-size:0.7rem;">Em Rota</div></div>
+            <div style="text-align:center;"><div id="funil-pernoite-label" style="font-size:1.6rem;font-weight:800;color:#a78bfa;">0</div><div style="color:var(--text-muted);font-size:0.7rem;">Pernoite</div></div>
+            <div style="text-align:center;"><div id="funil-concluido-label" style="font-size:1.6rem;font-weight:800;color:#34d399;">0</div><div style="color:var(--text-muted);font-size:0.7rem;">Concluído</div></div>
+          </div></div></div>
+        </div>
+
+        <div class="panel"><div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div><div class="chart-container"><canvas id="opTargetChart"></canvas></div></div>
+
+        <div class="panel"><div class="panel-header"><div class="panel-title">Top 5 Motoristas (NFs)</div></div><div id="ranking-motoristas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;"></div></div>
+        <div class="panel"><div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div><div class="timeline-list" id="timeline-ocorrencias" style="display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;"></div></div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:11px;color:var(--text-muted)"></span></div>
+          <div class="table-container"><table><thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Ini / Fin) | Rodados</th><th>NFs</th><th>Status</th></tr></thead><tbody id="table-body"></tbody></table></div>
+        </div>
+      </main>
+
+      <main class="main-content view-hidden" id="despesas-view">
+        <div class="filter-bar">
+          <div class="filter-group"><label>Data Inicial</label><input type="date" id="desp-filter-start" class="filter-input"></div>
+          <div class="filter-group"><label>Data Final</label><input type="date" id="desp-filter-end" class="filter-input"></div>
+          <div class="filter-group"><label>Placa</label><input type="text" id="desp-filter-placa" class="filter-input" placeholder="Filtrar placa..."></div>
+          <div class="filter-group"><label>Serviço</label><input type="text" id="desp-filter-servico" class="filter-input" placeholder="Filtrar serviço..."></div>
+          <div class="filter-group"><label>ID</label><input type="number" id="desp-filter-id" class="filter-input" placeholder="ID ACESSOS"></div>
+          <div class="filter-group"><label>Status</label><select id="desp-filter-status" class="filter-input"><option value="">Todos</option><option value="Aprovado">Aprovado</option><option value="Pendente">Pendente</option><option value="Recusado">Recusado</option></select></div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card highlight"><div class="kpi-title">Total Gasto</div><div class="kpi-value" id="desp-kpi-total">R$ 0,00</div><div class="kpi-sub">Soma Valor Total</div></div>
+          <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-green)">Qtd Registros</div><div class="kpi-value" id="desp-kpi-count">0</div><div class="kpi-sub">Linhas Filtradas</div></div>
+          <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-blue)">Média / Registro</div><div class="kpi-value" id="desp-kpi-avg">R$ 0,00</div><div class="kpi-sub">Valor Total / Qtd</div></div>
+          <div class="kpi-card"><div class="kpi-title" style="color:var(--accent-purple)">Última Compra</div><div class="kpi-value" id="desp-kpi-last">--</div><div class="kpi-sub">Data mais recente</div></div>
+        </div>
+
+        <div class="content-grid-3">
+          <div class="panel" style="grid-column: span 2;"><div class="panel-header"><div class="panel-title">Evolução Temporal (Data × Valor Total)</div></div><div class="chart-container"><canvas id="desp-lineChart"></canvas></div></div>
+          <div class="panel"><div class="panel-header"><div class="panel-title">Distribuição por Status</div></div><div class="chart-container"><canvas id="desp-donutChart"></canvas></div></div>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel"><div class="panel-header"><div class="panel-title">Gasto por Placa (Top 10)</div></div><div class="chart-container"><canvas id="desp-barChart"></canvas></div></div>
+          <div class="panel"><div class="panel-header"><div class="panel-title">Tipo Documento × Valor Total</div></div><div class="chart-container"><canvas id="desp-neonLineChart"></canvas></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Registros de Despesas</div><span id="desp-table-count" style="font-size:11px;color:var(--text-muted)"></span></div>
+          <div class="table-container"><table><thead><tr><th>ID</th><th>Placa</th><th>Serviço</th><th>Valor Total</th><th>Valor Unit.</th><th>Qntd</th><th>Data Compra</th><th>Status</th><th>Aprovador</th><th>Tipo Doc.</th><th>Forma Pag.</th><th>Fornecedor</th><th>Criado Por</th><th>Informação</th><th>UMB</th><th>Banco</th><th>Chave Pix</th><th>Banco Ajud.</th><th>Chave Ajud.</th><th>Recebedor</th><th>Descontos</th><th>Operação</th><th>Anexo</th></tr></thead><tbody id="desp-table-body"></tbody></table></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div class="modal-overlay" id="desp-attachment-modal" onclick="closeDespAttachmentModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header"><div class="modal-title" id="desp-modal-title">Comprovante / Anexo</div><button class="modal-close" onclick="closeDespAttachmentModal()">&times;</button></div>
+      <div class="modal-body">
+        <img id="desp-modal-image" class="modal-image" style="display:none;" alt="Comprovante do gasto">
+        <div id="desp-modal-no-image" class="modal-empty" style="display:none;">Sem anexo disponível.</div>
+        <div id="desp-modal-info" class="modal-info"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const msalConfig = {
+      auth: {
+        clientId: '3b29c3bc-e828-4835-a7bf-1f035ae7c981',
+        authority: 'https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40',
         redirectUri: window.location.origin + window.location.pathname
-    },
-    cache: { cacheLocation: "sessionStorage" }
-};
-const myMSALObj = new msal.PublicClientApplication(msalConfig);
-const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
+      },
+      cache: { cacheLocation: 'sessionStorage' }
+    };
 
-/* DADOS DA OPERAÇÃO */
-let rawData = [], filteredData = [];
-let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
-let sparklineChartInstance = null, opTargetChartInstance = null;
+    const myMSALObj = new msal.PublicClientApplication(msalConfig);
+    const loginRequest = { scopes: ['User.Read', 'Sites.Read.All'] };
 
-/* DADOS DE DESPESAS */
-let rawDespData = [], filteredDespData = [];
-let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
-
-Chart.register(ChartDataLabels);
-Chart.defaults.color = '#8b9bb8';
-Chart.defaults.font.family = "'Inter', sans-serif";
-
-function showView(viewName) {
-    const mainOp = document.getElementById('operacao-view');
-    const mainDesp = document.getElementById('despesas-view');
-    const navItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
-
-    if (viewName === 'despesas') {
-        if (mainOp) mainOp.classList.add('view-hidden');
-        if (mainDesp) mainDesp.classList.remove('view-hidden');
-        navItems[0].classList.remove('active');
-        navItems[1].classList.add('active');
-    } else {
-        if (mainOp) mainOp.classList.remove('view-hidden');
-        if (mainDesp) mainDesp.classList.add('view-hidden');
-        navItems[1].classList.remove('active');
-        navItems[0].classList.add('active');
-    }
-}
-
-const pulsePointsPlugin = {
-    id: 'pulsePointsPlugin',
-    afterDatasetsDraw(chart) {
-        if (chart.canvas.id !== 'lineChart') return;
-        const meta = chart.getDatasetMeta(0);
-        if (!meta || !meta.data || meta.data.length === 0) return;
-
-        const { ctx } = chart;
-        const t = performance.now() / 1000;
-        const lastIndex = meta.data.length - 1;
-
-        meta.data.forEach((point, index) => {
-            const isLast = index === lastIndex;
-            const speed = isLast ? 1.1 : 0.6;
-            const phase = index * 0.35;
-            const pulse = (Math.sin(t * speed + phase) + 1) / 2;
-
-            const baseRadius = isLast ? 6 : 5;
-            const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
-            const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(point.x, point.y, glowRadius, 0, Math.PI * 2);
-            ctx.fillStyle = isLast ? `rgba(16, 185, 129, ${glowAlpha})` : `rgba(59, 130, 246, ${glowAlpha})`;
-            ctx.fill();
-            ctx.restore();
-
-            if (isLast) {
-                const ringRadius = baseRadius + 4 + pulse * 12;
-                const ringAlpha = 0.55 * (1 - pulse);
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, ringRadius, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha})`;
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.restore();
-            }
-        });
-    }
-};
-Chart.register(pulsePointsPlugin);
-
-const peakAnnotationPlugin = {
-    id: 'peakAnnotationPlugin',
-    afterDatasetsDraw(chart) {
-        if (chart.canvas.id !== 'lineChart') return;
-        const meta = chart.getDatasetMeta(0);
-        const dataset = chart.data.datasets[0];
-        if (!meta || !dataset || !dataset.data || !dataset.data.length) return;
-        let maxVal = -Infinity, maxIdx = -1;
-        dataset.data.forEach((v, i) => { if (v > maxVal) { maxVal = v; maxIdx = i; } });
-        if (maxIdx === -1) return;
-        const point = meta.data[maxIdx];
-        const label = chart.data.labels[maxIdx];
-        const { ctx } = chart;
-        ctx.save();
-        ctx.font = 'bold 10px Inter, sans-serif';
-        ctx.fillStyle = '#f59e0b';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Pico: ${label} • ${fmt(maxVal)}`, point.x, Math.max(14, point.y - 24));
-        ctx.restore();
-    }
-};
-Chart.register(peakAnnotationPlugin);
-
-setInterval(() => {
-    if (lineChartInstance) lineChartInstance.draw();
-}, 100);
-
-function fmt(num) {
-    return Number(num || 0).toLocaleString('pt-BR');
-}
-
-function fmtMoeda(val) {
-    return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-function padronizarNome(nome) {
-    if (!nome) return 'NÃO INFORMADO';
-    return String(nome).toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function safeString(value, fallback = 'N/A') {
-    if (value === null || value === undefined) return fallback;
-    const str = String(value).trim();
-    return str ? str : fallback;
-}
-
-function safeNumber(value, fallback = 0) {
-    if (value === null || value === undefined || value === '') return fallback;
-    const n = Number(String(value).replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.'));
-    return Number.isFinite(n) ? n : fallback;
-}
-
-function safeDate(value, fallback = '') {
-    const raw = safeString(value, fallback);
-    return raw && raw.includes('T') ? raw.split('T')[0] : raw;
-}
-
-function normalizeStatus(status) {
-    const raw = safeString(status, 'OUTRO').toUpperCase();
-    if (raw.includes('CONCLUIDO') || raw.includes('CONCLUÍDO')) return 'CONCLUÍDO';
-    if (raw.includes('ANDAMENTO') || raw.includes('ROTA')) return 'EM ANDAMENTO';
-    if (raw.includes('PERNOITE')) return 'PERNOITE';
-    return raw || 'OUTRO';
-}
-
-function buildFallbackData() {
-    const hoje = new Date();
-    const dates = Array.from({ length: 12 }, (_, index) => {
-        const d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - (11 - index));
-        return d.toISOString().split('T')[0];
-    });
-
-    return dates.map((date, index) => ({
-        id: 1000 + index,
-        criado: date,
-        documento: `DOC-${String(index + 1).padStart(4, '0')}`,
-        motorista: `Motorista ${index + 1}`,
-        qtdNFs: 40 + index * 6,
-        kmInicial: 1200 + index * 80,
-        kmFinal: 1500 + index * 90,
-        kmRodados: 280 + index * 10,
-        status: index % 3 === 0 ? 'CONCLUÍDO' : index % 3 === 1 ? 'EM ANDAMENTO' : 'PERNOITE',
-        perfil: index % 2 === 0 ? 'PRÓPRIO' : 'AGREGADO',
-        operacao: `CLIENTE ${index + 1} | SP`,
-        uf: ['SP', 'RJ', 'MG', 'PR', 'SC'][index % 5],
-        observacao: `PLACA-${index + 1}`
-    }));
-}
-
-function buildFallbackDespData() {
-    const hoje = new Date();
-    return Array.from({ length: 18 }, (_, index) => {
-        const date = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - (17 - index));
-        const status = ['Aprovado', 'Pendente', 'Recusado'][index % 3];
-        return {
-            id: 2000 + index,
-            placa: `ABC-${String((index % 9) + 1).padStart(4, '0')}`,
-            servico: ['Combustível', 'Manutenção', 'Pneus', 'Pedágio'][index % 4],
-            valorTotal: 250 + index * 65,
-            valorUnit: 120 + index * 12,
-            qntd: 1 + (index % 4),
-            dataCompra: date.toISOString().split('T')[0],
-            status,
-            aprovador: status === 'Aprovado' ? 'Gestor' : status === 'Pendente' ? 'Financeiro' : 'Diretoria',
-            tipoDoc: ['NF', 'Recibo', 'Boleto'][index % 3],
-            formaPag: ['Pix', 'Transferência', 'Cartão'][index % 3],
-            fornecedor: `Fornecedor ${index + 1}`,
-            criadoPor: `Usuário ${index + 1}`,
-            informacao: `Dados do registro ${index + 1}`,
-            umb: 'UN',
-            banco: 'Banco do Brasil',
-            chavePix: 'pix@example.com',
-            bancoAjud: 'N/A',
-            chaveAjud: 'N/A',
-            recebedor: `Recebedor ${index + 1}`,
-            descontos: 0,
-            operacao: `Operação ${index + 1}`,
-            anexo: '',
-            descFunc: 'N/A',
-            parcelado: 'NÃO',
-            numParcelas: 1,
-            periodoParcelamento: 'N/A'
-        };
-    });
-}
-
-async function acquireTokenForGraph(account) {
-    if (!account) throw new Error('Conta Microsoft não encontrada.');
-
-    try {
-        return await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
-    } catch (error) {
-        console.warn('Token silencioso falhou, tentando popup:', error);
-        return await myMSALObj.loginPopup(loginRequest).then((response) => {
-            document.getElementById('display-name').innerText = response.account.name;
-            return myMSALObj.acquireTokenSilent({ ...loginRequest, account: response.account });
-        });
-    }
-}
-
-async function fetchGraphList(url, token) {
-    const headers = { Authorization: `Bearer ${token.accessToken}` };
-    let all = [];
-    let nextUrl = url;
-    let pages = 0;
-
-    while (nextUrl && pages < 10) {
-        pages += 1;
-        const res = await fetch(nextUrl, { headers });
-        if (!res.ok) {
-            throw new Error(`Graph erro (${res.status})`);
+    const SHAREPOINT_CONFIG = {
+      siteUrl: 'https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/',
+      lists: {
+        operacao: 'lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000',
+        despesas: 'lists/BD_DESPESAS/items?expand=fields&$top=1000'
+      },
+      fieldMap: {
+        operacao: {
+          documento: ['N_x00ba_DOCUMENTO', 'Nº_DOCUMENTO', 'DOCUMENTO', 'documento'],
+          motorista: ['NOME', 'MOTORISTA', 'motorista'],
+          status: ['STATUS', 'status'],
+          perfil: ['PR_x00d3_PRIOOUAGREGADO', 'PERFILDOVE_x00cd_CULO', 'PERFIL', 'perfil'],
+          qntNfs: ['QNTDDEENTREGA', 'QTDENTREGASFINALIZADAS', 'QNTD_NFS', 'qntdNFs'],
+          kmInicial: ['KMINICIAL', 'KM_INICIAL', 'kmInicial'],
+          kmFinal: ['KMFINAL', 'KM_FINAL', 'kmFinal'],
+          kmRodados: ['KMRODADOS', 'KM_RODADOS', 'kmRodados'],
+          operacao: ['CLIENTE_x007c_OPERA_x00c7__x00c3', 'OPERACAO', 'operacao'],
+          observacao: ['OBSERVA_x00c7__x00c3_O', 'OBSERVACAO', 'observacao'],
+          created: ['Created', 'created']
+        },
+        despesas: {
+          placa: ['PLACA', 'Placa', 'placa'],
+          servico: ['SERVI_x00c7_O', 'SERVICO', 'Servico', 'servico'],
+          valorTotal: ['VALORTOTAL', 'VALOR_x0020_TOTAL', 'ValorTotal', 'valorTotal'],
+          valorUnit: ['VALORUNIT_x00c1_RIO', 'VALOR_x0020_UNIT_x00c1_RIO', 'ValorUnitario', 'valorUnit'],
+          qntd: ['QNTD', 'QUANTIDADE', 'Quantidade', 'qntd'],
+          dataCompra: ['DATA_x0020_DE_x0020_COMPRA', 'DATACOMPRA', 'dataCompra'],
+          status: ['STATUS', 'Status', 'status'],
+          aprovador: ['APROVADOR', 'Aprovador', 'aprovador'],
+          tipoDoc: ['TIPO_x0020_DOCUMENTO', 'TIPODOCUMENTO', 'TipoDoc', 'tipoDoc'],
+          formaPag: ['FORMA_x0020_PAGAMENTO', 'FORMAPAGAMENTO', 'FormaPagamento', 'formaPag'],
+          fornecedor: ['FORNECEDOR', 'Fornecedor', 'fornecedor'],
+          criadoPor: ['CRIADO_x0020_POR', 'CRIADOPOR', 'Author', 'criadoPor'],
+          informacao: ['INFORMA_x00c7__x00c3_O', 'INFORMACAO', 'Informacao', 'informacao'],
+          umb: ['UMB', 'Umb', 'umb'],
+          banco: ['BANCO', 'Banco', 'banco'],
+          chavePix: ['CHAVE_x0020_PIX', 'CHAVEPIX', 'ChavePix', 'chavePix'],
+          bancoAjud: ['BANCO_x0020_AJUDANTE', 'BANCOAJUDANTE', 'BancoAjudante', 'bancoAjud'],
+          chaveAjud: ['CHAVE_x0020_AJUDANTE', 'CHAVEAJUDANTE', 'ChaveAjudante', 'chaveAjud'],
+          recebedor: ['RECEBEDOR', 'Recebedor', 'recebedor'],
+          descontos: ['DESCONTOS', 'Descontos', 'descontos'],
+          operacao: ['OPERA_x00c7__x00c3_O', 'OPERACAO', 'Operacao', 'operacao'],
+          anexo: ['ANEXO', 'Anexo', 'anexo'],
+          descFunc: ['DESC_x0020_FUNC', 'DESCFUNC', 'DescFunc', 'descFunc']
         }
-        const data = await res.json();
-        if (Array.isArray(data.value)) all = all.concat(data.value);
-        nextUrl = data['@odata.nextLink'] || null;
+      }
+    };
+
+    let rawData = [], filteredData = [], rawDespData = [], filteredDespData = [];
+    let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null;
+    let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
+
+    Chart.defaults.color = '#8b9bb8';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    function safeString(val, fallback = 'N/A') {
+      if (val === null || val === undefined) return fallback;
+      const v = String(val).trim();
+      return v ? v : fallback;
     }
 
-    return all;
-}
+    function safeNumber(val, fallback = 0) {
+      if (val === null || val === undefined || val === '') return fallback;
+      const cleaned = String(val).replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.');
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
 
-async function syncSharePointData(account) {
-    if (!account) account = myMSALObj.getAllAccounts()?.[0] || null;
-    if (!account) {
+    function safeDate(val, fallback = '') {
+      const s = safeString(val, fallback);
+      return s && s.includes('T') ? s.split('T')[0] : s;
+    }
+
+    function normalizeStatus(status) {
+      const s = safeString(status, 'OUTRO').toUpperCase();
+      if (s.includes('CONCLUIDO') || s.includes('CONCLUÍDO')) return 'CONCLUÍDO';
+      if (s.includes('ANDAMENTO') || s.includes('ROTA')) return 'EM ANDAMENTO';
+      if (s.includes('PERNOITE')) return 'PERNOITE';
+      return s || 'OUTRO';
+    }
+
+    function getFieldValue(source, keys, fallback = null) {
+      if (!source || typeof source !== 'object') return fallback;
+      for (const key of keys) {
+        if (source[key] !== undefined && source[key] !== null && String(source[key]).trim() !== '') return source[key];
+      }
+      return fallback;
+    }
+
+    function fmt(num) {
+      return Number(num || 0).toLocaleString('pt-BR');
+    }
+
+    function fmtMoeda(num) {
+      return Number(num || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast.timeoutId);
+      showToast.timeoutId = setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    function buildFallbackData() {
+      const dates = [];
+      const now = new Date();
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
+      }
+      return dates.map((date, idx) => ({
+        id: idx + 1,
+        criado: date,
+        documento: `DOC-${String(idx + 1).padStart(4, '0')}`,
+        motorista: `Motorista ${idx + 1}`,
+        qtdNFs: 40 + idx * 8,
+        kmInicial: 1200 + idx * 80,
+        kmFinal: 1500 + idx * 90,
+        kmRodados: 280 + idx * 12,
+        status: idx % 3 === 0 ? 'CONCLUÍDO' : idx % 3 === 1 ? 'EM ANDAMENTO' : 'PERNOITE',
+        perfil: idx % 2 === 0 ? 'PRÓPRIO' : 'AGREGADO',
+        operacao: `CLIENTE ${idx + 1} | SP`,
+        uf: ['SP','RJ','MG','PR','SC'][idx % 5],
+        placa: `ABC-${String((idx % 9) + 1).padStart(4, '0')}`
+      }));
+    }
+
+    function buildFallbackDespData() {
+      const dates = [];
+      const now = new Date();
+      for (let i = 17; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
+      }
+      return dates.map((d, idx) => {
+        const status = ['Aprovado', 'Pendente', 'Recusado'][idx % 3];
+        return {
+          id: idx + 1,
+          placa: `ABC-${String((idx % 9) + 1).padStart(4, '0')}`,
+          servico: ['Combustível', 'Manutenção', 'Pneus', 'Pedágio'][idx % 4],
+          valorTotal: 250 + idx * 65,
+          valorUnit: 120 + idx * 12,
+          qntd: 1 + (idx % 4),
+          dataCompra: d,
+          status,
+          aprovador: status === 'Aprovado' ? 'Gestor' : status === 'Pendente' ? 'Financeiro' : 'Diretoria',
+          tipoDoc: ['NF', 'Recibo', 'Boleto'][idx % 3],
+          formaPag: ['Pix', 'Transferência', 'Cartão'][idx % 3],
+          fornecedor: `Fornecedor ${idx + 1}`,
+          criadoPor: `Usuário ${idx + 1}`,
+          informacao: `Dados do registro ${idx + 1}`,
+          umb: 'UN',
+          banco: 'Banco do Brasil',
+          chavePix: 'pix@example.com',
+          bancoAjud: 'N/A',
+          chaveAjud: 'N/A',
+          recebedor: `Recebedor ${idx + 1}`,
+          descontos: 0,
+          operacao: `Operação ${idx + 1}`,
+          anexo: '',
+          descFunc: 'N/A'
+        };
+      });
+    }
+
+    function statusBadge(status) {
+      const s = normalizeStatus(status);
+      const css = s === 'CONCLUÍDO' ? 'status-concluido' : s === 'EM ANDAMENTO' ? 'status-andamento' : s === 'PERNOITE' ? 'status-pernoite' : 'status-outro';
+      return `<span class="badge-status ${css}">${s}</span>`;
+    }
+
+    function perfilBadge(perfil) {
+      const p = safeString(perfil, 'NÃO INFORMADO').toUpperCase();
+      const css = p.includes('AGREGADO') ? 'perfil-agregado' : 'perfil-proprio';
+      return `<span class="badge-perfil ${css}">${p}</span>`;
+    }
+
+    function renderNoDataState() {
+      document.getElementById('table-body').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#8b9bb8;padding:24px;">Sem dados para os filtros atuais.</td></tr>';
+      document.getElementById('uf-status-table-body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#8b9bb8;padding:20px;">Sem dados por UF.</td></tr>';
+      document.getElementById('segmented-bar').innerHTML = '';
+      document.getElementById('segmented-legend').innerHTML = '';
+      document.getElementById('timeline-ocorrencias').innerHTML = '<div style="padding:20px;color:#8b9bb8;text-align:center;">Nenhuma ocorrência registrada.</div>';
+      document.getElementById('ranking-motoristas').innerHTML = '<div style="padding:16px;color:#8b9bb8;text-align:center;">Sem ranking disponível.</div>';
+      document.getElementById('desp-table-body').innerHTML = '<tr><td colspan="23" style="text-align:center;color:#8b9bb8;padding:24px;">Sem despesas para os filtros atuais.</td></tr>';
+      document.getElementById('meta-mensal-fill').style.width = '0%';
+      document.getElementById('meta-mensal-atual').textContent = '0';
+      document.getElementById('meta-mensal-alvo').textContent = '0';
+      document.getElementById('meta-mensal-pct').textContent = '0%';
+      document.getElementById('kpi-total').textContent = '0';
+      document.getElementById('kpi-nfs').textContent = '0';
+      document.getElementById('kpi-proprio').textContent = '0';
+      document.getElementById('kpi-agregado').textContent = '0';
+      document.getElementById('km-total-value').textContent = '0 km';
+      document.getElementById('ring-conclusao-label').textContent = '0%';
+      document.getElementById('ring-eficiencia-label').textContent = '0';
+      document.getElementById('desp-kpi-total').textContent = 'R$ 0,00';
+      document.getElementById('desp-kpi-count').textContent = '0';
+      document.getElementById('desp-kpi-avg').textContent = 'R$ 0,00';
+      document.getElementById('desp-kpi-last').textContent = '--';
+    }
+
+    function showView(viewName) {
+      const operacao = document.getElementById('operacao-view');
+      const despesas = document.getElementById('despesas-view');
+      const items = document.querySelectorAll('.sidebar-item');
+      const active = viewName === 'despesas';
+      if (operacao) operacao.classList.toggle('view-hidden', active);
+      if (despesas) despesas.classList.toggle('view-hidden', !active);
+      items.forEach(item => item.classList.toggle('active', item.textContent.includes(viewName === 'despesas' ? 'Despesas' : 'Operação')));
+    }
+
+    async function fetchGraphList(url, token) {
+      const headers = { Authorization: `Bearer ${token.accessToken}` };
+      let all = [];
+      let nextUrl = url;
+      let pages = 0;
+      while (nextUrl && pages < 10) {
+        pages += 1;
+        const response = await fetch(nextUrl, { headers });
+        if (!response.ok) throw new Error(`Graph error: ${response.status}`);
+        const payload = await response.json();
+        if (Array.isArray(payload.value)) all = all.concat(payload.value);
+        nextUrl = payload['@odata.nextLink'] || null;
+      }
+      return all;
+    }
+
+    async function acquireTokenForGraph(account) {
+      try {
+        return await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+      } catch (error) {
+        console.warn('Token silencioso falhou, tentando popup:', error);
+        const popup = await myMSALObj.loginPopup(loginRequest);
+        return myMSALObj.acquireTokenSilent({ ...loginRequest, account: popup.account });
+      }
+    }
+
+    function normalizeOperacaoItem(item) {
+      const f = item && item.fields ? item.fields : {};
+      const doc = safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.documento, 'N/A'));
+      const motorista = safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.motorista, 'NÃO INFORMADO'));
+      const status = normalizeStatus(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.status, 'OUTRO'));
+      const perfil = safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.perfil, 'PRÓPRIO'), 'PRÓPRIO').toUpperCase();
+      const qNfs = safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.qntNfs, 0), 0);
+      const kmIni = safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.kmInicial, 0), 0);
+      const kmFin = safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.kmFinal, 0), 0);
+      const kmRod = safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.kmRodados, 0), 0) || (kmFin > kmIni ? kmFin - kmIni : 0);
+      const operacaoText = safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.operacao, 'NÃO INFORMADA'), 'NÃO INFORMADA').toUpperCase();
+      const created = safeDate(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.created, new Date().toISOString()), '');
+      let uf = 'GERAL';
+      const parts = operacaoText.split('|');
+      if (parts.length > 1 && parts[0].trim().length === 2) uf = parts[0].trim().toUpperCase();
+      return {
+        id: item && item.id ? item.id : Math.random(),
+        criado: created,
+        documento: doc,
+        motorista: motorista,
+        qtdNFs: qNfs,
+        kmInicial: kmIni,
+        kmFinal: kmFin,
+        kmRodados: kmRod,
+        status,
+        perfil: perfil.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
+        operacao: operacaoText,
+        uf,
+        observacao: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.operacao.observacao, ''), '').toUpperCase(),
+        placa: safeString(getFieldValue(f, ['PLACA', 'Veiculo', 'veiculo'], ''), '').toUpperCase()
+      };
+    }
+
+    function normalizeDespesaItem(item) {
+      const f = item && item.fields ? item.fields : {};
+      return {
+        id: item && item.id ? item.id : Math.random(),
+        placa: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.placa, 'N/A'), 'N/A').toUpperCase(),
+        servico: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.servico, 'N/A'), 'N/A').toUpperCase(),
+        valorTotal: safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.valorTotal, 0), 0),
+        valorUnit: safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.valorUnit, 0), 0),
+        qntd: safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.qntd, 1), 1),
+        dataCompra: safeDate(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.dataCompra, new Date().toISOString()), ''),
+        status: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.status, 'Pendente'), 'Pendente').trim(),
+        aprovador: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.aprovador, 'N/A'), 'N/A'),
+        tipoDoc: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.tipoDoc, 'N/A'), 'N/A'),
+        formaPag: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.formaPag, 'N/A'), 'N/A'),
+        fornecedor: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.fornecedor, 'N/A'), 'N/A'),
+        criadoPor: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.criadoPor, 'N/A'), 'N/A'),
+        informacao: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.informacao, 'N/A'), 'N/A'),
+        umb: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.umb, 'N/A'), 'N/A'),
+        banco: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.banco, 'N/A'), 'N/A'),
+        chavePix: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.chavePix, 'N/A'), 'N/A'),
+        bancoAjud: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.bancoAjud, 'N/A'), 'N/A'),
+        chaveAjud: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.chaveAjud, 'N/A'), 'N/A'),
+        recebedor: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.recebedor, 'N/A'), 'N/A'),
+        descontos: safeNumber(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.descontos, 0), 0),
+        operacao: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.operacao, 'N/A'), 'N/A'),
+        anexo: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.anexo, ''), ''),
+        descFunc: safeString(getFieldValue(f, SHAREPOINT_CONFIG.fieldMap.despesas.descFunc, 'N/A'), 'N/A')
+      };
+    }
+
+    async function syncSharePointData(accountOverride) {
+      const account = accountOverride || myMSALObj.getAllAccounts()?.[0] || null;
+      if (!account) {
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('login-view').style.display = 'flex';
-        showToast('Você precisa autenticar antes de sincronizar.');
+        showToast('Sessão expirada. Faça login novamente.');
         return;
-    }
+      }
 
-    document.getElementById('loading-screen').style.display = 'flex';
-    document.getElementById('loading-msg').innerText = 'Sincronizando dados com o SharePoint...';
+      document.getElementById('loading-screen').style.display = 'flex';
+      document.getElementById('loading-msg').textContent = 'Sincronizando dados com o SharePoint...';
 
-    try {
+      try {
         const token = await acquireTokenForGraph(account);
 
-        let listLiberacao = [];
-        let listDespesas = [];
+        const urlOperacao = `${SHAREPOINT_CONFIG.siteUrl}${SHAREPOINT_CONFIG.lists.operacao}`;
+        const urlDespesas = `${SHAREPOINT_CONFIG.siteUrl}${SHAREPOINT_CONFIG.lists.despesas}`;
 
-        try {
-            const liberacaoUrl = 'https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000';
-            listLiberacao = await fetchGraphList(liberacaoUrl, token);
-        } catch (error) {
-            console.warn('Erro ao buscar LIBERACAO_VEICULO, usando fallback:', error);
-        }
+        let operacaoItems = [];
+        let despesasItems = [];
 
-        try {
-            const despUrl = 'https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000';
-            listDespesas = await fetchGraphList(despUrl, token);
-        } catch (error) {
-            console.warn('Erro ao buscar BD_DESPESAS, usando fallback:', error);
-        }
+        try { operacaoItems = await fetchGraphList(urlOperacao, token); } catch (e) { console.warn('Sem dados de operação:', e); }
+        try { despesasItems = await fetchGraphList(urlDespesas, token); } catch (e) { console.warn('Sem dados de despesas:', e); }
 
-        rawData = listLiberacao.length ? listLiberacao.map((it) => {
-            const f = it.fields || {};
-            const perfilStr = safeString(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
-            const qNfs = safeNumber(f.QNTDDEENTREGA || f.QTDENTREGASFINALIZADAS || 0, 0);
-            const kmIni = safeNumber(f.KMINICIAL || 0, 0);
-            const kmFin = safeNumber(f.KMFINAL || 0, 0);
-            const kmRod = safeNumber(f.KMRODADOS || 0, 0) || (kmFin > kmIni ? kmFin - kmIni : 0);
-            const operacaoStr = safeString(f.CLIENTE_x007c_OPERA_x00c7__x00c3 || 'NÃO INFORMADA').toUpperCase();
-            let uf = 'GERAL';
-            const parts = operacaoStr.split('|');
-            if (parts.length > 1 && parts[0].trim().length === 2) uf = parts[0].trim().toUpperCase();
+        rawData = operacaoItems.length ? operacaoItems.map(normalizeOperacaoItem) : buildFallbackData();
+        rawDespData = despesasItems.length ? despesasItems.map(normalizeDespesaItem) : buildFallbackDespData();
 
-            return {
-                id: it.id,
-                criado: safeDate(f.Created || new Date().toISOString(), ''),
-                documento: safeString(f.N_x00ba_DOCUMENTO || 'N/A'),
-                motorista: padronizarNome(f.NOME),
-                qtdNFs: qNfs,
-                kmInicial: kmIni,
-                kmFinal: kmFin,
-                kmRodados: kmRod,
-                status: normalizeStatus(f.STATUS || 'CONCLUÍDO'),
-                perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
-                operacao: operacaoStr,
-                uf,
-                observacao: safeString(f.OBSERVA_x00c7__x00c3_O || '').toUpperCase()
-            };
-        }) : buildFallbackData();
-
-        rawDespData = listDespesas.length ? listDespesas.map((it) => {
-            const f = it.fields || {};
-            return {
-                id: it.id,
-                placa: safeString(f.PLACA || f.Placa || 'N/A').toUpperCase(),
-                servico: safeString(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A').toUpperCase(),
-                valorTotal: safeNumber(f.VALORTOTAL || f.VALOR_x0020_TOTAL || f.ValorTotal || 0, 0),
-                valorUnit: safeNumber(f.VALORUNIT_x00c1_RIO || f.VALOR_x0020_UNIT_x00c1_RIO || f.ValorUnitario || 0, 0),
-                qntd: safeNumber(f.QNTD || f.QUANTIDADE || f.Quantidade || 1, 1),
-                dataCompra: safeDate(f.DATA_x0020_DE_x0020_COMPRA || f.DATACOMPRA || f.Created || new Date().toISOString(), ''),
-                status: safeString(f.STATUS || f.Status || 'Pendente').trim(),
-                aprovador: safeString(f.APROVADOR || f.Aprovador || 'N/A'),
-                tipoDoc: safeString(f.TIPO_x0020_DOCUMENTO || f.TIPODOCUMENTO || f.TipoDoc || 'N/A'),
-                formaPag: safeString(f.FORMA_x0020_PAGAMENTO || f.FORMAPAGAMENTO || f.FormaPagamento || 'N/A'),
-                fornecedor: safeString(f.FORNECEDOR || f.Fornecedor || 'N/A'),
-                criadoPor: safeString(f.CRIADO_x0020_POR || f.CRIADOPOR || f.Author || 'N/A'),
-                informacao: safeString(f.INFORMA_x00c7__x00c3_O || f.INFORMACAO || f.Informacao || 'N/A'),
-                umb: safeString(f.UMB || f.Umb || 'N/A'),
-                banco: safeString(f.BANCO || f.Banco || 'N/A'),
-                chavePix: safeString(f.CHAVE_x0020_PIX || f.CHAVEPIX || f.ChavePix || 'N/A'),
-                bancoAjud: safeString(f.BANCO_x0020_AJUDANTE || f.BANCOAJUDANTE || f.BancoAjudante || 'N/A'),
-                chaveAjud: safeString(f.CHAVE_x0020_AJUDANTE || f.CHAVEAJUDANTE || f.ChaveAjudante || 'N/A'),
-                recebedor: safeString(f.RECEBEDOR || f.Recebedor || 'N/A'),
-                descontos: safeNumber(f.DESCONTOS || f.Descontos || 0, 0),
-                operacao: safeString(f.OPERA_x00c7__x00c3_O || f.OPERACAO || f.Operacao || 'N/A'),
-                anexo: safeString(f.ANEXO || f.Anexo || '', ''),
-                descFunc: safeString(f.DESC_x0020_FUNC || f.DESCFUNC || f.DescFunc || 'N/A'),
-                parcelado: safeString(f.PARCELADO || f.Parcelado || 'NÃO'),
-                numParcelas: safeNumber(f.N_x00ba__x0020_PARCELAS || f.NUMPARCELAS || f.NumParcelas || 1, 1),
-                periodoParcelamento: safeString(f.PER_x00cd_ODO_x0020_PARCELAMENTO || f.PERIODOPARCELAMENTO || 'N/A')
-            };
-        }) : buildFallbackDespData();
-
-        document.getElementById('display-name').innerText = account.name || 'Usuário';
-        showToast(`✅ Sincronizado: ${rawData.length} Veículos | ${rawDespData.length} Despesas`);
-    } catch (error) {
+        document.getElementById('display-name').textContent = account.name || 'Usuário';
+        showToast(`✅ Sincronizado: ${rawData.length} veículos | ${rawDespData.length} despesas`);
+      } catch (error) {
         console.error(error);
         rawData = buildFallbackData();
         rawDespData = buildFallbackDespData();
-        document.getElementById('display-name').innerText = account.name || 'Usuário';
         showToast('⚠️ Dados de demonstração carregados.');
-    } finally {
+      } finally {
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
-        if (typeof popularFiltrosDinamicos === 'function') popularFiltrosDinamicos();
-        if (typeof applyFilters === 'function') applyFilters();
-        if (typeof applyDespFilters === 'function') applyDespFilters();
+        popularFiltrosDinamicos();
+        applyFilters();
+        applyDespFilters();
+      }
     }
-}
 
-function iniciarLogin() {
-    document.getElementById('login-view').style.display = 'none';
-    document.getElementById('loading-screen').style.display = 'flex';
-    myMSALObj.loginPopup(loginRequest)
-        .then(response => {
-            document.getElementById('display-name').innerText = response.account.name;
-            syncSharePointData(response.account);
+    function iniciarLogin() {
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('loading-screen').style.display = 'flex';
+      myMSALObj.loginPopup(loginRequest)
+        .then(res => {
+          document.getElementById('display-name').textContent = res.account.name;
+          syncSharePointData(res.account);
         })
-        .catch(error => {
-            console.error(error);
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('login-view').style.display = 'flex';
-            showToast('Erro ao conectar.');
+        .catch(err => {
+          console.error(err);
+          document.getElementById('loading-screen').style.display = 'none';
+          document.getElementById('login-view').style.display = 'flex';
+          showToast('Erro ao conectar com a Microsoft.');
         });
-}
+    }
 
-/* =========================================================
-   LÓGICA OPERAÇÃO (VEICULO_LIBERACAO)
-   ========================================================= */
+    function popularFiltrosDinamicos() {
+      const statusSet = [...new Set(rawData.map(i => normalizeStatus(i.status)).filter(Boolean))].sort();
+      const select = document.getElementById('filter-status');
+      if (!select) return;
+      select.innerHTML = '<option value="">Todos</option>';
+      statusSet.forEach(status => {
+        const opt = document.createElement('option');
+        opt.value = status;
+        opt.textContent = status;
+        select.appendChild(opt);
+      });
+    }
+
+    function applyFilters() {
+      const start = document.getElementById('filter-start')?.value || '';
+      const end = document.getElementById('filter-end')?.value || '';
+      const placa = (document.getElementById('filter-placa')?.value || '').trim().toLowerCase();
+      const doc = (document.getElementById('filter-doc')?.value || '').trim().toLowerCase();
+      const operacao = (document.getElementById('filter-operacao')?.value || '').trim().toLowerCase();
+      const status = document.getElementById('filter-status')?.value || '';
+      const perfil = document.getElementById('filter-perfil')?.value || '';
+
+      filteredData = rawData.filter(item => {
+        if (start && item.criado < start) return false;
+        if (end && item.criado > end) return false;
+        if (placa && !(String(item.placa || '').toLowerCase().includes(placa) || String(item.observacao || '').toLowerCase().includes(placa))) return false;
+        if (doc && !String(item.documento || '').toLowerCase().includes(doc)) return false;
+        if (operacao && !(String(item.operacao || '').toLowerCase().includes(operacao) || String(item.uf || '').toLowerCase().includes(operacao))) return false;
+        if (status && normalizeStatus(item.status) !== status) return false;
+        if (perfil && String(item.perfil || '').toUpperCase() !== perfil) return false;
+        return true;
+      });
+
+      updateDashboardUI();
+    }
+
+    function applyDespFilters() {
+      const start = document.getElementById('desp-filter-start')?.value || '';
+      const end = document.getElementById('desp-filter-end')?.value || '';
+      const placa = (document.getElementById('desp-filter-placa')?.value || '').trim().toLowerCase();
+      const servico = (document.getElementById('desp-filter-servico')?.value || '').trim().toLowerCase();
+      const id = (document.getElementById('desp-filter-id')?.value || '').trim();
+      const status = document.getElementById('desp-filter-status')?.value || '';
+
+      filteredDespData = rawDespData.filter(item => {
+        if (start && item.dataCompra < start) return false;
+        if (end && item.dataCompra > end) return false;
+        if (placa && !String(item.placa || '').toLowerCase().includes(placa)) return false;
+        if (servico && !String(item.servico || '').toLowerCase().includes(servico)) return false;
+        if (id && String(item.id) !== id) return false;
+        if (status && String(item.status || '').trim() !== status) return false;
+        return true;
+      });
+
+      updateDespDashboard();
+    }
+
+    function updateDashboardUI() {
+      if (!filteredData.length) {
+        renderNoDataState();
+        return;
+      }
+
+      const totalNFs = filteredData.reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0);
+      const totalKm = filteredData.reduce((sum, item) => sum + Number(item.kmRodados || 0), 0);
+      const concluidos = filteredData.filter(item => normalizeStatus(item.status).includes('CONCLU')).length;
+      const proprios = filteredData.filter(item => String(item.perfil).toUpperCase() === 'PRÓPRIO').reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0);
+      const agregados = filteredData.filter(item => String(item.perfil).toUpperCase() === 'AGREGADO').reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0);
+      const targetMeta = 20306;
+      const pctMeta = Math.min(100, Math.round((totalNFs / targetMeta) * 100));
+
+      document.getElementById('kpi-total').textContent = fmt(filteredData.length);
+      document.getElementById('kpi-nfs').textContent = fmt(totalNFs);
+      document.getElementById('kpi-proprio').textContent = fmt(proprios);
+      document.getElementById('kpi-agregado').textContent = fmt(agregados);
+      document.getElementById('meta-mensal-fill').style.width = `${pctMeta}%`;
+      document.getElementById('meta-mensal-atual').textContent = fmt(totalNFs);
+      document.getElementById('meta-mensal-alvo').textContent = fmt(targetMeta);
+      document.getElementById('meta-mensal-pct').textContent = `${pctMeta}%`;
+
+      const pctConclusao = filteredData.length ? Math.round((concluidos / filteredData.length) * 100) : 0;
+      const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
+      document.getElementById('km-total-value').textContent = `${fmt(totalKm)} km`;
+      document.getElementById('ring-conclusao-label').textContent = `${pctConclusao}%`;
+      document.getElementById('ring-eficiencia-label').textContent = eficiencia.toFixed(1);
+
+      renderLineChart();
+      renderPolarChart();
+      renderBarChart();
+      renderStatusChart();
+      renderUfStatusTable();
+      renderSegmentedBar();
+      renderFunil();
+      renderRankingMotoristas();
+      renderTimeline();
+      renderMainTable();
+    }
+
+    function renderLineChart() {
+      const labels = [...new Set(filteredData.map(item => item.criado).sort())].slice(-12);
+      const values = labels.map(date => filteredData.filter(item => item.criado === date).reduce((sum, item) => sum + Number(item.qtdNFs || 0), 0));
+      const ctx = document.getElementById('lineChart').getContext('2d');
+      if (lineChartInstance) lineChartInstance.destroy();
+      lineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'NFs',
+            data: values,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16,185,129,0.18)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4,
+            pointBackgroundColor: '#10b981'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
+    }
+
+    function renderPolarChart() {
+      const counts = {
+        proprio: filteredData.filter(i => String(i.perfil).toUpperCase() === 'PRÓPRIO').reduce((sum, i) => sum + Number(i.qtdNFs || 0), 0),
+        agregado: filteredData.filter(i => String(i.perfil).toUpperCase() === 'AGREGADO').reduce((sum, i) => sum + Number(i.qtdNFs || 0), 0)
+      };
+      const ctx = document.getElementById('polarChart').getContext('2d');
+      if (polarChartInstance) polarChartInstance.destroy();
+      polarChartInstance = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+          labels: ['Próprio', 'Agregado'],
+          datasets: [{ data: [counts.proprio, counts.agregado], backgroundColor: ['#3b82f6', '#8b5cf6'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+
+    function renderBarChart() {
+      const map = {};
+      filteredData.forEach(i => { const key = String(i.operacao || 'NÃO INFORMADA'); map[key] = (map[key] || 0) + Number(i.qtdNFs || 0); });
+      const entries = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      const ctx = document.getElementById('barChart').getContext('2d');
+      if (barChartInstance) barChartInstance.destroy();
+      barChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: entries.map(([k]) => String(k).slice(0, 18)),
+          datasets: [{ data: entries.map(([, v]) => v), backgroundColor: '#3b82f6', borderRadius: 8 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+      });
+    }
+
+    function renderStatusChart() {
+      const counts = { concluido: 0, andamento: 0, pernoite: 0, outro: 0 };
+      filteredData.forEach(item => {
+        const status = normalizeStatus(item.status);
+        if (status.includes('CONCLU')) counts.concluido++;
+        else if (status.includes('ANDAMENTO')) counts.andamento++;
+        else if (status.includes('PERNOITE')) counts.pernoite++;
+        else counts.outro++;
+      });
+      const ctx = document.getElementById('statusHChart').getContext('2d');
+      if (statusHChartInstance) statusHChartInstance.destroy();
+      statusHChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Concluído', 'Em Andamento', 'Pernoite', 'Outro'],
+          datasets: [{ data: [counts.concluido, counts.andamento, counts.pernoite, counts.outro], backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+
+    function renderUfStatusTable() {
+      const map = {};
+      filteredData.forEach(item => {
+        const uf = String(item.uf || 'GERAL');
+        if (!map[uf]) map[uf] = { total: 0, concluido: 0 };
+        map[uf].total += 1;
+        if (normalizeStatus(item.status).includes('CONCLU')) map[uf].concluido += 1;
+      });
+
+      const tbody = document.getElementById('uf-status-table-body');
+      tbody.innerHTML = '';
+      Object.entries(map).sort((a, b) => b[1].total - a[1].total).slice(0, 10).forEach(([uf, info]) => {
+        const pct = info.total ? Math.round((info.concluido / info.total) * 100) : 0;
+        let badge = '<span class="badge-status status-outro">CRÍTICO</span>';
+        if (pct >= 80) badge = '<span class="badge-status status-concluido">NORMAL</span>';
+        else if (pct >= 50) badge = '<span class="badge-status status-andamento">ATENÇÃO</span>';
+        tbody.innerHTML += `<tr><td><strong>${uf}</strong></td><td>${fmt(info.total)}</td><td>${pct}%</td><td>${badge}</td></tr>`;
+      });
+    }
+
+    function renderSegmentedBar() {
+      const counts = { concluido: 0, andamento: 0, pernoite: 0, outro: 0 };
+      filteredData.forEach(item => { const s = normalizeStatus(item.status); if (s.includes('CONCLU')) counts.concluido++; else if (s.includes('ANDAMENTO')) counts.andamento++; else if (s.includes('PERNOITE')) counts.pernoite++; else counts.outro++; });
+      const total = filteredData.length || 1;
+      const colors = { concluido: '#10b981', andamento: '#3b82f6', pernoite: '#8b5cf6', outro: '#f59e0b' };
+      const labels = { concluido: 'Concluído', andamento: 'Andamento', pernoite: 'Pernoite', outro: 'Outro' };
+      const bar = document.getElementById('segmented-bar');
+      const legend = document.getElementById('segmented-legend');
+      bar.innerHTML = '';
+      legend.innerHTML = '';
+      Object.entries(counts).forEach(([key, val]) => {
+        const pct = (val / total) * 100;
+        if (pct <= 0) return;
+        const seg = document.createElement('div');
+        seg.style.width = `${pct}%`;
+        seg.style.background = colors[key];
+        seg.style.height = '100%';
+        bar.appendChild(seg);
+        legend.innerHTML += `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)"><span style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${colors[key]};"></span>${labels[key]} (${Math.round(pct)}%)</div>`;
+      });
+    }
+
+    function renderFunil() {
+      const counts = { andamento: 0, pernoite: 0, concluido: 0 };
+      filteredData.forEach(item => { const s = normalizeStatus(item.status); if (s.includes('CONCLU')) counts.concluido++; else if (s.includes('ANDAMENTO')) counts.andamento++; else if (s.includes('PERNOITE')) counts.pernoite++; });
+      document.getElementById('funil-andamento-label').textContent = fmt(counts.andamento);
+      document.getElementById('funil-pernoite-label').textContent = fmt(counts.pernoite);
+      document.getElementById('funil-concluido-label').textContent = fmt(counts.concluido);
+    }
+
+    function renderRankingMotoristas() {
+      const map = {};
+      filteredData.forEach(item => { const key = safeString(item.motorista, 'NÃO INFORMADO'); map[key] = (map[key] || 0) + Number(item.qtdNFs || 0); });
+      const items = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const container = document.getElementById('ranking-motoristas');
+      container.innerHTML = '';
+      items.forEach(([name, total]) => {
+        const row = document.createElement('div');
+        row.style.background = 'rgba(255,255,255,0.02)';
+        row.style.border = '1px solid rgba(255,255,255,0.04)';
+        row.style.borderRadius = '10px';
+        row.style.padding = '12px 14px';
+        row.innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;"><span>${name}</span><strong style="color:#60a5fa;">${fmt(total)}</strong></div>`;
+        container.appendChild(row);
+      });
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timeline-ocorrencias');
+      container.innerHTML = '';
+      [...filteredData].sort((a, b) => b.criado.localeCompare(a.criado)).slice(0, 8).forEach(item => {
+        const color = normalizeStatus(item.status).includes('CONCLU') ? '#10b981' : normalizeStatus(item.status).includes('ANDAMENTO') ? '#3b82f6' : normalizeStatus(item.status).includes('PERNOITE') ? '#8b5cf6' : '#f59e0b';
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.gap = '12px';
+        row.style.alignItems = 'flex-start';
+        row.style.background = 'rgba(255,255,255,0.02)';
+        row.style.border = '1px solid rgba(255,255,255,0.04)';
+        row.style.borderRadius = '10px';
+        row.style.padding = '10px 12px';
+        row.innerHTML = `<span style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${color};margin-top:5px;"></span><div><div style="font-size:12px;font-weight:700;color:#fff;">${item.documento} — ${item.motorista}</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${item.operacao} · ${item.criado} · ${statusBadge(item.status)}</div></div>`;
+        container.appendChild(row);
+      });
+    }
+
+    function renderMainTable() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      [...filteredData].sort((a, b) => b.criado.localeCompare(a.criado)).slice(0, 12).forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.documento}</td>
+          <td>${item.criado}</td>
+          <td>${item.motorista}</td>
+          <td>${item.operacao}</td>
+          <td>${perfilBadge(item.perfil)}</td>
+          <td>${fmt(item.kmInicial)} / ${fmt(item.kmFinal)} | ${fmt(item.kmRodados)}</td>
+          <td>${fmt(item.qtdNFs)}</td>
+          <td>${statusBadge(item.status)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('table-count').textContent = `${filteredData.length} registros`;
+    }
+
+    function updateDespDashboard() {
+      if (!filteredDespData.length) {
+        renderNoDataState();
+        return;
+      }
+
+      const totalGasto = filteredDespData.reduce((sum, item) => sum + Number(item.valorTotal || 0), 0);
+      const count = filteredDespData.length;
+      const avg = count ? totalGasto / count : 0;
+      const last = [...filteredDespData].sort((a, b) => String(b.dataCompra).localeCompare(String(a.dataCompra)))[0];
+
+      document.getElementById('desp-kpi-total').textContent = fmtMoeda(totalGasto);
+      document.getElementById('desp-kpi-count').textContent = fmt(count);
+      document.getElementById('desp-kpi-avg').textContent = fmtMoeda(avg);
+      document.getElementById('desp-kpi-last').textContent = last ? last.dataCompra : '--';
+
+      renderDespCharts();
+      renderDespTable();
+    }
+
+    function renderDespCharts() {
+      const counts = { Aprovado: 0, Pendente: 0, Recusado: 0 };
+      filteredDespData.forEach(item => {
+        const s = String(item.status || '').trim();
+        if (s === 'Aprovado') counts.Aprovado++;
+        else if (s === 'Pendente') counts.Pendente++;
+        else if (s === 'Recusado') counts.Recusado++;
+      });
+
+      const labels = [...new Set(filteredDespData.map(item => item.dataCompra).sort())];
+      const values = labels.map(date => filteredDespData.filter(item => item.dataCompra === date).reduce((sum, item) => sum + Number(item.valorTotal || 0), 0));
+
+      if (despLineChartInstance) despLineChartInstance.destroy();
+      despLineChartInstance = new Chart(document.getElementById('desp-lineChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{ data: values, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.18)', fill: true, tension: 0.4 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: value => fmtMoeda(value) } } } }
+      });
+
+      if (despDonutChartInstance) despDonutChartInstance.destroy();
+      despDonutChartInstance = new Chart(document.getElementById('desp-donutChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Aprovado', 'Pendente', 'Recusado'],
+          datasets: [{ data: [counts.Aprovado, counts.Pendente, counts.Recusado], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+
+      const byPlaca = {};
+      filteredDespData.forEach(item => { byPlaca[item.placa] = (byPlaca[item.placa] || 0) + Number(item.valorTotal || 0); });
+      const placaEntries = Object.entries(byPlaca).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      if (despBarChartInstance) despBarChartInstance.destroy();
+      despBarChartInstance = new Chart(document.getElementById('desp-barChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: placaEntries.map(([placa]) => placa),
+          datasets: [{ data: placaEntries.map(([, value]) => value), backgroundColor: '#8b5cf6', borderRadius: 8 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: value => fmtMoeda(value) } } } }
+      });
+
+      const byTipo = {};
+      filteredDespData.forEach(item => { byTipo[item.tipoDoc] = (byTipo[item.tipoDoc] || 0) + Number(item.valorTotal || 0); });
+      const tipoEntries = Object.entries(byTipo).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      if (despNeonLineChartInstance) despNeonLineChartInstance.destroy();
+      despNeonLineChartInstance = new Chart(document.getElementById('desp-neonLineChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: tipoEntries.map(([label]) => label),
+          datasets: [{ data: tipoEntries.map(([, value]) => value), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', fill: true, tension: 0.4 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: value => fmtMoeda(value) } } } }
+      });
+    }
+
+    function renderDespTable() {
+      const tbody = document.getElementById('desp-table-body');
+      tbody.innerHTML = '';
+      [...filteredDespData].sort((a, b) => String(b.dataCompra).localeCompare(String(a.dataCompra))).slice(0, 20).forEach(item => {
+        const css = item.status === 'Aprovado' ? 'status-aprovado' : item.status === 'Pendente' ? 'status-pendente' : 'status-recusado';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.placa}</td>
+          <td>${item.servico}</td>
+          <td>${fmtMoeda(item.valorTotal)}</td>
+          <td>${fmtMoeda(item.valorUnit)}</td>
+          <td>${fmt(item.qntd)}</td>
+          <td>${item.dataCompra}</td>
+          <td><span class="badge-despesa ${css}">${item.status}</span></td>
+          <td>${item.aprovador}</td>
+          <td>${item.tipoDoc}</td>
+          <td>${item.formaPag}</td>
+          <td>${item.fornecedor}</td>
+          <td>${item.criadoPor}</td>
+          <td>${item.informacao}</td>
+          <td>${item.umb}</td>
+          <td>${item.banco}</td>
+          <td>${item.chavePix}</td>
+          <td>${item.bancoAjud}</td>
+          <td>${item.chaveAjud}</td>
+          <td>${item.recebedor}</td>
+          <td>${fmtMoeda(item.descontos)}</td>
+          <td>${item.operacao}</td>
+          <td><button class="btn-connect" style="padding:8px 10px;font-size:11px;border-radius:8px;background:#1d4ed8;color:#fff;" onclick="openDespAttachment('${item.id}')">Detalhes</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('desp-table-count').textContent = `${filteredDespData.length} registros`;
+    }
+
+    function openDespAttachment(id) {
+      const item = rawDespData.find(entry => String(entry.id) === String(id));
+      if (!item) return;
+      const modal = document.getElementById('desp-attachment-modal');
+      const img = document.getElementById('desp-modal-image');
+      const empty = document.getElementById('desp-modal-no-image');
+      const info = document.getElementById('desp-modal-info');
+      const title = document.getElementById('desp-modal-title');
+      title.textContent = `Comprovante / Anexo • ${item.placa}`;
+      info.innerHTML = '';
+      const hasAttachment = !!item.anexo && item.anexo !== 'N/A' && item.anexo !== 'NÃO' && item.anexo !== 'SEM';
+      if (hasAttachment) {
+        img.src = item.anexo;
+        img.style.display = 'block';
+        empty.style.display = 'none';
+      } else {
+        img.style.display = 'none';
+        empty.style.display = 'block';
+      }
+      [
+        ['Placa', item.placa],
+        ['Serviço', item.servico],
+        ['Valor Total', fmtMoeda(item.valorTotal)],
+        ['Status', item.status],
+        ['Fornecedor', item.fornecedor],
+        ['Aprovador', item.aprovador],
+        ['Operação', item.operacao],
+        ['Forma de Pagamento', item.formaPag],
+        ['Banco', item.banco],
+        ['Chave Pix', item.chavePix],
+        ['Recebedor', item.recebedor]
+      ].forEach(([label, value]) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'modal-info-item';
+        itemDiv.innerHTML = `<span class="modal-info-label">${label}</span><span class="modal-info-value">${value}</span>`;
+        info.appendChild(itemDiv);
+      });
+      modal.classList.add('show');
+    }
+
+    function closeDespAttachmentModal(event) {
+      const modal = document.getElementById('desp-attachment-modal');
+      if (event && event.target !== event.currentTarget) return;
+      modal.classList.remove('show');
+    }
+
+    document.getElementById('filter-start').addEventListener('change', applyFilters);
+    document.getElementById('filter-end').addEventListener('change', applyFilters);
+    document.getElementById('filter-status').addEventListener('change', applyFilters);
+    document.getElementById('filter-perfil').addEventListener('change', applyFilters);
+    document.getElementById('filter-placa').addEventListener('input', () => setTimeout(applyFilters, 150));
+    document.getElementById('filter-doc').addEventListener('input', () => setTimeout(applyFilters, 150));
+    document.getElementById('filter-operacao').addEventListener('input', () => setTimeout(applyFilters, 150));
+
+    document.getElementById('desp-filter-start').addEventListener('change', applyDespFilters);
+    document.getElementById('desp-filter-end').addEventListener('change', applyDespFilters);
+    document.getElementById('desp-filter-status').addEventListener('change', applyDespFilters);
+    document.getElementById('desp-filter-placa').addEventListener('input', () => setTimeout(applyDespFilters, 150));
+    document.getElementById('desp-filter-servico').addEventListener('input', () => setTimeout(applyDespFilters, 150));
+    document.getElementById('desp-filter-id').addEventListener('input', () => setTimeout(applyDespFilters, 150));
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('desp-attachment-modal');
+        if (modal) modal.classList.remove('show');
+      }
+    });
+
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('display-name').textContent = 'Sessão em branco';
+    document.getElementById('loading-screen').style.display = 'none';
+
+    rawData = buildFallbackData();
+    rawDespData = buildFallbackDespData();
+    popularFiltrosDinamicos();
+    applyFilters();
+    applyDespFilters();
+  </script>
+</body>
+</html>
