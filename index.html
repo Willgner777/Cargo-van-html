@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cargo Van EX - Dashboard Executivo v1.0</title>
+<title>Cargo Van EX - Dashboard Executivo v1.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -218,6 +218,27 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
     0% { transform: scale(1); opacity: 0.6; }
     100% { transform: scale(2.5); opacity: 0; }
 }
+
+/* ============ MELHORIAS (v3) ============ */
+.sync-bar { display:none; background:rgba(59,130,246,.08); border:1px solid rgba(59,130,246,.25); color:var(--text-muted); font-size:11px; padding:8px 14px; border-radius:10px; line-height:1.6; }
+.sync-bar.warn { background:rgba(245,158,11,.10); border-color:rgba(245,158,11,.45); color:#fbbf24; }
+.chart-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:16px; color:var(--text-muted); font-size:12px; font-weight:600; pointer-events:none; z-index:2; }
+.chart-legend { display:flex; flex-wrap:wrap; gap:8px 18px; justify-content:center; }
+.legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:#cbd5e1; }
+.pager { display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; padding-top:4px; }
+.pager .pager-size { width:auto; min-width:130px; }
+.pager-info { font-size:11px; color:var(--text-muted); }
+.btn-mini { background:rgba(59,130,246,.12); color:#93c5fd; border:1px solid rgba(59,130,246,.3); padding:8px 14px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; transition:.2s; }
+.btn-mini:hover:not(:disabled) { background:rgba(59,130,246,.25); color:#fff; }
+.btn-mini:disabled { opacity:.35; cursor:not-allowed; }
+.btn-anexo { background:var(--accent-blue); color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:10px; font-weight:700; }
+.empty-row td { text-align:center; color:var(--text-muted); padding:28px 10px; }
+.meta-detalhe { font-size:11px; color:var(--text-muted); }
+.data-warning { border-color:rgba(245,158,11,.45); }
+.dq-list { margin-left:18px; font-size:12px; color:#cbd5e1; display:flex; flex-direction:column; gap:6px; }
+.dq-details summary { cursor:pointer; font-size:12px; color:var(--accent-warning); font-weight:700; }
+.dq-rows { margin-top:8px; max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+.dq-row { font-size:11px; color:var(--text-muted); background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.04); border-radius:8px; padding:6px 10px; }
 </style>
 </head>
 <body>
@@ -271,6 +292,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
         
         <!-- OPERAÇÃO VIEW -->
         <main class="main-content" id="operacao-view">
+            <div class="sync-bar"></div>
             <!-- BARRA DE FILTROS -->
             <div class="filter-bar">
                 <div class="filter-group"><label>Data Inicial</label><input type="date" id="filter-start" class="filter-input"></div>
@@ -280,6 +302,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="filter-group"><label>Cliente / Operação</label><input type="text" id="filter-operacao" class="filter-input" placeholder="Cliente ou UF"></div>
                 <div class="filter-group"><label>Status</label><select id="filter-status" class="filter-input"><option value="">Todos</option></select></div>
                 <div class="filter-group"><label>Perfil Frota</label><select id="filter-perfil" class="filter-input"><option value="">Todos</option><option value="PRÓPRIO">Próprio</option><option value="AGREGADO">Agregado</option></select></div>
+                <div class="filter-group"><label>&nbsp;</label><button type="button" class="btn-mini" id="btn-clear-op">Limpar filtros</button></div>
             </div>
 
             <!-- KPIS -->
@@ -302,6 +325,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                         <span style="font-size:12px; color:var(--text-muted);">Meta: <strong id="meta-mensal-alvo" style="color:#fff;">0</strong></span>
                     </div>
                     <div class="progress-track"><div class="progress-fill" id="meta-mensal-fill"></div></div>
+                    <div class="meta-detalhe" id="meta-mensal-detalhe"></div>
                 </div>
             </div>
 
@@ -331,6 +355,9 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
+            <!-- AVISOS DE QUALIDADE DOS DADOS (aparece só quando necessário) -->
+            <div class="panel data-warning" id="dq-panel" style="display:none;"></div>
+
             <!-- GRÁFICOS PRINCIPAIS -->
             <div class="content-grid-3">
                 <div class="panel" style="grid-column: span 2;">
@@ -351,6 +378,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Status da Operação</div></div>
                     <div class="chart-container"><canvas id="statusHChart"></canvas></div>
+                    <div class="chart-legend" id="status-legend"></div>
                 </div>
             </div>
 
@@ -410,8 +438,8 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
             <!-- RANKING DE OPERAÇÕES VS META -->
             <div class="content-grid" style="grid-template-columns: 1fr;">
                 <div class="panel">
-                    <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div></div>
-                    <div class="chart-container" style="height:240px;"><canvas id="opTargetChart"></canvas></div>
+                    <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div><span id="op-rank-resumo" style="font-size:11px; color:var(--text-muted);"></span></div>
+                    <div class="chart-container" id="opTargetWrap" style="height:240px;"><canvas id="opTargetChart"></canvas></div>
                 </div>
             </div>
 
@@ -435,7 +463,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:11px;color:var(--text-muted);"></span></div>
                 <div class="table-container">
                     <table>
-                        <thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Ini / Fin) | Rodados</th><th>NFs</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Inicial / Final) | Rodados considerado</th><th>NFs</th><th>Status</th></tr></thead>
                         <tbody id="table-body"></tbody>
                     </table>
                 </div>
@@ -444,6 +472,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
         <!-- ============ DESPESAS VIEW (Hidden by default) ============ -->
         <main class="main-content view-hidden" id="despesas-view">
+            <div class="sync-bar"></div>
             <!-- BARRA DE FILTROS DESPESAS -->
             <div class="filter-bar" id="desp-filter-bar">
                 <div class="filter-group"><label>Data Inicial</label><input type="date" id="desp-filter-start" class="filter-input"></div>
@@ -452,6 +481,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="filter-group"><label>Serviço</label><input type="text" id="desp-filter-servico" class="filter-input" placeholder="Filtrar serviço..."></div>
                 <div class="filter-group"><label>ID</label><input type="number" id="desp-filter-id" class="filter-input" placeholder="ID ACESSOS"></div>
                 <div class="filter-group"><label>Status</label><select id="desp-filter-status" class="filter-input"><option value="">Todos</option><option value="Aprovado">Aprovado</option><option value="Pendente">Pendente</option><option value="Recusado">Recusado</option></select></div>
+                <div class="filter-group"><label>&nbsp;</label><button type="button" class="btn-mini" id="btn-clear-desp">Limpar filtros</button></div>
             </div>
 
             <!-- KPIS DESPESAS -->
@@ -527,6 +557,34 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 </div>
 
 <script>
+/* =========================================================
+   CONFIGURAÇÕES CENTRAIS (ajuste aqui, sem procurar no código)
+   ========================================================= */
+const CONFIG = {
+    SITE: 'willtech7.sharepoint.com:/sites/CARGOVAN:',
+    LISTA_LIBERACAO: 'LIBERACAO_VEICULO',
+    LISTA_DESPESAS: 'BD_DESPESAS',
+    PAGE_TOP: 1000,               // itens por página no Graph
+    MAX_PAGINAS: 500,             // teto de segurança (500 x 1000 = 500 mil itens)
+    META_MENSAL_NFS: 20306,       // meta base de NFs por mês
+    NFS_MAX_POR_REGISTRO: 500,    // acima disso a quantidade é considerada inválida
+    KM_MAX_POR_REGISTRO: 5000,    // acima disso o KM do registro é considerado absurdo
+    KM_DIVISOR_UNIDADE: 1,        // use 1000 se o SharePoint devolver KM em metros
+    EFICIENCIA_REFERENCIA: 20,    // NFs por 100 km que equivale a 100% no anel
+    TIMEZONE: 'America/Fortaleza',
+    PAGINA_PADRAO: 50,
+    TAMANHOS_PAGINA: [25, 50, 100, 250, 0],   // 0 = todos
+    MAX_AVISOS_LISTADOS: 100
+};
+
+const STATUS_INFO = {
+    concluido: { label: 'Concluído',    color: '#10b981', css: 'status-concluido' },
+    andamento: { label: 'Em andamento', color: '#3b82f6', css: 'status-andamento' },
+    pernoite:  { label: 'Pernoite',     color: '#8b5cf6', css: 'status-pernoite' },
+    outro:     { label: 'Outro',        color: '#f59e0b', css: 'status-outro' }
+};
+const OPERACAO_NAO_INFORMADA = 'NÃO INFORMADA';
+
 const msalConfig = {
     auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.origin + window.location.pathname },
     cache: { cacheLocation: "sessionStorage" }
@@ -538,21 +596,199 @@ const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 let rawData = [], filteredData = [];
 let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
 let sparklineChartInstance = null, opTargetChartInstance = null;
+let kmAvisoUnidade = '';
 
 /* DADOS DE DESPESAS */
 let rawDespData = [], filteredDespData = [];
 let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
+
+/* ESTADO DA SINCRONIZAÇÃO */
+let usandoDadosDemo = false;   // só fica true se algum dia dados fictícios forem carregados
+let sincronizando = false;
+const syncInfo = {
+    quando: null,
+    listas: {}   // { NOME_LISTA: { ok, total, erro, ultimoSucesso } }
+};
 
 Chart.register(ChartDataLabels);
 Chart.defaults.color = '#8b9bb8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
 /* =========================================================
+   UTILITÁRIOS
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+
+/** Cria elementos sem usar innerHTML (todo texto entra via textContent/append). */
+function el(tag, opts = {}, ...children) {
+    const n = document.createElement(tag);
+    if (opts.class) n.className = opts.class;
+    if (opts.text != null) n.textContent = opts.text;
+    if (opts.style) n.style.cssText = opts.style;
+    if (opts.attrs) Object.entries(opts.attrs).forEach(([k, v]) => n.setAttribute(k, v));
+    children.forEach(c => { if (c != null && c !== false) n.append(c); });
+    return n;
+}
+function td(content, opts = {}) {
+    const c = el('td', opts);
+    if (content instanceof Node) c.append(content);
+    else if (content != null) c.append(String(content));
+    return c;
+}
+function strong(text) { return el('strong', { text }); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function debounce(fn, ms = 300) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+/* ---------- Números ---------- */
+function fmt(num) {
+    const n = Number(num);
+    return (Number.isFinite(n) ? Math.round(n) : 0).toLocaleString('pt-BR');
+}
+/** KM sempre inteiro, com ponto de milhar e sem vírgula: 255.222 */
+function fmtKm(num) {
+    if (num === null || num === undefined || !Number.isFinite(Number(num))) return '—';
+    return Math.round(Number(num)).toLocaleString('pt-BR');
+}
+function fmtMoeda(val) {
+    const n = Number(val);
+    return (Number.isFinite(n) ? n : 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+function fmtPct(p) {
+    return (Number.isFinite(p) ? p : 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%';
+}
+
+/**
+ * Converte número/texto do SharePoint para número.
+ * Aceita: 12345 | "12345" | "12.345" | "12.345,6" | "12,5" | "12345 km" | "R$ 1.234,56"
+ * Retorna null quando não for possível interpretar.
+ */
+function parseNumberBR(v) {
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    let s = String(v).trim().replace(/[^\d.,\-]/g, '');
+    if (!s || s === '-' || s === '.' || s === ',') return null;
+    const temVirgula = s.includes(','), temPonto = s.includes('.');
+    if (temVirgula && temPonto) {
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+        else s = s.replace(/,/g, '');
+    } else if (temVirgula) {
+        s = s.replace(',', '.');
+    } else if (temPonto && /^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+        s = s.replace(/\./g, '');   // "255.222" = duzentos e cinquenta e cinco mil...
+    }
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+}
+
+function pick(f, ...keys) {
+    for (const k of keys) {
+        if (f[k] !== undefined && f[k] !== null && f[k] !== '') return f[k];
+    }
+    return undefined;
+}
+function safeStr(v, def = 'N/A') {
+    if (v === undefined || v === null) return def;
+    if (typeof v === 'object') {
+        const t = v.LookupValue || v.Title || v.Email || v.Url || v.url || '';
+        return String(t).trim() || def;
+    }
+    const s = String(v).trim();
+    return s || def;
+}
+function normalizarChave(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+
+/* ---------- Datas (padrão Brasil) ---------- */
+const _fmtDataLocal = new Intl.DateTimeFormat('en-US', { timeZone: CONFIG.TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+
+/**
+ * Converte qualquer data do SharePoint para 'yyyy-mm-dd' (formato interno / do <input type="date">).
+ * Timestamps são convertidos para o horário de Fortaleza; "T00:00:00Z" é tratado como data pura.
+ */
+function toISODate(value) {
+    if (!value) return '';
+    const s = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (/^\d{4}-\d{2}-\d{2}T00:00:00(\.\d+)?Z$/.test(s)) return s.slice(0, 10);
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : '';
+    const p = _fmtDataLocal.formatToParts(d).reduce((a, x) => (a[x.type] = x.value, a), {});
+    return `${p.year}-${p.month}-${p.day}`;
+}
+/** ÚNICA função de exibição de datas: dd/mm/yyyy */
+function formatDateBR(value) {
+    const iso = toISODate(value);
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+}
+function formatDateTimeBR(date) {
+    return date.toLocaleString('pt-BR', { timeZone: CONFIG.TIMEZONE, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ---------- Status ---------- */
+function classifyStatusKey(st) {
+    const s = String(st || '').toUpperCase();
+    if (s.includes('CONCLUÍDO') || s.includes('CONCLUIDO')) return 'concluido';
+    if (s.includes('ANDAMENTO') || s.includes('ROTA')) return 'andamento';
+    if (s.includes('PERNOITE')) return 'pernoite';
+    return 'outro';
+}
+function statusBadge(st) {
+    return el('span', { class: 'badge-status ' + STATUS_INFO[classifyStatusKey(st)].css, text: st });
+}
+function perfilBadge(perf) {
+    return el('span', { class: 'badge-perfil ' + (perf === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado'), text: perf });
+}
+function despStatusBadge(st) {
+    let css = 'status-pendente';
+    const upper = String(st || '').toUpperCase();
+    if (upper.includes('APROVADO') || upper.includes('CONCLUÍDO') || upper.includes('CONCLUIDO')) css = 'status-aprovado';
+    else if (upper.includes('RECUSADO') || upper.includes('CANCELADO') || upper.includes('REJEITADO')) css = 'status-recusado';
+    return el('span', { class: 'badge-despesa ' + css, text: st });
+}
+
+function padronizarNome(nome) {
+    const s = String(nome || '').trim();
+    if (!s) return 'NÃO INFORMADO';
+    return s.toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+function normalizarOperacao(v) {
+    const t = String(v || '').replace(/\s+/g, ' ').trim().toUpperCase();
+    if (!t) return OPERACAO_NAO_INFORMADA;
+    return t.split('|').map(p => p.trim()).filter(Boolean).join(' | ') || OPERACAO_NAO_INFORMADA;
+}
+
+function showToast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), 4500);
+}
+
+/** Mostra/oculta a mensagem "sem dados" sobre um gráfico. */
+function setEmpty(canvasId, vazio, msg) {
+    const wrap = $(canvasId).parentElement;
+    let box = wrap.querySelector('.chart-empty');
+    if (vazio) {
+        if (!box) { box = el('div', { class: 'chart-empty' }); wrap.append(box); }
+        box.textContent = msg || 'Sem dados para os filtros selecionados.';
+    } else if (box) {
+        box.remove();
+    }
+}
+function emptyRow(colspan, msg) {
+    const tr = el('tr', { class: 'empty-row' });
+    tr.append(el('td', { text: msg, attrs: { colspan: String(colspan) } }));
+    return tr;
+}
+
+/* =========================================================
    TROCA DE VIEWS (Navegação da Sidebar)
    ========================================================= */
 function showView(viewName) {
-    const mainOp = document.getElementById('operacao-view');
-    const mainDesp = document.getElementById('despesas-view');
+    const mainOp = $('operacao-view');
+    const mainDesp = $('despesas-view');
     const navItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
 
     if (viewName === 'despesas') {
@@ -566,6 +802,7 @@ function showView(viewName) {
         navItems[1].classList.remove('active');
         navItems[0].classList.add('active');
     }
+    setTimeout(atualizarPulso, 50);
 }
 
 /* =========================================================
@@ -628,7 +865,7 @@ const peakAnnotationPlugin = {
         dataset.data.forEach((v, i) => { if (v > maxVal) { maxVal = v; maxIdx = i; } });
         if (maxIdx === -1) return;
         const point = meta.data[maxIdx];
-        const label = chart.data.labels[maxIdx];
+        const label = formatDateBR(chart.data.labels[maxIdx]);
         const { ctx } = chart;
         ctx.save();
         ctx.font = 'bold 10px Inter, sans-serif';
@@ -640,313 +877,559 @@ const peakAnnotationPlugin = {
 };
 Chart.register(peakAnnotationPlugin);
 
-setInterval(() => {
-    if (lineChartInstance) lineChartInstance.draw();
-}, 100);
+/* ---------- Animação do pulso: requestAnimationFrame só quando visível ---------- */
+const pulseState = { raf: 0, last: 0, visivel: false };
 
-function fmt(num) {
-    return Number(num || 0).toLocaleString('pt-BR');
+function pulsePodeAnimar() {
+    return !!lineChartInstance && pulseState.visivel && !document.hidden;
 }
-
-function fmtMoeda(val) {
-    return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+function pulseLoop(ts) {
+    if (!pulsePodeAnimar()) { pulseState.raf = 0; return; }
+    if (ts - pulseState.last >= 33) {            // ~30 quadros/s: suave e leve
+        pulseState.last = ts;
+        try { lineChartInstance.draw(); } catch (e) { /* gráfico sendo recriado */ }
+    }
+    pulseState.raf = requestAnimationFrame(pulseLoop);
 }
+function atualizarPulso() {
+    if (pulsePodeAnimar()) {
+        if (!pulseState.raf) pulseState.raf = requestAnimationFrame(pulseLoop);
+    } else if (pulseState.raf) {
+        cancelAnimationFrame(pulseState.raf);
+        pulseState.raf = 0;
+    }
+}
+if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+        pulseState.visivel = entries[0].isIntersecting;
+        atualizarPulso();
+    }, { threshold: 0.1 }).observe($('lineChart'));
+} else {
+    pulseState.visivel = true;
+}
+document.addEventListener('visibilitychange', atualizarPulso);
 
+/* =========================================================
+   LOGIN
+   ========================================================= */
 function iniciarLogin() {
-    document.getElementById("login-view").style.display = "none";
-    document.getElementById("loading-screen").style.display = "flex";
+    $("login-view").style.display = "none";
+    $("loading-screen").style.display = "flex";
     myMSALObj.loginPopup(loginRequest)
         .then(response => {
-            document.getElementById("display-name").innerText = response.account.name;
+            $("display-name").textContent = response.account.name;
             syncSharePointData(response.account);
         })
         .catch(error => {
             console.error(error);
-            document.getElementById("loading-screen").style.display = "none";
-            document.getElementById("login-view").style.display = "flex";
+            $("loading-screen").style.display = "none";
+            $("login-view").style.display = "flex";
             showToast("Erro ao conectar.");
         });
 }
 
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-function padronizarNome(nome) {
-    if (!nome) return 'NÃO INFORMADO';
-    return nome.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
 /* =========================================================
-   SINCRONIZAÇÃO COMPLETA SHAREPOINT (LIBERACAO_VEICULO + BD_DESPESAS)
+   SINCRONIZAÇÃO SHAREPOINT (LIBERACAO_VEICULO + BD_DESPESAS)
    ========================================================= */
-async function syncSharePointData(account) {
-    if(!account) account = myMSALObj.getAllAccounts()[0];
-    if(!account) { iniciarLogin(); return; }
-
-    document.getElementById("loading-screen").style.display = "flex";
-    document.getElementById("loading-msg").innerText = "Sincronizando dados com o SharePoint...";
-
+async function getToken(account) {
     try {
-        const token = await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
-
-        // 1. LIBERACAO_VEICULO (Lógica original e inalterada)
-        let url = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/LIBERACAO_VEICULO/items?expand=fields&$top=1000`;
-        let all = []; 
-        let pages = 0;
-        
-        while(url && pages < 10) {
-            pages++;
-            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
-            if (!res.ok) throw new Error(`Graph Erro (LIBERACAO_VEICULO): ${res.status}`);
-            const data = await res.json();
-            if (data.value) all = all.concat(data.value);
-            url = data['@odata.nextLink'] || null;
-        }
-
-        if (all.length > 0) {
-            rawData = all.map(it => {
-                const f = it.fields || {};
-                const perfilStr = String(f.PR_x00d3_PRIOOUAGREGADO || f.PERFILDOVE_x00cd_CULO || 'PRÓPRIO').toUpperCase();
-                
-                let qNfs = Number(f.QNTDDEENTREGA || 0);
-                if(qNfs > 500) qNfs = Number(f.QTDENTREGASFINALIZADAS || 0);
-                if(qNfs > 500) qNfs = 0;
-
-                const kmIni = Number(f.KMINICIAL || 0);
-                const kmFin = Number(f.KMFINAL || 0);
-                let kmRod = Number(f.KMRODADOS || 0);
-                if(kmRod <= 0 && kmFin > kmIni) kmRod = kmFin - kmIni;
-
-                const operacaoStr = String(f.CLIENTE_x007c_OPERA_x00c7__x00c3 || 'NÃO INFORMADA').toUpperCase();
-                let uf = 'GERAL';
-                const parts = operacaoStr.split('|');
-                if(parts.length > 1 && parts[0].trim().length === 2) {
-                    uf = parts[0].trim().toUpperCase();
-                }
-
-                return {
-                    id: it.id,
-                    criado: (f.Created || new Date().toISOString()).split('T')[0],
-                    documento: String(f.N_x00ba_DOCUMENTO || 'N/A'),
-                    motorista: padronizarNome(f.NOME),
-                    qtdNFs: qNfs,
-                    kmInicial: kmIni,
-                    kmFinal: kmFin,
-                    kmRodados: kmRod,
-                    status: String(f.STATUS || 'CONCLUÍDO').toUpperCase(),
-                    perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
-                    operacao: operacaoStr,
-                    uf: uf,
-                    observacao: String(f.OBSERVA_x00c7__x00c3_O || '').toUpperCase()
-                };
-            });
-            popularFiltrosDinamicos();
-        }
-
-        // 2. BD_DESPESAS (Mesma lógica de sincronização aplicada)
-        let urlDesp = `https://graph.microsoft.com/v1.0/sites/willtech7.sharepoint.com:/sites/CARGOVAN:/lists/BD_DESPESAS/items?expand=fields&$top=1000`;
-        let allDesp = []; 
-        let pagesDesp = 0;
-
-        while(urlDesp && pagesDesp < 10) {
-            pagesDesp++;
-            const resDesp = await fetch(urlDesp, { headers: { 'Authorization': `Bearer ${token.accessToken}` } });
-            if (resDesp.ok) {
-                const dataDesp = await resDesp.json();
-                if (dataDesp.value) allDesp = allDesp.concat(dataDesp.value);
-                urlDesp = dataDesp['@odata.nextLink'] || null;
-            } else {
-                console.warn(`Aviso Graph (BD_DESPESAS): ${resDesp.status}`);
-                break;
-            }
-        }
-
-        if (allDesp.length > 0) {
-            rawDespData = allDesp.map(it => {
-                const f = it.fields || {};
-                const valTotal = Number(f.VALORTOTAL || f.VALOR_x0020_TOTAL || f.ValorTotal || 0);
-                const valUnit = Number(f.VALORUNIT_x00c1_RIO || f.VALOR_x0020_UNIT_x00c1_RIO || f.ValorUnitario || 0);
-                const qntd = Number(f.QNTD || f.QUANTIDADE || f.Quantidade || 1);
-
-                return {
-                    id: it.id,
-                    placa: String(f.PLACA || f.Placa || 'N/A').toUpperCase(),
-                    servico: String(f.SERVI_x00c7_O || f.SERVICO || f.Servico || 'N/A').toUpperCase(),
-                    valorTotal: valTotal,
-                    valorUnit: valUnit,
-                    qntd: qntd,
-                    dataCompra: (f.DATA_x0020_DE_x0020_COMPRA || f.DATACOMPRA || f.Created || new Date().toISOString()).split('T')[0],
-                    status: String(f.STATUS || f.Status || 'Pendente').trim(),
-                    aprovador: String(f.APROVADOR || f.Aprovador || 'N/A'),
-                    tipoDoc: String(f.TIPO_x0020_DOCUMENTO || f.TIPODOCUMENTO || f.TipoDoc || 'N/A'),
-                    formaPag: String(f.FORMA_x0020_PAGAMENTO || f.FORMAPAGAMENTO || f.FormaPagamento || 'N/A'),
-                    fornecedor: String(f.FORNECEDOR || f.Fornecedor || 'N/A'),
-                    criadoPor: String(f.CRIADO_x0020_POR || f.CRIADOPOR || f.Author || 'N/A'),
-                    informacao: String(f.INFORMA_x00c7__x00c3_O || f.INFORMACAO || f.Informacao || 'N/A'),
-                    umb: String(f.UMB || f.Umb || 'N/A'),
-                    banco: String(f.BANCO || f.Banco || 'N/A'),
-                    chavePix: String(f.CHAVE_x0020_PIX || f.CHAVEPIX || f.ChavePix || 'N/A'),
-                    bancoAjud: String(f.BANCO_x0020_AJUDANTE || f.BANCOAJUDANTE || f.BancoAjudante || 'N/A'),
-                    chaveAjud: String(f.CHAVE_x0020_AJUDANTE || f.CHAVEAJUDANTE || f.ChaveAjudante || 'N/A'),
-                    recebedor: String(f.RECEBEDOR || f.Recebedor || 'N/A'),
-                    descontos: Number(f.DESCONTOS || f.Descontos || 0),
-                    operacao: String(f.OPERA_x00c7__x00c3_O || f.OPERACAO || f.Operacao || 'N/A'),
-                    anexo: f.ANEXO || f.Anexo || (f.Attachments ? 'Sim' : ''),
-                    descFunc: String(f.DESC_x0020_FUNC || f.DESCFUNC || f.DescFunc || 'N/A'),
-                    parcelado: String(f.PARCELADO || f.Parcelado || 'NÃO'),
-                    numParcelas: Number(f.N_x00ba__x0020_PARCELAS || f.NUMPARCELAS || f.NumParcelas || 1),
-                    periodoParcelamento: String(f.PER_x00cd_ODO_x0020_PARCELAMENTO || f.PERIODOPARCELAMENTO || 'N/A')
-                };
-            });
-        }
-
-        showToast(`✅ Sincronizado: ${rawData.length} Veículos | ${rawDespData.length} Despesas`);
-    } catch(e) {
-        console.error(e);
-        showToast('Falha na sincronização.');
-    } finally {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        applyFilters();
-        applyDespFilters();
+        return await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+    } catch (e) {
+        if (e instanceof msal.InteractionRequiredAuthError) return await myMSALObj.acquireTokenPopup(loginRequest);
+        throw e;
     }
 }
 
+async function fetchComRetry(url, accessToken, tentativas = 3) {
+    for (let i = 1; ; i++) {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        if (res.ok) return res;
+        if ((res.status === 429 || res.status >= 500) && i < tentativas) {
+            await sleep((Number(res.headers.get('Retry-After')) || i * 2) * 1000);
+            continue;
+        }
+        throw new Error(`HTTP ${res.status}`);
+    }
+}
+
+/** Busca TODAS as páginas de uma lista, seguindo @odata.nextLink até o fim. */
+async function fetchAllPages(listName, accessToken) {
+    let url = `https://graph.microsoft.com/v1.0/sites/${CONFIG.SITE}/lists/${listName}/items?expand=fields&$top=${CONFIG.PAGE_TOP}`;
+    const items = [];
+    let paginas = 0;
+    while (url) {
+        if (++paginas > CONFIG.MAX_PAGINAS) {
+            throw new Error(`limite de ${CONFIG.MAX_PAGINAS} páginas atingido (dados possivelmente incompletos)`);
+        }
+        const res = await fetchComRetry(url, accessToken);
+        const data = await res.json();
+        if (Array.isArray(data.value)) { for (const it of data.value) items.push(it); }
+        url = data['@odata.nextLink'] || null;
+    }
+    return items;
+}
+
+/* ---------- Mapeamento LIBERACAO_VEICULO ---------- */
+/**
+ * Regra de KM (prioridade):
+ *  1) KMRODADOS, quando válido (> 0 e dentro do limite);
+ *  2) senão, KMFINAL - KMINICIAL (quando positivo e dentro do limite);
+ *  3) negativos e valores absurdos são ignorados (e listados no aviso).
+ */
+function calcularKm(f) {
+    const div = CONFIG.KM_DIVISOR_UNIDADE || 1;
+    const esc = (n) => (n === null ? null : n / div);
+    const ini = esc(parseNumberBR(f.KMINICIAL));
+    const fin = esc(parseNumberBR(f.KMFINAL));
+    const rod = esc(parseNumberBR(f.KMRODADOS));
+    const MAX = CONFIG.KM_MAX_POR_REGISTRO;
+
+    const r = { kmInicial: ini, kmFinal: fin, kmRodadosBruto: rod, kmConsiderado: 0, kmOrigem: '', kmMotivo: '', kmAlerta: false };
+    let motivoRod = '';
+
+    if (rod !== null && rod > 0 && rod <= MAX) {
+        r.kmConsiderado = rod;
+        r.kmOrigem = 'KMRODADOS';
+        return r;
+    }
+    if (rod !== null && rod < 0) motivoRod = 'KMRODADOS negativo';
+    else if (rod !== null && rod > MAX) motivoRod = `KMRODADOS absurdo (${fmtKm(rod)} km)`;
+
+    if (ini !== null && fin !== null) {
+        const diff = fin - ini;
+        if (diff > 0 && diff <= MAX) {
+            r.kmConsiderado = diff;
+            r.kmOrigem = 'KMFINAL − KMINICIAL';
+            if (motivoRod) r.kmMotivo = motivoRod + '; usado o cálculo por KM final − inicial';
+            return r;
+        }
+        if (diff < 0) { r.kmMotivo = motivoRod || 'KM final menor que o inicial'; r.kmAlerta = true; return r; }
+        if (diff > MAX) { r.kmMotivo = motivoRod || `Diferença absurda entre KM final e inicial (${fmtKm(diff)} km)`; r.kmAlerta = true; return r; }
+    }
+    if (motivoRod) { r.kmMotivo = motivoRod; r.kmAlerta = true; }
+    return r;
+}
+
+function chaveKm(r) {
+    if (r.kmConsiderado <= 0) return null;
+    if (r.kmInicial > 0 && r.kmFinal > 0) return `${r.documento}|${r.kmInicial}|${r.kmFinal}`;
+    if (r.documento !== 'N/A') return `${r.documento}|${r.kmConsiderado}|${r.criado}`;
+    return null;
+}
+/** Garante que a mesma distância não seja somada duas vezes. */
+function marcarKmDuplicado(lista) {
+    const vistos = new Set();
+    lista.forEach(r => {
+        const k = chaveKm(r);
+        if (!k) return;
+        if (vistos.has(k)) {
+            r.kmMotivo = 'Duplicado: a mesma distância já foi contada em outro registro';
+            r.kmConsiderado = 0;
+            r.kmAlerta = true;
+        } else {
+            vistos.add(k);
+        }
+    });
+}
+
+function mapLiberacaoItem(it) {
+    const f = it.fields || {};
+    const perfilStr = String(pick(f, 'PR_x00d3_PRIOOUAGREGADO', 'PERFILDOVE_x00cd_CULO') || 'PRÓPRIO').toUpperCase();
+
+    let nfs = parseNumberBR(f.QNTDDEENTREGA) || 0;
+    if (nfs > CONFIG.NFS_MAX_POR_REGISTRO) nfs = parseNumberBR(f.QTDENTREGASFINALIZADAS) || 0;
+    let nfsZerada = false;
+    if (nfs > CONFIG.NFS_MAX_POR_REGISTRO) { nfs = 0; nfsZerada = true; }
+    if (nfs < 0) nfs = 0;
+
+    const operacao = normalizarOperacao(f.CLIENTE_x007c_OPERA_x00c7__x00c3);
+    let uf = 'GERAL';
+    const parts = operacao.split(' | ');
+    if (parts.length > 1 && parts[0].length === 2) uf = parts[0];
+
+    const observacao = String(f.OBSERVA_x00c7__x00c3_O || '').toUpperCase();
+    const km = calcularKm(f);
+
+    return {
+        id: it.id,
+        criado: toISODate(f.Created),
+        documento: safeStr(f.N_x00ba_DOCUMENTO, 'N/A'),
+        motorista: padronizarNome(f.NOME),
+        qtdNFs: nfs,
+        nfsZerada,
+        ...km,
+        status: String(f.STATUS || 'CONCLUÍDO').toUpperCase(),
+        perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
+        operacao,
+        uf,
+        observacao,
+        observacaoKey: normalizarChave(observacao)
+    };
+}
+
+function mapLiberacaoLista(items) {
+    const lista = items.map(mapLiberacaoItem);
+    marcarKmDuplicado(lista);
+    // mais recentes primeiro (data e, em empate, id)
+    lista.sort((a, b) => b.criado.localeCompare(a.criado) || Number(b.id) - Number(a.id));
+    diagnosticarUnidadeKm(lista);
+    return lista;
+}
+
+/** Ajuda a descobrir se o SharePoint está devolvendo KM em metros (ou outra unidade). */
+function diagnosticarUnidadeKm(lista) {
+    const vals = lista.map(r => r.kmRodadosBruto).filter(v => v !== null && v > 0).sort((a, b) => a - b);
+    kmAvisoUnidade = '';
+    if (!vals.length) return;
+    const mediana = vals[Math.floor(vals.length / 2)];
+    console.info('[Diagnóstico KM] registros com KMRODADOS > 0:', vals.length,
+        '| mínimo:', vals[0], '| mediana:', mediana, '| máximo:', vals[vals.length - 1],
+        '| divisor de unidade em uso:', CONFIG.KM_DIVISOR_UNIDADE);
+    if (mediana > 1500 && CONFIG.KM_DIVISOR_UNIDADE === 1) {
+        kmAvisoUnidade = `A mediana de KM rodados por registro é ${fmtKm(mediana)}. Se o SharePoint estiver devolvendo metros, altere CONFIG.KM_DIVISOR_UNIDADE para 1000.`;
+    }
+}
+
+/* ---------- Mapeamento BD_DESPESAS ---------- */
+function normalizarAnexo(v) {
+    if (!v) return '';
+    if (typeof v === 'object') return String(v.Url || v.url || v.serverRelativeUrl || '').trim();
+    const s = String(v).trim();
+    if (s.startsWith('{')) { try { const o = JSON.parse(s); return String(o.Url || o.url || '').trim(); } catch (e) { /* segue como texto */ } }
+    return s;
+}
+
+function mapDespesaItem(it) {
+    const f = it.fields || {};
+    const num = (v, def = 0) => { const n = parseNumberBR(v); return n === null ? def : n; };
+    return {
+        id: it.id,
+        placa: safeStr(pick(f, 'PLACA', 'Placa')).toUpperCase(),
+        servico: safeStr(pick(f, 'SERVI_x00c7_O', 'SERVICO', 'Servico')).toUpperCase(),
+        valorTotal: num(pick(f, 'VALORTOTAL', 'VALOR_x0020_TOTAL', 'ValorTotal')),
+        valorUnit: num(pick(f, 'VALORUNIT_x00c1_RIO', 'VALOR_x0020_UNIT_x00c1_RIO', 'ValorUnitario')),
+        qntd: num(pick(f, 'QNTD', 'QUANTIDADE', 'Quantidade'), 1),
+        dataCompra: toISODate(pick(f, 'DATA_x0020_DE_x0020_COMPRA', 'DATACOMPRA', 'Created')),
+        status: safeStr(pick(f, 'STATUS', 'Status'), 'Pendente'),
+        aprovador: safeStr(pick(f, 'APROVADOR', 'Aprovador')),
+        tipoDoc: safeStr(pick(f, 'TIPO_x0020_DOCUMENTO', 'TIPODOCUMENTO', 'TipoDoc')),
+        formaPag: safeStr(pick(f, 'FORMA_x0020_PAGAMENTO', 'FORMAPAGAMENTO', 'FormaPagamento')),
+        fornecedor: safeStr(pick(f, 'FORNECEDOR', 'Fornecedor')),
+        criadoPor: safeStr(pick(f, 'CRIADO_x0020_POR', 'CRIADOPOR', 'Author')),
+        informacao: safeStr(pick(f, 'INFORMA_x00c7__x00c3_O', 'INFORMACAO', 'Informacao')),
+        umb: safeStr(pick(f, 'UMB', 'Umb')),
+        banco: safeStr(pick(f, 'BANCO', 'Banco')),
+        chavePix: safeStr(pick(f, 'CHAVE_x0020_PIX', 'CHAVEPIX', 'ChavePix')),
+        bancoAjud: safeStr(pick(f, 'BANCO_x0020_AJUDANTE', 'BANCOAJUDANTE', 'BancoAjudante')),
+        chaveAjud: safeStr(pick(f, 'CHAVE_x0020_AJUDANTE', 'CHAVEAJUDANTE', 'ChaveAjudante')),
+        recebedor: safeStr(pick(f, 'RECEBEDOR', 'Recebedor')),
+        descontos: num(pick(f, 'DESCONTOS', 'Descontos')),
+        operacao: safeStr(pick(f, 'OPERA_x00c7__x00c3_O', 'OPERACAO', 'Operacao')),
+        anexo: normalizarAnexo(pick(f, 'ANEXO', 'Anexo')) || (f.Attachments ? 'Sim' : ''),
+        descFunc: safeStr(pick(f, 'DESC_x0020_FUNC', 'DESCFUNC', 'DescFunc')),
+        parcelado: safeStr(pick(f, 'PARCELADO', 'Parcelado'), 'NÃO'),
+        numParcelas: num(pick(f, 'N_x00ba__x0020_PARCELAS', 'NUMPARCELAS', 'NumParcelas'), 1),
+        periodoParcelamento: safeStr(pick(f, 'PER_x00cd_ODO_x0020_PARCELAMENTO', 'PERIODOPARCELAMENTO'))
+    };
+}
+function mapDespesasLista(items) {
+    const lista = items.map(mapDespesaItem);
+    lista.sort((a, b) => b.dataCompra.localeCompare(a.dataCompra) || Number(b.id) - Number(a.id));
+    return lista;
+}
+
+/* ---------- Orquestração da sincronização ---------- */
+const LISTAS_SYNC = [
+    {
+        nome: CONFIG.LISTA_LIBERACAO,
+        aplicar: (items) => { rawData = mapLiberacaoLista(items); popularFiltrosDinamicos(); },
+        tamanhoAtual: () => rawData.length
+    },
+    {
+        nome: CONFIG.LISTA_DESPESAS,
+        aplicar: (items) => { rawDespData = mapDespesasLista(items); },
+        tamanhoAtual: () => rawDespData.length
+    }
+];
+
+async function syncSharePointData(account) {
+    if (sincronizando) return;
+    if (!account) account = myMSALObj.getAllAccounts()[0];
+    if (!account) { iniciarLogin(); return; }
+
+    sincronizando = true;
+    $("loading-screen").style.display = "flex";
+    $("loading-msg").textContent = "Sincronizando dados com o SharePoint...";
+    syncInfo.quando = new Date();
+
+    try {
+        let token;
+        try {
+            token = await getToken(account);
+        } catch (e) {
+            console.error(e);
+            LISTAS_SYNC.forEach(l => registrarFalha(l, 'falha de autenticação: ' + (e.message || e)));
+            return;
+        }
+
+        const resultados = await Promise.allSettled(LISTAS_SYNC.map(l => fetchAllPages(l.nome, token.accessToken)));
+
+        resultados.forEach((r, i) => {
+            const lista = LISTAS_SYNC[i];
+            if (r.status === 'rejected') {
+                console.error(`Falha em ${lista.nome}:`, r.reason);
+                registrarFalha(lista, r.reason && r.reason.message ? r.reason.message : String(r.reason));
+                return;
+            }
+            const items = r.value;
+            if (items.length === 0 && lista.tamanhoAtual() > 0) {
+                registrarFalha(lista, 'a consulta retornou 0 itens');
+                return;
+            }
+            try {
+                lista.aplicar(items);   // só substitui os dados anteriores se o mapeamento deu certo
+                syncInfo.listas[lista.nome] = { ok: true, total: items.length, erro: '', ultimoSucesso: new Date() };
+            } catch (e) {
+                console.error(e);
+                registrarFalha(lista, 'dados fora do formato esperado (' + (e.message || e) + ')');
+            }
+        });
+    } finally {
+        sincronizando = false;
+        $('loading-screen').style.display = 'none';
+        $('dashboard').style.display = 'block';
+        renderSyncBar();
+        applyFilters();
+        applyDespFilters();
+        atualizarPulso();
+
+        const falhas = LISTAS_SYNC.filter(l => syncInfo.listas[l.nome] && !syncInfo.listas[l.nome].ok).map(l => l.nome);
+        if (falhas.length) showToast(`⚠️ Falha ao sincronizar: ${falhas.join(', ')}. Dados anteriores preservados.`);
+        else showToast(`✅ Sincronizado: ${fmt(rawData.length)} Veículos | ${fmt(rawDespData.length)} Despesas`);
+    }
+}
+
+function registrarFalha(lista, motivo) {
+    const anterior = syncInfo.listas[lista.nome] || {};
+    syncInfo.listas[lista.nome] = { ok: false, total: lista.tamanhoAtual(), erro: motivo, ultimoSucesso: anterior.ultimoSucesso || null };
+}
+
+function renderSyncBar() {
+    const partes = [];
+    let temFalha = false;
+    LISTAS_SYNC.forEach(l => {
+        const s = syncInfo.listas[l.nome];
+        if (!s) return;
+        if (s.ok) {
+            partes.push(`${l.nome}: ✔ ${fmt(s.total)} registros`);
+        } else {
+            temFalha = true;
+            const anterior = s.ultimoSucesso
+                ? `exibindo dados da sincronização de ${formatDateTimeBR(s.ultimoSucesso)}`
+                : (s.total > 0 ? 'exibindo dados anteriores' : 'nenhum dado carregado');
+            partes.push(`${l.nome}: ✖ falhou (${s.erro}) — ${anterior}`);
+        }
+    });
+    const cab = syncInfo.quando ? `Última tentativa: ${formatDateTimeBR(syncInfo.quando)}` : '';
+    const demo = usandoDadosDemo ? '⚠ DADOS DE DEMONSTRAÇÃO (não são dados reais) · ' : '';
+    document.querySelectorAll('.sync-bar').forEach(bar => {
+        bar.className = 'sync-bar' + ((temFalha || usandoDadosDemo) ? ' warn' : '');
+        bar.textContent = [demo + cab, ...partes].filter(Boolean).join('  |  ');
+        bar.style.display = (cab || demo) ? 'block' : 'none';
+    });
+}
+
 /* =========================================================
-   LÓGICA OPERAÇÃO (VEICULO_LIBERACAO)
+   PAGINAÇÃO (tabelas)
+   ========================================================= */
+const pagerState = {
+    op: { page: 1, size: CONFIG.PAGINA_PADRAO, pages: 1 },
+    desp: { page: 1, size: CONFIG.PAGINA_PADRAO, pages: 1 }
+};
+const pagerEls = {};
+
+function paginate(lista, st) {
+    const size = st.size === 0 ? Math.max(lista.length, 1) : st.size;
+    st.pages = Math.max(1, Math.ceil(lista.length / size));
+    st.page = Math.min(Math.max(1, st.page), st.pages);
+    const start = (st.page - 1) * size;
+    st.start = start;
+    return lista.slice(start, start + size);
+}
+
+function mountPager(key, tbodyId, rerender) {
+    const container = $(tbodyId).closest('.table-container');
+    const sel = el('select', { class: 'filter-input pager-size' });
+    CONFIG.TAMANHOS_PAGINA.forEach(n => sel.append(new Option(n === 0 ? 'Todos' : `${n} por página`, String(n))));
+    sel.value = String(pagerState[key].size);
+    const info = el('span', { class: 'pager-info' });
+    const prev = el('button', { class: 'btn-mini', text: '‹ Anterior', attrs: { type: 'button' } });
+    const next = el('button', { class: 'btn-mini', text: 'Próxima ›', attrs: { type: 'button' } });
+    sel.addEventListener('change', () => { pagerState[key].size = Number(sel.value); pagerState[key].page = 1; rerender(); });
+    prev.addEventListener('click', () => { pagerState[key].page--; rerender(); });
+    next.addEventListener('click', () => { pagerState[key].page++; rerender(); });
+    container.after(el('div', { class: 'pager' }, sel, info, prev, next));
+    pagerEls[key] = { info, prev, next };
+}
+
+function atualizarPager(key, total, exibidos) {
+    const st = pagerState[key], p = pagerEls[key];
+    if (!p) return;
+    if (total === 0) {
+        p.info.textContent = 'Sem registros';
+    } else {
+        p.info.textContent = `Página ${st.page} de ${st.pages} · registros ${fmt(st.start + 1)}–${fmt(st.start + exibidos)}`;
+    }
+    p.prev.disabled = st.page <= 1;
+    p.next.disabled = st.page >= st.pages;
+}
+
+/* =========================================================
+   LÓGICA OPERAÇÃO (LIBERACAO_VEICULO)
    ========================================================= */
 function popularFiltrosDinamicos() {
+    const sel = $('filter-status');
+    const atual = sel.value;
     const statusSet = new Set();
-    rawData.forEach(d => { if(d.status) statusSet.add(d.status); });
-    const selStatus = document.getElementById('filter-status');
-    selStatus.innerHTML = '<option value="">Todos</option>';
-    statusSet.forEach(st => { selStatus.innerHTML += `<option value="${st}">${st}</option>`; });
+    rawData.forEach(d => { if (d.status) statusSet.add(d.status); });
+    sel.replaceChildren(new Option('Todos', ''));
+    [...statusSet].sort().forEach(st => sel.append(new Option(st, st)));
+    if (atual && statusSet.has(atual)) sel.value = atual;
 }
 
 function applyFilters() {
-    const s = document.getElementById('filter-start').value;
-    const e = document.getElementById('filter-end').value;
-    const placa = document.getElementById('filter-placa').value.toLowerCase();
-    const doc = document.getElementById('filter-doc').value.toLowerCase();
-    const op = document.getElementById('filter-operacao').value.toLowerCase();
-    const st = document.getElementById('filter-status').value;
-    const perf = document.getElementById('filter-perfil').value;
-    
+    const s = $('filter-start').value;
+    const e = $('filter-end').value;
+    const placa = normalizarChave($('filter-placa').value);
+    const doc = $('filter-doc').value.trim().toLowerCase();
+    const op = $('filter-operacao').value.trim().toLowerCase();
+    const st = $('filter-status').value;
+    const perf = $('filter-perfil').value;
+
     filteredData = rawData.filter(it => {
-        if(s && it.criado < s) return false;
-        if(e && it.criado > e) return false;
-        if(placa && !it.observacao.includes(placa)) return false;
-        if(doc && !it.documento.toLowerCase().includes(doc)) return false;
-        if(op && !it.operacao.toLowerCase().includes(op) && !it.uf.toLowerCase().includes(op)) return false;
-        if(st && it.status !== st) return false;
-        if(perf && it.perfil !== perf) return false;
+        if (s && (!it.criado || it.criado < s)) return false;
+        if (e && (!it.criado || it.criado > e)) return false;
+        if (placa && !it.observacaoKey.includes(placa)) return false;
+        if (doc && !it.documento.toLowerCase().includes(doc)) return false;
+        if (op && !it.operacao.toLowerCase().includes(op) && !it.uf.toLowerCase().includes(op)) return false;
+        if (st && it.status !== st) return false;
+        if (perf && it.perfil !== perf) return false;
         return true;
     });
-    
+
+    pagerState.op.page = 1;
     updateDashboardUI();
 }
 
-['filter-start', 'filter-end', 'filter-status', 'filter-perfil'].forEach(id => {
-    document.getElementById(id).addEventListener('change', applyFilters);
-});
-['filter-placa', 'filter-doc', 'filter-operacao'].forEach(id => {
-    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyFilters, 300));
-});
-
-function getStatusBadge(st) {
-    let css = 'status-outro';
-    if(st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) css = 'status-concluido';
-    else if(st.includes('ANDAMENTO') || st.includes('ROTA')) css = 'status-andamento';
-    else if(st.includes('PERNOITE')) css = 'status-pernoite';
-    return `<span class="badge-status ${css}">${st}</span>`;
+function limparFiltrosOperacao() {
+    ['filter-start', 'filter-end', 'filter-placa', 'filter-doc', 'filter-operacao', 'filter-status', 'filter-perfil'].forEach(id => { $(id).value = ''; });
+    applyFilters();
 }
 
-function getPerfilBadge(perf) {
-    let css = perf === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado';
-    return `<span class="badge-perfil ${css}">${perf}</span>`;
+const applyFiltersDebounced = debounce(applyFilters, 300);
+['filter-start', 'filter-end', 'filter-status', 'filter-perfil'].forEach(id => $(id).addEventListener('change', applyFilters));
+['filter-placa', 'filter-doc', 'filter-operacao'].forEach(id => $(id).addEventListener('input', applyFiltersDebounced));
+
+/* ---------- Meta mensal de NFs ---------- */
+/**
+ * Regra:
+ *  - sem filtro de data: meses distintos existentes nos dados;
+ *  - com filtro: meses de calendário abrangidos pelo intervalo (um mês = 1 x meta).
+ */
+function calcularMeta() {
+    const base = CONFIG.META_MENSAL_NFS;
+    const s = $('filter-start').value, e = $('filter-end').value;
+    const mesesDados = [...new Set(rawData.filter(d => d.criado).map(d => d.criado.slice(0, 7)))].sort();
+
+    let meses = 0, origem = 'dados';
+    if (!s && !e) {
+        meses = mesesDados.length;
+    } else {
+        origem = 'filtro';
+        const ini = s ? s.slice(0, 7) : mesesDados[0];
+        const fim = e ? e.slice(0, 7) : mesesDados[mesesDados.length - 1];
+        if (ini && fim) {
+            const [iy, im] = ini.split('-').map(Number), [fy, fm] = fim.split('-').map(Number);
+            meses = Math.max(1, (fy - iy) * 12 + (fm - im) + 1);
+        } else {
+            meses = 1;
+        }
+    }
+    return { base, meses, total: base * meses, origem };
 }
 
-function kmValidoFiltro(km) {
-    const KM_MAXIMO_RAZOAVEL = 5000;
-    return km > 0 && km <= KM_MAXIMO_RAZOAVEL;
+function renderMetaMensal(totalNFs, meta) {
+    const pct = meta.total > 0 ? Math.round((totalNFs / meta.total) * 100) : 0;
+    $('meta-mensal-fill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+    $('meta-mensal-atual').textContent = fmt(totalNFs);
+    $('meta-mensal-alvo').textContent = fmt(meta.total);
+    $('meta-mensal-pct').textContent = pct + '%';
+    $('meta-mensal-detalhe').textContent = meta.meses > 0
+        ? `Meta base ${fmt(meta.base)} NFs/mês × ${meta.meses} ${meta.meses === 1 ? 'mês' : 'meses'} ${meta.origem === 'filtro' ? '(período filtrado)' : '(meses com dados)'} = ${fmt(meta.total)} NFs`
+        : 'Sem dados para calcular a meta.';
 }
 
-function classifyStatusKey(st) {
-    if (st.includes('CONCLUÍDO') || st.includes('CONCLUIDO')) return 'concluido';
-    if (st.includes('ANDAMENTO') || st.includes('ROTA')) return 'andamento';
-    if (st.includes('PERNOITE')) return 'pernoite';
-    return 'outro';
-}
-
+/* ---------- Indicadores ---------- */
 function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
-    document.getElementById('km-total-value').innerText = fmt(totalKm) + ' km';
+    $('km-total-value').textContent = fmtKm(totalKm) + ' km';
 
     const pctConclusao = totalRegistros > 0 ? Math.round((concluidos / totalRegistros) * 100) : 0;
-    const ringC = document.getElementById('ring-conclusao');
-    ringC.style.setProperty('--pct', pctConclusao);
-    document.getElementById('ring-conclusao-label').innerText = pctConclusao + '%';
+    $('ring-conclusao').style.setProperty('--pct', pctConclusao);
+    $('ring-conclusao-label').textContent = pctConclusao + '%';
 
-    const EFICIENCIA_REFERENCIA = 20;
     const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
-    const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / EFICIENCIA_REFERENCIA) * 100)));
-    const ringE = document.getElementById('ring-eficiencia');
-    ringE.style.setProperty('--pct', pctEficiencia);
-    document.getElementById('ring-eficiencia-label').innerText = eficiencia.toFixed(1);
-}
-
-function renderMetaMensal(totalNFs) {
-    const META_MENSAL_NFS = 20306;
-    const pct = Math.max(0, Math.min(100, Math.round((totalNFs / META_MENSAL_NFS) * 100)));
-    document.getElementById('meta-mensal-fill').style.width = pct + '%';
-    document.getElementById('meta-mensal-atual').innerText = fmt(totalNFs);
-    document.getElementById('meta-mensal-alvo').innerText = fmt(META_MENSAL_NFS);
-    document.getElementById('meta-mensal-pct').innerText = pct + '%';
+    const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / CONFIG.EFICIENCIA_REFERENCIA) * 100)));
+    $('ring-eficiencia').style.setProperty('--pct', pctEficiencia);
+    $('ring-eficiencia-label').textContent = eficiencia.toFixed(1);
 }
 
 function renderFunil(data) {
     const counts = { andamento: 0, pernoite: 0, concluido: 0, outro: 0 };
     data.forEach(d => { counts[classifyStatusKey(d.status)]++; });
     const total = data.length || 1;
-
-    const setRing = (id, value) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.style.setProperty('--pct', Math.round((value / total) * 100));
-    };
+    const setRing = (id, value) => { const r = $(id); if (r) r.style.setProperty('--pct', Math.round((value / total) * 100)); };
     setRing('funil-ring-andamento', counts.andamento);
     setRing('funil-ring-pernoite', counts.pernoite);
     setRing('funil-ring-concluido', counts.concluido);
+    $('funil-andamento-label').textContent = fmt(counts.andamento);
+    $('funil-pernoite-label').textContent = fmt(counts.pernoite);
+    $('funil-concluido-label').textContent = fmt(counts.concluido);
+}
 
-    document.getElementById('funil-andamento-label').innerText = fmt(counts.andamento);
-    document.getElementById('funil-pernoite-label').innerText = fmt(counts.pernoite);
-    document.getElementById('funil-concluido-label').innerText = fmt(counts.concluido);
+function contarStatus(data) {
+    const counts = { concluido: 0, andamento: 0, pernoite: 0, outro: 0 };
+    data.forEach(d => counts[classifyStatusKey(d.status)]++);
+    return counts;
 }
 
 function renderSegmentedBar(data) {
-    const counts = { concluido: 0, andamento: 0, pernoite: 0, outro: 0 };
-    data.forEach(d => counts[classifyStatusKey(d.status)]++);
+    const counts = contarStatus(data);
     const total = data.length || 1;
-    const colors = { concluido: '#10b981', andamento: '#3b82f6', pernoite: '#8b5cf6', outro: '#f59e0b' };
-    const labels = { concluido: 'Concluído', andamento: 'Andamento', pernoite: 'Pernoite', outro: 'Outro' };
-
-    const bar = document.getElementById('segmented-bar');
-    const legend = document.getElementById('segmented-legend');
-    bar.innerHTML = '';
-    legend.innerHTML = '';
+    const bar = $('segmented-bar'), legend = $('segmented-legend');
+    bar.replaceChildren();
+    legend.replaceChildren();
 
     Object.keys(counts).forEach(key => {
         const pct = (counts[key] / total) * 100;
         if (pct <= 0) return;
-        const seg = document.createElement('div');
-        seg.className = 'segment';
-        seg.style.width = pct + '%';
-        seg.style.background = colors[key];
-        bar.appendChild(seg);
-        legend.innerHTML += `<div class="segmented-legend-item"><span class="segmented-legend-dot" style="background:${colors[key]}"></span>${labels[key]} (${Math.round(pct)}%)</div>`;
+        bar.append(el('div', { class: 'segment', style: `width:${pct}%; background:${STATUS_INFO[key].color};` }));
+        legend.append(el('div', { class: 'segmented-legend-item' },
+            el('span', { class: 'segmented-legend-dot', style: `background:${STATUS_INFO[key].color}` }),
+            `${STATUS_INFO[key].label}: ${fmt(counts[key])} (${Math.round(pct)}%)`));
+    });
+    if (!data.length) legend.append(el('div', { class: 'segmented-legend-item', text: 'Sem dados para os filtros selecionados.' }));
+}
+
+/** Legenda do gráfico "Status da Operação": Concluído: 120 / Em andamento: 35 ... */
+function renderStatusLegend(data) {
+    const counts = contarStatus(data);
+    const box = $('status-legend');
+    box.replaceChildren();
+    Object.keys(STATUS_INFO).forEach(key => {
+        box.append(el('div', { class: 'legend-item' },
+            el('span', { class: 'segmented-legend-dot', style: `background:${STATUS_INFO[key].color}` }),
+            el('span', { text: `${STATUS_INFO[key].label}: ` }),
+            strong(fmt(counts[key]))));
     });
 }
 
@@ -959,48 +1442,166 @@ function renderUfStatusTable(data) {
     });
     const rows = Object.entries(map).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
 
-    const tbody = document.getElementById('uf-status-table-body');
-    tbody.innerHTML = '';
+    const tbody = $('uf-status-table-body');
+    tbody.replaceChildren();
+    if (!rows.length) { tbody.append(emptyRow(4, 'Sem dados para os filtros selecionados.')); return; }
     rows.forEach(([uf, info]) => {
         const pct = info.total > 0 ? Math.round((info.concluido / info.total) * 100) : 0;
-        const statusBadge = pct >= 80
-            ? '<span class="badge-status status-concluido">NORMAL</span>'
-            : pct >= 50
-                ? '<span class="badge-status status-andamento">ATENÇÃO</span>'
-                : '<span class="badge-status status-outro">CRÍTICO</span>';
-        tbody.innerHTML += `<tr><td><strong>${uf}</strong></td><td>${fmt(info.total)}</td><td>${pct}%</td><td>${statusBadge}</td></tr>`;
+        const badge = pct >= 80 ? el('span', { class: 'badge-status status-concluido', text: 'NORMAL' })
+            : pct >= 50 ? el('span', { class: 'badge-status status-andamento', text: 'ATENÇÃO' })
+                : el('span', { class: 'badge-status status-outro', text: 'CRÍTICO' });
+        const tr = el('tr');
+        tr.append(td(strong(uf)), td(fmt(info.total)), td(pct + '%'), td(badge));
+        tbody.append(tr);
     });
 }
 
 function renderOcorrencias(data) {
-    const colors = { concluido: '#10b981', andamento: '#3b82f6', pernoite: '#8b5cf6', outro: '#f59e0b' };
-    const sorted = [...data].sort((a, b) => b.criado.localeCompare(a.criado)).slice(0, 10);
-
-    const container = document.getElementById('timeline-ocorrencias');
-    container.innerHTML = '';
+    const sorted = [...data].filter(d => d.criado).sort((a, b) => b.criado.localeCompare(a.criado) || Number(b.id) - Number(a.id)).slice(0, 10);
+    const container = $('timeline-ocorrencias');
+    container.replaceChildren();
+    if (!sorted.length) { container.append(el('div', { class: 'timeline-sub', text: 'Nenhuma ocorrência para os filtros selecionados.' })); return; }
     sorted.forEach(it => {
         const key = classifyStatusKey(it.status);
-        container.innerHTML += `
-            <div class="timeline-item">
-                <span class="timeline-dot" style="background:${colors[key]}"></span>
-                <div class="timeline-body">
-                    <span class="timeline-title">${it.documento} — ${it.motorista}</span>
-                    <span class="timeline-sub">${it.operacao} · ${it.criado.split('-').reverse().join('/')} · ${getStatusBadge(it.status)}</span>
-                </div>
-            </div>`;
+        const sub = el('span', { class: 'timeline-sub' }, `${it.operacao} · ${formatDateBR(it.criado)} · `, statusBadge(it.status));
+        container.append(el('div', { class: 'timeline-item' },
+            el('span', { class: 'timeline-dot', style: `background:${STATUS_INFO[key].color}` }),
+            el('div', { class: 'timeline-body' },
+                el('span', { class: 'timeline-title', text: `${it.documento} — ${it.motorista}` }),
+                sub)));
     });
 }
 
+function renderRankingMotoristas(data) {
+    const motMap = {};
+    data.forEach(d => { motMap[d.motorista] = (motMap[d.motorista] || 0) + d.qtdNFs; });
+    const top = Object.entries(motMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const container = $('ranking-motoristas');
+    container.replaceChildren();
+    if (!top.length) { container.append(el('div', { class: 'timeline-sub', text: 'Sem dados para os filtros selecionados.' })); return; }
+    top.forEach(([mot, qtd]) => {
+        container.append(el('div', { class: 'ranking-item' }, el('span', { text: mot }), el('span', { text: `${fmt(qtd)} NFs` })));
+    });
+}
+
+/* ---------- Avisos de qualidade dos dados ---------- */
+function renderAvisosQualidade(data) {
+    const panel = $('dq-panel');
+    const kmIgnorados = data.filter(d => d.kmAlerta);
+    const nfsZeradas = data.filter(d => d.nfsZerada).length;
+    const semData = data.filter(d => !d.criado).length;
+
+    const msgs = [];
+    if (kmIgnorados.length) msgs.push(`${fmt(kmIgnorados.length)} registro(s) com KM ignorado no total (negativo, absurdo ou duplicado).`);
+    if (nfsZeradas) msgs.push(`${fmt(nfsZeradas)} registro(s) com quantidade de NFs acima de ${fmt(CONFIG.NFS_MAX_POR_REGISTRO)} foram contados como 0 NFs.`);
+    if (semData) msgs.push(`${fmt(semData)} registro(s) sem data de criação (ficam fora dos gráficos por data e dos filtros de período).`);
+    if (kmAvisoUnidade) msgs.push(kmAvisoUnidade);
+
+    if (!msgs.length) { panel.style.display = 'none'; panel.replaceChildren(); return; }
+
+    panel.style.display = '';
+    panel.replaceChildren();
+    panel.append(el('div', { class: 'panel-header' }, el('div', { class: 'panel-title', text: '⚠ Avisos de Qualidade dos Dados' })));
+    const ul = el('ul', { class: 'dq-list' });
+    msgs.forEach(m => ul.append(el('li', { text: m })));
+    panel.append(ul);
+
+    if (kmIgnorados.length) {
+        const det = el('details', { class: 'dq-details' }, el('summary', { text: `Ver registros com KM ignorado (${fmt(kmIgnorados.length)})` }));
+        const box = el('div', { class: 'dq-rows' });
+        kmIgnorados.slice(0, CONFIG.MAX_AVISOS_LISTADOS).forEach(r => {
+            box.append(el('div', { class: 'dq-row', text: `Doc ${r.documento} · ${formatDateBR(r.criado)} · ${r.motorista} · KM inicial ${fmtKm(r.kmInicial)} / final ${fmtKm(r.kmFinal)} · ${r.kmMotivo}` }));
+        });
+        if (kmIgnorados.length > CONFIG.MAX_AVISOS_LISTADOS) {
+            box.append(el('div', { class: 'dq-row', text: `… e mais ${fmt(kmIgnorados.length - CONFIG.MAX_AVISOS_LISTADOS)} registro(s).` }));
+        }
+        det.append(box);
+        panel.append(det);
+    }
+}
+
+/* ---------- Tabela "Últimos Registros Sincronizados" ---------- */
+function tdKm(it) {
+    const c = el('td');
+    c.append(`Inicial: ${fmtKm(it.kmInicial)} · Final: ${fmtKm(it.kmFinal)}`, el('br'),
+        el('span', { text: `Rodados considerado: ${fmtKm(it.kmConsiderado)} km`, style: 'font-size:10px; color:var(--accent-green); font-weight:700;' }));
+    if (it.kmOrigem) c.append(el('span', { text: ` (via ${it.kmOrigem})`, style: 'font-size:10px; color:var(--text-muted);' }));
+    if (it.kmMotivo) c.append(el('br'), el('span', { text: it.kmMotivo, style: 'font-size:10px; color:var(--accent-warning); font-weight:600;' }));
+    return c;
+}
+
+function renderTabelaOperacao() {
+    const tbody = $('table-body');
+    tbody.replaceChildren();
+    const total = filteredData.length;
+    const slice = paginate(filteredData, pagerState.op);
+
+    if (!total) {
+        tbody.append(emptyRow(8, 'Nenhum registro encontrado para os filtros aplicados.'));
+    } else {
+        slice.forEach(it => {
+            const tr = el('tr');
+            tr.append(
+                td(strong(it.documento)),
+                td(formatDateBR(it.criado)),
+                td(it.motorista),
+                td(it.operacao, { style: 'color:var(--accent-warning)' }),
+                td(perfilBadge(it.perfil)),
+                tdKm(it),
+                td(strong(fmt(it.qtdNFs))),
+                td(statusBadge(it.status))
+            );
+            tbody.append(tr);
+        });
+    }
+    $('table-count').textContent = `Mostrando ${fmt(slice.length)} de ${fmt(total)} registros`;
+    atualizarPager('op', total, slice.length);
+}
+
+function updateDashboardUI() {
+    $('kpi-total').textContent = fmt(filteredData.length);
+
+    const totalNFs = filteredData.reduce((acc, cur) => acc + cur.qtdNFs, 0);
+    $('kpi-nfs').textContent = fmt(totalNFs);
+
+    const nfsProprio = filteredData.filter(d => d.perfil === 'PRÓPRIO').reduce((acc, cur) => acc + cur.qtdNFs, 0);
+    const nfsAgregado = filteredData.filter(d => d.perfil === 'AGREGADO').reduce((acc, cur) => acc + cur.qtdNFs, 0);
+    $('kpi-proprio').textContent = fmt(nfsProprio);
+    $('kpi-agregado').textContent = fmt(nfsAgregado);
+
+    renderTabelaOperacao();
+    renderRankingMotoristas(filteredData);
+    updateCharts(nfsProprio, nfsAgregado);
+
+    const totalKm = filteredData.reduce((acc, cur) => acc + cur.kmConsiderado, 0);
+    const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
+    const meta = calcularMeta();
+
+    renderIndicadores(totalNFs, totalKm, concluidosCount, filteredData.length);
+    renderAvisosQualidade(filteredData);
+    renderMetaMensal(totalNFs, meta);
+    renderFunil(filteredData);
+    renderSegmentedBar(filteredData);
+    renderStatusLegend(filteredData);
+    renderUfStatusTable(filteredData);
+    renderOcorrencias(filteredData);
+    updateKmSparkline(filteredData);
+    updateOpTargetChart(filteredData, meta, totalNFs);
+}
+
+/* =========================================================
+   GRÁFICOS (mesmos gráficos; só com valores/legendas melhores)
+   ========================================================= */
 function updateKmSparkline(data) {
     const dateMap = {};
-    data.forEach(d => { if (kmValidoFiltro(d.kmRodados)) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmRodados; });
+    data.forEach(d => { if (d.criado && d.kmConsiderado > 0) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmConsiderado; });
     const dates = Object.keys(dateMap).sort().slice(-14);
     const values = dates.map(d => dateMap[d]);
 
-    const ctx = document.getElementById('kmSparklineChart').getContext('2d');
+    const ctx = $('kmSparklineChart').getContext('2d');
     if (sparklineChartInstance) sparklineChartInstance.destroy();
 
-    let grad = ctx.createLinearGradient(0, 0, 0, 50);
+    const grad = ctx.createLinearGradient(0, 0, 0, 50);
     grad.addColorStop(0, 'rgba(16,185,129,0.5)');
     grad.addColorStop(1, 'rgba(16,185,129,0)');
 
@@ -1010,56 +1611,48 @@ function updateKmSparkline(data) {
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 800 },
-            plugins: { legend: { display: false }, datalabels: { display: false } },
+            plugins: {
+                legend: { display: false }, datalabels: { display: false },
+                tooltip: { callbacks: { title: (items) => formatDateBR(items[0].label), label: (c) => `${fmtKm(c.parsed.y)} km` } }
+            },
             scales: { x: { display: false }, y: { display: false } }
         }
     });
 }
 
-function updateOpTargetChart(data) {
-    const META_OPERACAO = 500;
-    const opMap = {};
-    data.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
-    const sorted = Object.entries(opMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+/**
+ * Ranking de Operações vs Meta de NFs.
+ * Agrupa por operação (nome normalizado), soma as NFs e compara com a meta total de NFs do período.
+ */
+function updateOpTargetChart(data, meta, totalNFsGeral) {
+    const wrap = $('opTargetWrap');
+    const mapa = {};
+    data.forEach(d => {
+        if (d.operacao === OPERACAO_NAO_INFORMADA) return;
+        mapa[d.operacao] = (mapa[d.operacao] || 0) + d.qtdNFs;
+    });
+    const ranking = Object.entries(mapa).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
-    const ctx = document.getElementById('opTargetChart').getContext('2d');
+    const pctGeral = meta.total > 0 ? (totalNFsGeral / meta.total) * 100 : 0;
+    $('op-rank-resumo').textContent = meta.meses > 0
+        ? `Meta de NFs: ${fmt(meta.total)} (${meta.meses} ${meta.meses === 1 ? 'mês' : 'meses'} × ${fmt(meta.base)}) · Realizado total: ${fmt(totalNFsGeral)} (${fmtPct(pctGeral)})`
+        : 'Sem meses com dados para calcular a meta';
+
+    wrap.style.height = Math.max(240, ranking.length * 38 + 50) + 'px';
     if (opTargetChartInstance) opTargetChartInstance.destroy();
+    opTargetChartInstance = null;
+    setEmpty('opTargetChart', ranking.length === 0, 'Nenhuma operação válida para os filtros selecionados.');
+    if (!ranking.length) return;
 
-    const targetLinePlugin = {
-        id: 'opTargetLinePlugin',
-        afterDatasetsDraw(chart) {
-            const xScale = chart.scales.x;
-            const xPixel = xScale.getPixelForValue(META_OPERACAO);
-            const { ctx } = chart;
-            ctx.save();
-            ctx.beginPath();
-            ctx.setLineDash([5, 4]);
-            ctx.moveTo(xPixel, chart.chartArea.top);
-            ctx.lineTo(xPixel, chart.chartArea.bottom);
-            ctx.strokeStyle = '#f59e0b';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = '#f59e0b';
-            ctx.font = 'bold 10px Inter, sans-serif';
-            const labelText = 'Meta: ' + fmt(META_OPERACAO);
-            const halfWidth = ctx.measureText(labelText).width / 2;
-            let labelX = xPixel;
-            if (labelX - halfWidth < chart.chartArea.left) labelX = chart.chartArea.left + halfWidth;
-            if (labelX + halfWidth > chart.chartArea.right) labelX = chart.chartArea.right - halfWidth;
-            ctx.textAlign = 'center';
-            ctx.fillText(labelText, labelX, chart.chartArea.top - 8);
-            ctx.restore();
-        }
-    };
-
+    const pctMeta = (v) => meta.total > 0 ? (v / meta.total) * 100 : 0;
+    const ctx = $('opTargetChart').getContext('2d');
     opTargetChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: sorted.map(i => i[0]),
+            labels: ranking.map(i => i[0]),
             datasets: [{
-                data: sorted.map(i => i[1]),
-                backgroundColor: sorted.map(i => i[1] >= META_OPERACAO ? 'rgba(16,185,129,0.85)' : 'rgba(59,130,246,0.85)'),
+                data: ranking.map(i => i[1]),
+                backgroundColor: 'rgba(59,130,246,0.85)',
                 borderRadius: 8,
                 barPercentage: 0.6
             }]
@@ -1067,212 +1660,174 @@ function updateOpTargetChart(data) {
         options: {
             indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 22, right: 46 } },
+            layout: { padding: { top: 6, right: 20 } },
             animation: { duration: 1000 },
             plugins: {
                 legend: { display: false },
-                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold', size: 10 }, formatter: (v) => fmt(v) }
+                datalabels: {
+                    display: true, color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => `${fmt(v)} NFs · ${fmtPct(pctMeta(v))} da meta`
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => [`Realizado: ${fmt(c.parsed.x)} NFs`, `Meta de NFs (período): ${fmt(meta.total)}`, `${fmtPct(pctMeta(c.parsed.x))} da meta`]
+                    }
+                }
             },
             scales: {
-                x: { display: false, beginAtZero: true, grace: '30%' },
+                x: { display: false, beginAtZero: true, grace: '55%' },
                 y: { grid: { display: false } }
             }
-        },
-        plugins: [targetLinePlugin]
+        }
     });
 }
 
-function updateDashboardUI() {
-    document.getElementById('kpi-total').innerText = fmt(filteredData.length);
-    
-    const totalNFs = filteredData.reduce((acc, curr) => acc + curr.qtdNFs, 0);
-    document.getElementById('kpi-nfs').innerText = fmt(totalNFs);
-    
-    const nfsProprio = filteredData.filter(d => d.perfil === 'PRÓPRIO').reduce((acc, curr) => acc + curr.qtdNFs, 0);
-    const nfsAgregado = filteredData.filter(d => d.perfil === 'AGREGADO').reduce((acc, curr) => acc + curr.qtdNFs, 0);
-    document.getElementById('kpi-proprio').innerText = fmt(nfsProprio);
-    document.getElementById('kpi-agregado').innerText = fmt(nfsAgregado);
-
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = '';
-    document.getElementById('table-count').innerText = `Mostrando ${Math.min(filteredData.length, 50)} de ${fmt(filteredData.length)}`;
-    
-    filteredData.slice(0, 50).forEach(it => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${it.documento}</strong></td>
-            <td>${it.criado.split('-').reverse().join('/')}</td>
-            <td>${it.motorista}</td>
-            <td style="color:var(--accent-warning)">${it.operacao}</td>
-            <td>${getPerfilBadge(it.perfil)}</td>
-            <td>${fmt(it.kmInicial)} / ${fmt(it.kmFinal)} <br><span style="font-size:10px; color:var(--accent-green); font-weight:700;">(Rodados: ${fmt(it.kmRodados)} km)</span></td>
-            <td><strong>${fmt(it.qtdNFs)}</strong></td>
-            <td>${getStatusBadge(it.status)}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    renderRankings();
-    updateCharts(nfsProprio, nfsAgregado);
-
-    const totalKm = filteredData.reduce((acc, curr) => acc + (kmValidoFiltro(curr.kmRodados) ? curr.kmRodados : 0), 0);
-    const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
-
-    renderIndicadores(totalNFs, totalKm, concluidosCount, filteredData.length);
-    renderMetaMensal(totalNFs);
-    renderFunil(filteredData);
-    renderSegmentedBar(filteredData);
-    renderUfStatusTable(filteredData);
-    renderOcorrencias(filteredData);
-    updateKmSparkline(filteredData);
-    updateOpTargetChart(filteredData);
-}
-
-function renderRankings() {
-    const motMap = {};
-    filteredData.forEach(d => { motMap[d.motorista] = (motMap[d.motorista] || 0) + d.qtdNFs; });
-    const topMot = Object.entries(motMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-    
-    const container = document.getElementById('ranking-motoristas');
-    container.innerHTML = '';
-    topMot.forEach(([mot, qtd]) => {
-        container.innerHTML += `<div class="ranking-item"><span>${mot}</span><span>${fmt(qtd)} NFs</span></div>`;
-    });
-}
+const truncarTick = (max) => function (v) {
+    const l = String(this.getLabelForValue(v));
+    return l.length > max ? l.slice(0, max - 1) + '…' : l;
+};
 
 function updateCharts(proprios, agregados) {
+    /* ---------- Evolução de Entregas (NFs) ---------- */
     const dateMap = {};
-    filteredData.forEach(d => { dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
+    filteredData.forEach(d => { if (d.criado) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
     const dates = Object.keys(dateMap).sort().slice(-10);
     const lineData = dates.map(d => dateMap[d]);
-    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
 
-    const ctxL = document.getElementById('lineChart').getContext('2d');
-    if(lineChartInstance) lineChartInstance.destroy();
-    
-    let gradL = ctxL.createLinearGradient(0,0,0,250);
+    const ctxL = $('lineChart').getContext('2d');
+    if (lineChartInstance) lineChartInstance.destroy();
+    lineChartInstance = null;
+
+    const gradL = ctxL.createLinearGradient(0, 0, 0, 250);
     gradL.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
     gradL.addColorStop(1, 'rgba(59, 130, 246, 0)');
 
+    setEmpty('lineChart', dates.length === 0);
     lineChartInstance = new Chart(ctxL, {
         type: 'line',
-        data: { 
-            labels: lineLabels, 
-            datasets: [{ 
-                data: lineData, 
-                borderColor: '#3b82f6', 
-                backgroundColor: gradL, 
-                borderWidth: 3, 
-                fill: true, 
+        data: {
+            labels: dates,   // datas internas (yyyy-mm-dd); exibição sempre via formatDateBR
+            datasets: [{
+                data: lineData,
+                borderColor: '#3b82f6',
+                backgroundColor: gradL,
+                borderWidth: 3,
+                fill: true,
                 tension: 0.3,
-                pointRadius: 5,
+                pointRadius: (c) => (c.dataIndex === c.dataset.data.length - 1 ? 6 : 5),
                 pointHoverRadius: 8,
-                pointBackgroundColor: '#3b82f6',
+                pointBackgroundColor: (c) => (c.dataIndex === c.dataset.data.length - 1 ? '#10b981' : '#3b82f6'),
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2
-            }] 
+            }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1500, easing: 'easeOutQuart' },
-            plugins: { 
-                legend: { display: false }, 
-                datalabels: { 
-                    display: true, 
-                    color: '#fff', 
-                    align: 'top', 
-                    font: { weight: 'bold', size: 10 },
-                    formatter: (value) => fmt(value)
-                } 
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { title: (items) => formatDateBR(items[0].label), label: (c) => `${fmt(c.parsed.y)} NFs` } }
             },
-            scales: { 
-                x: { grid: { display: false } }, 
-                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' } 
+            scales: {
+                x: { grid: { display: false }, ticks: { callback(v) { return formatDateBR(this.getLabelForValue(v)); } } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' }
             }
         }
     });
+    atualizarPulso();
 
+    /* ---------- Volume por Cliente / Operação ---------- */
     const opMap = {};
     filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
-    const sortedOps = Object.entries(opMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const sortedOps = Object.entries(opMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-    const ctxB = document.getElementById('barChart').getContext('2d');
-    if(barChartInstance) barChartInstance.destroy();
-
-    let gradB = ctxB.createLinearGradient(0,0,0,250);
+    const ctxB = $('barChart').getContext('2d');
+    if (barChartInstance) barChartInstance.destroy();
+    const gradB = ctxB.createLinearGradient(0, 0, 0, 250);
     gradB.addColorStop(0, 'rgba(245, 158, 11, 0.9)');
     gradB.addColorStop(1, 'rgba(245, 158, 11, 0.2)');
 
+    setEmpty('barChart', sortedOps.length === 0);
     barChartInstance = new Chart(ctxB, {
         type: 'bar',
-        data: { 
-            labels: sortedOps.map(i => i[0]), 
-            datasets: [{ 
-                data: sortedOps.map(i => i[1]), 
-                backgroundColor: gradB, 
-                borderRadius: 12,
-                borderSkipped: false,
-                barPercentage: 0.6
-            }] 
+        data: {
+            labels: sortedOps.map(i => i[0]),
+            datasets: [{ data: sortedOps.map(i => i[1]), backgroundColor: gradB, borderRadius: 12, borderSkipped: false, barPercentage: 0.6 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1200 },
-            plugins: { 
-                legend: { display: false }, 
-                datalabels: { 
-                    display: true, 
-                    color: '#fff', 
-                    anchor: 'end', 
-                    align: 'top', 
-                    font: { weight: 'bold', size: 11 },
-                    formatter: (value) => fmt(value)
-                } 
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 11 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { title: (items) => items[0].label, label: (c) => `Total: ${fmt(c.parsed.y)} NFs` } }
             },
-            scales: { 
-                x: { grid: { display: false } }, 
-                y: { display: false, beginAtZero: true, grace: '30%' } 
+            scales: {
+                x: { grid: { display: false }, ticks: { callback: truncarTick(16) } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
             }
         }
     });
 
-    const ctxP = document.getElementById('polarChart').getContext('2d');
-    if(polarChartInstance) polarChartInstance.destroy();
+    /* ---------- Mix de Frota ---------- */
+    const ctxP = $('polarChart').getContext('2d');
+    if (polarChartInstance) polarChartInstance.destroy();
+    const totalMix = proprios + agregados;
+    const pctMix = (v) => totalMix > 0 ? (v / totalMix) * 100 : 0;
+    const coresMix = ['rgba(59, 130, 246, 0.85)', 'rgba(139, 92, 246, 0.85)'];
 
+    setEmpty('polarChart', totalMix === 0);
     polarChartInstance = new Chart(ctxP, {
         type: 'polarArea',
-        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: ['rgba(59, 130, 246, 0.85)', 'rgba(139, 92, 246, 0.85)'], borderWidth: 0 }] },
+        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: coresMix, borderWidth: 0 }] },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { animateRotate: true, animateScale: true, duration: 1200 },
             scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } },
-            plugins: { 
-                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 15 } }, 
-                datalabels: { 
-                    display: true, 
-                    color: '#fff', 
-                    font: { weight: 'bold', size: 12 },
-                    formatter: (value) => fmt(value)
-                } 
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#e2e8f0', padding: 15, font: { size: 12, weight: '600' },
+                        generateLabels: (chart) => chart.data.labels.map((l, i) => {
+                            const v = chart.data.datasets[0].data[i];
+                            return {
+                                text: `${l}: ${fmt(v)} NFs (${fmtPct(pctMix(v))})`,
+                                fillStyle: coresMix[i], strokeStyle: coresMix[i], lineWidth: 0,
+                                fontColor: '#e2e8f0', hidden: !chart.getDataVisibility(i), index: i
+                            };
+                        })
+                    }
+                },
+                datalabels: {
+                    display: (c) => Number(c.dataset.data[c.dataIndex]) > 0,
+                    color: '#fff', textAlign: 'center', font: { weight: 'bold', size: 12 },
+                    formatter: (v) => `${fmt(v)}\n${fmtPct(pctMix(v))}`
+                },
+                tooltip: { callbacks: { label: (c) => `${c.label}: ${fmt(c.raw)} NFs (${fmtPct(pctMix(c.raw))})` } }
             }
         }
     });
 
+    /* ---------- Status da Operação ---------- */
     const statusMap = {};
     filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
     const statusLabels = Object.keys(statusMap);
     const statusCounts = Object.values(statusMap);
+    const totalStatus = statusCounts.reduce((a, b) => a + b, 0);
 
-    const ctxSH = document.getElementById('statusHChart').getContext('2d');
-    if(statusHChartInstance) statusHChartInstance.destroy();
+    const ctxSH = $('statusHChart').getContext('2d');
+    if (statusHChartInstance) statusHChartInstance.destroy();
 
+    setEmpty('statusHChart', statusLabels.length === 0);
     statusHChartInstance = new Chart(ctxSH, {
         type: 'bar',
         data: {
             labels: statusLabels,
             datasets: [{
                 data: statusCounts,
-                backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'],
+                backgroundColor: statusLabels.map(l => STATUS_INFO[classifyStatusKey(l)].color),   // cor fixa por tipo de status
                 borderRadius: 10,
                 barPercentage: 0.55
             }]
@@ -1281,62 +1836,43 @@ function updateCharts(proprios, agregados) {
             indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1200 },
-            plugins: { 
-                legend: { display: false }, 
-                datalabels: { 
-                    display: true, 
-                    color: '#fff', 
-                    anchor: 'end', 
-                    align: 'right', 
-                    font: { weight: 'bold', size: 11 },
-                    formatter: (value) => fmt(value)
-                } 
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold', size: 11 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { label: (c) => `${fmt(c.parsed.x)} registros (${fmtPct(totalStatus ? (c.parsed.x / totalStatus) * 100 : 0)})` } }
             },
-            scales: { 
-                x: { display: false, beginAtZero: true, grace: '35%' }, 
-                y: { grid: { display: false } } 
+            scales: {
+                x: { display: false, beginAtZero: true, grace: '35%' },
+                y: { grid: { display: false } }
             }
         }
     });
 
+    /* ---------- NFs por Estado (UF) ---------- */
     const stateMap = {};
-    filteredData.forEach(d => {
-        stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs;
-    });
-    const sortedStates = Object.entries(stateMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+    filteredData.forEach(d => { stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs; });
+    const sortedStates = Object.entries(stateMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-    const ctxSt = document.getElementById('stateChart').getContext('2d');
-    if(stateChartInstance) stateChartInstance.destroy();
-
-    let gradSt = ctxSt.createLinearGradient(0,0,0,260);
+    const ctxSt = $('stateChart').getContext('2d');
+    if (stateChartInstance) stateChartInstance.destroy();
+    const gradSt = ctxSt.createLinearGradient(0, 0, 0, 260);
     gradSt.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
     gradSt.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
 
+    setEmpty('stateChart', sortedStates.length === 0);
     stateChartInstance = new Chart(ctxSt, {
         type: 'bar',
         data: {
             labels: sortedStates.map(i => i[0]),
-            datasets: [{
-                label: 'NFs por Estado',
-                data: sortedStates.map(i => i[1]),
-                backgroundColor: gradSt,
-                borderRadius: 10,
-                barPercentage: 0.65
-            }]
+            datasets: [{ label: 'NFs por Estado', data: sortedStates.map(i => i[1]), backgroundColor: gradSt, borderRadius: 10, barPercentage: 0.65 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1200 },
             plugins: {
                 legend: { display: false },
-                datalabels: {
-                    display: true,
-                    color: '#fff',
-                    anchor: 'end',
-                    align: 'top',
-                    font: { weight: 'bold', size: 11 },
-                    formatter: (value) => fmt(value)
-                }
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 11 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { label: (c) => `${fmt(c.parsed.y)} NFs` } }
             },
             scales: {
                 x: { grid: { display: false } },
@@ -1350,214 +1886,176 @@ function updateCharts(proprios, agregados) {
    LÓGICA DESPESAS (BD_DESPESAS)
    ========================================================= */
 function applyDespFilters() {
-    const s = document.getElementById('desp-filter-start').value;
-    const e = document.getElementById('desp-filter-end').value;
-    const placa = document.getElementById('desp-filter-placa').value.toLowerCase();
-    const servico = document.getElementById('desp-filter-servico').value.toLowerCase();
-    const idVal = document.getElementById('desp-filter-id').value;
-    const st = document.getElementById('desp-filter-status').value;
+    const s = $('desp-filter-start').value;
+    const e = $('desp-filter-end').value;
+    const placa = normalizarChave($('desp-filter-placa').value);
+    const servico = $('desp-filter-servico').value.trim().toLowerCase();
+    const idVal = $('desp-filter-id').value.trim();
+    const st = $('desp-filter-status').value;
 
     filteredDespData = rawDespData.filter(it => {
-        if(s && it.dataCompra < s) return false;
-        if(e && it.dataCompra > e) return false;
-        if(placa && !it.placa.toLowerCase().includes(placa)) return false;
-        if(servico && !it.servico.toLowerCase().includes(servico)) return false;
-        if(idVal && String(it.id) !== String(idVal)) return false;
-        if(st && it.status.toLowerCase() !== st.toLowerCase()) return false;
+        if (s && (!it.dataCompra || it.dataCompra < s)) return false;
+        if (e && (!it.dataCompra || it.dataCompra > e)) return false;
+        if (placa && !normalizarChave(it.placa).includes(placa)) return false;
+        if (servico && !it.servico.toLowerCase().includes(servico)) return false;
+        if (idVal && String(it.id) !== idVal) return false;
+        if (st && it.status.toLowerCase() !== st.toLowerCase()) return false;
         return true;
     });
 
+    pagerState.desp.page = 1;
     updateDespDashboardUI();
 }
 
-['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => {
-    document.getElementById(id).addEventListener('change', applyDespFilters);
-});
-['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => {
-    document.getElementById(id).addEventListener('keyup', () => setTimeout(applyDespFilters, 300));
-});
+function limparFiltrosDespesas() {
+    ['desp-filter-start', 'desp-filter-end', 'desp-filter-placa', 'desp-filter-servico', 'desp-filter-id', 'desp-filter-status'].forEach(id => { $(id).value = ''; });
+    applyDespFilters();
+}
 
-function getDespStatusBadge(st) {
-    let css = 'status-pendente';
-    const upper = String(st || '').toUpperCase();
-    if(upper.includes('APROVADO') || upper.includes('CONCLUÍDO') || upper.includes('CONCLUIDO')) css = 'status-aprovado';
-    else if(upper.includes('RECUSADO') || upper.includes('CANCELADO') || upper.includes('REJEITADO')) css = 'status-recusado';
-    return `<span class="badge-despesa ${css}">${st}</span>`;
+const applyDespFiltersDebounced = debounce(applyDespFilters, 300);
+['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => $(id).addEventListener('change', applyDespFilters));
+['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => $(id).addEventListener('input', applyDespFiltersDebounced));
+
+function renderTabelaDespesas() {
+    const tbody = $('desp-table-body');
+    tbody.replaceChildren();
+    const total = filteredDespData.length;
+    const slice = paginate(filteredDespData, pagerState.desp);
+
+    if (!total) {
+        tbody.append(emptyRow(27, 'Nenhuma despesa encontrada para os filtros aplicados.'));
+    } else {
+        slice.forEach(it => {
+            const tr = el('tr');
+            const hasAnexo = it.anexo && it.anexo.length > 5;
+            let anexoCell;
+            if (hasAnexo) {
+                anexoCell = el('button', { class: 'btn-anexo', text: 'Ver Anexo', attrs: { type: 'button' } });
+                anexoCell.addEventListener('click', () => openDespAttachmentModal(it));
+            } else {
+                anexoCell = el('span', { text: 'Sem anexo', style: 'color:var(--text-muted)' });
+            }
+            tr.append(
+                td(strong('#' + it.id)),
+                td(strong(it.placa)),
+                td(it.servico),
+                td(fmtMoeda(it.valorTotal), { style: 'color:var(--accent-green); font-weight:700;' }),
+                td(fmtMoeda(it.valorUnit)),
+                td(it.qntd),
+                td(formatDateBR(it.dataCompra)),
+                td(despStatusBadge(it.status)),
+                td(it.aprovador), td(it.tipoDoc), td(it.formaPag), td(it.fornecedor), td(it.criadoPor), td(it.informacao),
+                td(it.umb), td(it.banco), td(it.chavePix), td(it.bancoAjud), td(it.chaveAjud), td(it.recebedor),
+                td(fmtMoeda(it.descontos)),
+                td(it.operacao),
+                td(anexoCell),
+                td(it.descFunc), td(it.parcelado), td(it.numParcelas), td(it.periodoParcelamento)
+            );
+            tbody.append(tr);
+        });
+    }
+    $('desp-table-count').textContent = `Mostrando ${fmt(slice.length)} de ${fmt(total)} registros`;
+    atualizarPager('desp', total, slice.length);
 }
 
 function updateDespDashboardUI() {
-    const totalGasto = filteredDespData.reduce((acc, curr) => acc + curr.valorTotal, 0);
+    const totalGasto = filteredDespData.reduce((acc, cur) => acc + cur.valorTotal, 0);
     const totalCount = filteredDespData.length;
     const mediaGasto = totalCount > 0 ? (totalGasto / totalCount) : 0;
 
     let ultimaData = '--';
-    if(totalCount > 0) {
-        const sorted = [...filteredDespData].sort((a,b) => b.dataCompra.localeCompare(a.dataCompra));
-        ultimaData = sorted[0].dataCompra.split('-').reverse().join('/');
-    }
+    const datas = filteredDespData.map(d => d.dataCompra).filter(Boolean).sort();
+    if (datas.length) ultimaData = formatDateBR(datas[datas.length - 1]);
 
-    document.getElementById('desp-kpi-total').innerText = fmtMoeda(totalGasto);
-    document.getElementById('desp-kpi-count').innerText = fmt(totalCount);
-    document.getElementById('desp-kpi-avg').innerText = fmtMoeda(mediaGasto);
-    document.getElementById('desp-kpi-last').innerText = ultimaData;
+    $('desp-kpi-total').textContent = fmtMoeda(totalGasto);
+    $('desp-kpi-count').textContent = fmt(totalCount);
+    $('desp-kpi-avg').textContent = fmtMoeda(mediaGasto);
+    $('desp-kpi-last').textContent = ultimaData;
 
-    // Tabela Despesas
-    const tbody = document.getElementById('desp-table-body');
-    tbody.innerHTML = '';
-    document.getElementById('desp-table-count').innerText = `Mostrando ${Math.min(filteredDespData.length, 50)} de ${fmt(filteredDespData.length)}`;
-
-    filteredDespData.slice(0, 50).forEach(it => {
-        const tr = document.createElement('tr');
-        const hasAnexo = it.anexo && it.anexo.length > 5;
-        const btnAnexo = hasAnexo 
-            ? `<button onclick='openDespAttachmentModal(${JSON.stringify(it)})' style="background:var(--accent-blue); color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:10px; font-weight:700;">Ver Anexo</button>`
-            : '<span style="color:var(--text-muted)">Sem anexo</span>';
-
-        tr.innerHTML = `
-            <td><strong>#${it.id}</strong></td>
-            <td><strong>${it.placa}</strong></td>
-            <td>${it.servico}</td>
-            <td style="color:var(--accent-green); font-weight:700;">${fmtMoeda(it.valorTotal)}</td>
-            <td>${fmtMoeda(it.valorUnit)}</td>
-            <td>${it.qntd}</td>
-            <td>${it.dataCompra.split('-').reverse().join('/')}</td>
-            <td>${getDespStatusBadge(it.status)}</td>
-            <td>${it.aprovador}</td>
-            <td>${it.tipoDoc}</td>
-            <td>${it.formaPag}</td>
-            <td>${it.fornecedor}</td>
-            <td>${it.criadoPor}</td>
-            <td>${it.informacao}</td>
-            <td>${it.umb}</td>
-            <td>${it.banco}</td>
-            <td>${it.chavePix}</td>
-            <td>${it.bancoAjud}</td>
-            <td>${it.chaveAjud}</td>
-            <td>${it.recebedor}</td>
-            <td>${fmtMoeda(it.descontos)}</td>
-            <td>${it.operacao}</td>
-            <td>${btnAnexo}</td>
-            <td>${it.descFunc}</td>
-            <td>${it.parcelado}</td>
-            <td>${it.numParcelas}</td>
-            <td>${it.periodoParcelamento}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-
+    renderTabelaDespesas();
     updateDespCharts();
 }
 
 function updateDespCharts() {
-    // 1. Line Chart: Evolução Temporal de Despesas
+    /* 1. Evolução Temporal de Despesas */
     const dateMap = {};
-    filteredDespData.forEach(d => { dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
+    filteredDespData.forEach(d => { if (d.dataCompra) dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
     const dates = Object.keys(dateMap).sort().slice(-10);
     const lineData = dates.map(d => dateMap[d]);
-    const lineLabels = dates.map(d => d.split('-').reverse().join('/'));
 
-    const ctxL = document.getElementById('desp-lineChart').getContext('2d');
-    if(despLineChartInstance) despLineChartInstance.destroy();
-
-    let gradL = ctxL.createLinearGradient(0,0,0,260);
+    const ctxL = $('desp-lineChart').getContext('2d');
+    if (despLineChartInstance) despLineChartInstance.destroy();
+    const gradL = ctxL.createLinearGradient(0, 0, 0, 260);
     gradL.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
     gradL.addColorStop(1, 'rgba(239, 68, 68, 0)');
 
+    setEmpty('desp-lineChart', dates.length === 0);
     despLineChartInstance = new Chart(ctxL, {
         type: 'line',
         data: {
-            labels: lineLabels,
-            datasets: [{
-                data: lineData,
-                borderColor: '#ef4444',
-                backgroundColor: gradL,
-                borderWidth: 3,
-                fill: true,
-                tension: 0.35,
-                pointRadius: 5,
-                pointBackgroundColor: '#ef4444',
-                pointBorderColor: '#ffffff'
-            }]
+            labels: dates,
+            datasets: [{ data: lineData, borderColor: '#ef4444', backgroundColor: gradL, borderWidth: 3, fill: true, tension: 0.35, pointRadius: 5, pointBackgroundColor: '#ef4444', pointBorderColor: '#ffffff' }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1200 },
             plugins: {
                 legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
+                datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) },
+                tooltip: { callbacks: { title: (items) => formatDateBR(items[0].label), label: (c) => fmtMoeda(c.parsed.y) } }
             },
             scales: {
-                x: { grid: { display: false } },
+                x: { grid: { display: false }, ticks: { callback(v) { return formatDateBR(this.getLabelForValue(v)); } } },
                 y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' }
             }
         }
     });
 
-    // 2. Donut Chart: Status das Despesas
+    /* 2. Distribuição por Status */
     const statusMap = {};
     filteredDespData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
 
-    const ctxD = document.getElementById('desp-donutChart').getContext('2d');
-    if(despDonutChartInstance) despDonutChartInstance.destroy();
-
+    const ctxD = $('desp-donutChart').getContext('2d');
+    if (despDonutChartInstance) despDonutChartInstance.destroy();
+    setEmpty('desp-donutChart', Object.keys(statusMap).length === 0);
     despDonutChartInstance = new Chart(ctxD, {
         type: 'doughnut',
         data: {
             labels: Object.keys(statusMap),
-            datasets: [{
-                data: Object.values(statusMap),
-                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
-                borderWidth: 0
-            }]
+            datasets: [{ data: Object.values(statusMap), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'], borderWidth: 0 }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1200 },
             plugins: {
                 legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } },
-                datalabels: {
-                    display: true, color: '#fff', font: { weight: 'bold', size: 11 },
-                    formatter: (v) => fmt(v)
-                }
+                datalabels: { display: true, color: '#fff', font: { weight: 'bold', size: 11 }, formatter: (v) => fmt(v) }
             }
         }
     });
 
-    // 3. Bar Chart: Gasto por Placa (Top 10)
+    /* 3. Gasto por Placa (Top 10) */
     const placaMap = {};
     filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
-    const sortedPlacas = Object.entries(placaMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+    const sortedPlacas = Object.entries(placaMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
-    const ctxB = document.getElementById('desp-barChart').getContext('2d');
-    if(despBarChartInstance) despBarChartInstance.destroy();
-
-    let gradB = ctxB.createLinearGradient(0,0,0,260);
+    const ctxB = $('desp-barChart').getContext('2d');
+    if (despBarChartInstance) despBarChartInstance.destroy();
+    const gradB = ctxB.createLinearGradient(0, 0, 0, 260);
     gradB.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
     gradB.addColorStop(1, 'rgba(139, 92, 246, 0.2)');
 
+    setEmpty('desp-barChart', sortedPlacas.length === 0);
     despBarChartInstance = new Chart(ctxB, {
         type: 'bar',
-        data: {
-            labels: sortedPlacas.map(i => i[0]),
-            datasets: [{
-                data: sortedPlacas.map(i => i[1]),
-                backgroundColor: gradB,
-                borderRadius: 8,
-                barPercentage: 0.6
-            }]
-        },
+        data: { labels: sortedPlacas.map(i => i[0]), datasets: [{ data: sortedPlacas.map(i => i[1]), backgroundColor: gradB, borderRadius: 8, barPercentage: 0.6 }] },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1200 },
             plugins: {
                 legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) },
+                tooltip: { callbacks: { label: (c) => fmtMoeda(c.parsed.y) } }
             },
             scales: {
                 x: { grid: { display: false } },
@@ -1566,39 +2064,27 @@ function updateDespCharts() {
         }
     });
 
-    // 4. Neon Line Chart: Tipo Documento × Valor Total
+    /* 4. Tipo Documento × Valor Total */
     const docMap = {};
     filteredDespData.forEach(d => { docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal; });
-    const sortedDocs = Object.entries(docMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+    const sortedDocs = Object.entries(docMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-    const ctxN = document.getElementById('desp-neonLineChart').getContext('2d');
-    if(despNeonLineChartInstance) despNeonLineChartInstance.destroy();
-
+    const ctxN = $('desp-neonLineChart').getContext('2d');
+    if (despNeonLineChartInstance) despNeonLineChartInstance.destroy();
+    setEmpty('desp-neonLineChart', sortedDocs.length === 0);
     despNeonLineChartInstance = new Chart(ctxN, {
         type: 'line',
         data: {
             labels: sortedDocs.map(i => i[0]),
-            datasets: [{
-                data: sortedDocs.map(i => i[1]),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.2,
-                pointRadius: 6,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: '#ffffff'
-            }]
+            datasets: [{ data: sortedDocs.map(i => i[1]), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', borderWidth: 3, fill: true, tension: 0.2, pointRadius: 6, pointBackgroundColor: '#10b981', pointBorderColor: '#ffffff' }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             animation: { duration: 1200 },
             plugins: {
                 legend: { display: false },
-                datalabels: {
-                    display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 },
-                    formatter: (v) => fmtMoeda(v)
-                }
+                datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) },
+                tooltip: { callbacks: { label: (c) => fmtMoeda(c.parsed.y) } }
             },
             scales: {
                 x: { grid: { display: false } },
@@ -1612,38 +2098,44 @@ function updateDespCharts() {
    MODAL DE ANEXO DA DESPESA
    ========================================================= */
 function openDespAttachmentModal(item) {
-    const modal = document.getElementById('desp-attachment-modal');
-    const img = document.getElementById('desp-modal-image');
-    const noImg = document.getElementById('desp-modal-no-image');
-    const title = document.getElementById('desp-modal-title');
-    const info = document.getElementById('desp-modal-info');
+    const img = $('desp-modal-image');
+    const noImg = $('desp-modal-no-image');
+    $('desp-modal-title').textContent = `Comprovante - ID #${item.id} (${item.placa})`;
 
-    title.innerText = `Comprovante - ID #${item.id} (${item.placa})`;
-
-    if (item.anexo && item.anexo.startsWith('http')) {
+    if (/^https:\/\//i.test(item.anexo || '')) {
         img.src = item.anexo;
         img.style.display = 'block';
         noImg.style.display = 'none';
     } else {
+        img.removeAttribute('src');
         img.style.display = 'none';
         noImg.style.display = 'block';
     }
 
-    info.innerHTML = `
-        <div class="modal-info-item"><span class="modal-info-label">Fornecedor</span><span class="modal-info-value">${item.fornecedor}</span></div>
-        <div class="modal-info-item"><span class="modal-info-label">Valor Total</span><span class="modal-info-value">${fmtMoeda(item.valorTotal)}</span></div>
-        <div class="modal-info-item"><span class="modal-info-label">Forma Pagamento</span><span class="modal-info-value">${item.formaPag}</span></div>
-        <div class="modal-info-item"><span class="modal-info-label">Aprovador</span><span class="modal-info-value">${item.aprovador}</span></div>
-    `;
-
-    modal.classList.add('show');
+    const info = $('desp-modal-info');
+    info.replaceChildren();
+    [['Fornecedor', item.fornecedor], ['Valor Total', fmtMoeda(item.valorTotal)], ['Forma Pagamento', item.formaPag], ['Aprovador', item.aprovador]].forEach(([label, valor]) => {
+        info.append(el('div', { class: 'modal-info-item' },
+            el('span', { class: 'modal-info-label', text: label }),
+            el('span', { class: 'modal-info-value', text: valor })));
+    });
+    $('desp-attachment-modal').classList.add('show');
 }
 
 function closeDespAttachmentModal(e) {
     if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal-close')) {
-        document.getElementById('desp-attachment-modal').classList.remove('show');
+        $('desp-attachment-modal').classList.remove('show');
     }
 }
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeDespAttachmentModal(); });
+
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
+mountPager('op', 'table-body', renderTabelaOperacao);
+mountPager('desp', 'desp-table-body', renderTabelaDespesas);
+$('btn-clear-op').addEventListener('click', limparFiltrosOperacao);
+$('btn-clear-desp').addEventListener('click', limparFiltrosDespesas);
 </script>
 </body>
 </html>
