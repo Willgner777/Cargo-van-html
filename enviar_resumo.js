@@ -3,10 +3,13 @@ const INSTANCE_NAME = "AutomacaoCargoVanv1";
 const API_KEY = "SuaChaveSeguraAqui9405";
 const NUMERO_DESTINO = "5585994050393";
 
-const SITE_DOMAIN = "willtech7.sharepoint.com";
-const SITE_PATH = "/sites/CARGOVAN";
+// ID composto do Site do SharePoint para a Graph API
+const SITE_ID = "willtech7.sharepoint.com,bb7f0d96-1f67-4827-acf7-2cd0cebd6686";
 const LISTA_DESPESAS = "BD_DESPESAS";
 
+/**
+ * Obtém o Token de Acesso da Microsoft Graph API usando OAuth2 Client Credentials
+ */
 async function getGraphAccessToken() {
   const tenantId = process.env.AZURE_TENANT_ID;
   const clientId = process.env.AZURE_CLIENT_ID;
@@ -39,9 +42,11 @@ async function getGraphAccessToken() {
   return data.access_token;
 }
 
+/**
+ * Consulta os itens da lista BD_DESPESAS usando o ID fixo do Site
+ */
 async function buscarDadosDespesas(accessToken) {
-  // Acessa diretamente os itens da lista através do caminho do site
-  const listUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_DOMAIN}:${SITE_PATH}:/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
+  const listUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
   
   const listRes = await fetch(listUrl, {
     headers: { Authorization: `Bearer ${accessToken}` }
@@ -56,6 +61,9 @@ async function buscarDadosDespesas(accessToken) {
   return listData.value || [];
 }
 
+/**
+ * Processa o resumo e dispara via Evolution API
+ */
 async function dispararResumo() {
   try {
     console.log("Iniciando busca de dados reais no SharePoint...");
