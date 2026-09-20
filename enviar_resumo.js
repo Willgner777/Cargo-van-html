@@ -3,12 +3,12 @@ const INSTANCE_NAME = "AutomacaoCargoVanv1";
 const API_KEY = "SuaChaveSeguraAqui9405";
 const NUMERO_DESTINO = "5585994050393";
 
-// ID composto do Site do SharePoint para a Graph API
-const SITE_ID = "willtech7.sharepoint.com,bb7f0d96-1f67-4827-acf7-2cd0cebd6686";
+const SITE_DOMAIN = "willtech7.sharepoint.com";
+const SITE_PATH = "/sites/CARGOVAN";
 const LISTA_DESPESAS = "BD_DESPESAS";
 
 /**
- * Obtém o Token de Acesso da Microsoft Graph API usando OAuth2 Client Credentials
+ * Obtém o Token de Acesso da Microsoft Graph API
  */
 async function getGraphAccessToken() {
   const tenantId = process.env.AZURE_TENANT_ID;
@@ -16,7 +16,12 @@ async function getGraphAccessToken() {
   const clientSecret = process.env.AZURE_CLIENT_SECRET;
 
   if (!tenantId || !clientId || !clientSecret) {
-    throw new Error("Variáveis de ambiente do Azure/Graph não foram configuradas nos Secrets do GitHub.");
+    throw new Error(
+      `Variáveis de ambiente ausentes no GitHub Actions:\n` +
+      `- TENANT_ID: ${tenantId ? "OK" : "FALTANDO"}\n` +
+      `- CLIENT_ID: ${clientId ? "OK" : "FALTANDO"}\n` +
+      `- CLIENT_SECRET: ${clientSecret ? "OK" : "FALTANDO"}`
+    );
   }
 
   const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
@@ -33,30 +38,48 @@ async function getGraphAccessToken() {
     body: params
   });
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Erro ao obter token Azure: ${errorText}`);
+  const data = await res.json();
+
+  if (!res.ok || !data.access_token) {
+    throw new Error(`Erro ao autenticar no Azure: ${JSON.stringify(data, null, 2)}`);
   }
 
-  const data = await res.json();
   return data.access_token;
 }
 
 /**
- * Consulta os itens da lista BD_DESPESAS usando o ID fixo do Site
+ * Busca os itens da lista BD_DESPESAS no SharePoint via Graph API
  */
 async function buscarDadosDespesas(accessToken) {
-  const listUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
-  
+  if (!accessToken) {
+    throw new Error("Access token is empty antes de chamar a Graph API.");
+  }
+
+  // 1. Obter o ID do Site reconhecido pela Graph API
+  const siteUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_DOMAIN}:${SITE_PATH}`;
+  const siteRes = await fetch(siteUrl, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+
+  if (!siteRes.ok) {
+    const errText = await siteRes.text();
+    throw new Error(`Erro ao obter ID do Site (${siteRes.status}): ${errText}`);
+  }
+
+  const siteData = await siteRes.json();
+  const graphSiteId = siteData.id;
+
+  // 2. Buscar itens da lista BD_DESPESAS
+  const listUrl = `https://graph.microsoft.com/v1.0/sites/${graphSiteId}/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
   const listRes = await fetch(listUrl, {
     headers: { Authorization: `Bearer ${accessToken}` }
   });
 
   if (!listRes.ok) {
-    const errDetails = await listRes.text();
-    throw new Error(`Erro Graph API (${listRes.status}): ${errDetails}`);
+    const errText = await listRes.text();
+    throw new Error(`Erro ao buscar dados da lista BD_DESPESAS (${listRes.status}): ${errText}`);
   }
-  
+
   const listData = await listRes.json();
   return listData.value || [];
 }
@@ -66,8 +89,11 @@ async function buscarDadosDespesas(accessToken) {
  */
 async function dispararResumo() {
   try {
-    console.log("Iniciando busca de dados reais no SharePoint...");
+    console.log("Iniciando autenticação no Azure...");
     const accessToken = await getGraphAccessToken();
+    console.log("Token do Azure gerado com sucesso.");
+
+    console.log("Iniciando busca de dados reais no SharePoint...");
     const items = await buscarDadosDespesas(accessToken);
 
     let pendentes = 0;
@@ -76,7 +102,7 @@ async function dispararResumo() {
 
     items.forEach(it => {
       const f = it.fields || {};
-      const status = String(f.STATUS || f.Status || "Pendente").toLowerCase().trim();
+      const status = String(f.STATUS || f.Status || f.status || "Pendente").toLowerCase().trim();
 
       if (status.includes("pendente")) {
         pendentes++;
