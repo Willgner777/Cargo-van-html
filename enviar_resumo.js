@@ -1,144 +1,151 @@
-const API_URL = "https://evolution-api-yga4.onrender.com";
-const INSTANCE_NAME = "AutomacaoCargoVanv1";
-const API_KEY = "SuaChaveSeguraAqui9405";
-const NUMERO_DESTINO = "5585994050393";
+// enviar_resumo.js — Resumo diário de BD_DESPESAS via WhatsApp (Evolution API)
+// TODAS as credenciais vêm de variáveis de ambiente (GitHub Secrets). Nada sensível no código.
+
+const {
+  AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET,
+  EVOLUTION_API_URL, EVOLUTION_INSTANCE, EVOLUTION_API_KEY, WHATSAPP_NUMERO
+} = process.env;
 
 const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const LISTA_DESPESAS = "BD_DESPESAS";
 
-/**
- * Obtém o Token de Acesso da Microsoft Graph API
- */
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function exigirEnv() {
+  const obrigatorias = { AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET,
+    EVOLUTION_API_URL, EVOLUTION_INSTANCE, EVOLUTION_API_KEY, WHATSAPP_NUMERO };
+  const faltando = Object.entries(obrigatorias).filter(([, v]) => !v).map(([k]) => k);
+  if (faltando.length) throw new Error(`Secrets ausentes no GitHub: ${faltando.join(", ")}`);
+}
+
 async function getGraphAccessToken() {
-  const tenantId = process.env.AZURE_TENANT_ID;
-  const clientId = process.env.AZURE_CLIENT_ID;
-  const clientSecret = process.env.AZURE_CLIENT_SECRET;
-
-  if (!tenantId || !clientId || !clientSecret) {
-    throw new Error(
-      `Variáveis de ambiente ausentes no GitHub Actions:\n` +
-      `- TENANT_ID: ${tenantId ? "OK" : "FALTANDO"}\n` +
-      `- CLIENT_ID: ${clientId ? "OK" : "FALTANDO"}\n` +
-      `- CLIENT_SECRET: ${clientSecret ? "OK" : "FALTANDO"}`
-    );
-  }
-
-  const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
-  const params = new URLSearchParams({
-    client_id: clientId,
-    client_secret: clientSecret,
-    scope: "https://graph.microsoft.com/.default",
-    grant_type: "client_credentials"
-  });
-
-  const res = await fetch(tokenUrl, {
+  const res = await fetch(`https://login.microsoftonline.com/${AZURE_TENANT_ID}/oauth2/v2.0/token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: params
+    body: new URLSearchParams({
+      client_id: AZURE_CLIENT_ID,
+      client_secret: AZURE_CLIENT_SECRET,
+      scope: "https://graph.microsoft.com/.default",
+      grant_type: "client_credentials"
+    })
   });
-
   const data = await res.json();
-
   if (!res.ok || !data.access_token) {
-    throw new Error(`Erro ao autenticar no Azure: ${JSON.stringify(data, null, 2)}`);
+    throw new Error(`Falha no login Azure (${res.status}): ${data.error_description || JSON.stringify(data)}`);
   }
-
   return data.access_token;
 }
 
-/**
- * Busca os itens da lista BD_DESPESAS no SharePoint via Graph API
- */
-async function buscarDadosDespesas(accessToken) {
-  if (!accessToken) {
-    throw new Error("Access token is empty antes de chamar a Graph API.");
-  }
-
-  // 1. Obter o ID do Site reconhecido pela Graph API
-  const siteUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_DOMAIN}:${SITE_PATH}`;
-  const siteRes = await fetch(siteUrl, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-
-  if (!siteRes.ok) {
-    const errText = await siteRes.text();
-    throw new Error(`Erro ao obter ID do Site (${siteRes.status}): ${errText}`);
-  }
-
-  const siteData = await siteRes.json();
-  const graphSiteId = siteData.id;
-
-  // 2. Buscar itens da lista BD_DESPESAS
-  const listUrl = `https://graph.microsoft.com/v1.0/sites/${graphSiteId}/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
-  const listRes = await fetch(listUrl, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-
-  if (!listRes.ok) {
-    const errText = await listRes.text();
-    throw new Error(`Erro ao buscar dados da lista BD_DESPESAS (${listRes.status}): ${errText}`);
-  }
-
-  const listData = await listRes.json();
-  return listData.value || [];
+async function graphGet(url, token) {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`Graph ${res.status} em ${url}\n${await res.text()}`);
+  return res.json();
 }
 
-/**
- * Processa o resumo e dispara via Evolution API
- */
-async function dispararResumo() {
-  try {
-    console.log("Iniciando autenticação no Azure...");
-    const accessToken = await getGraphAccessToken();
-    console.log("Token do Azure gerado com sucesso.");
+async function buscarDespesas(token) {
+  const site = await graphGet(`https://graph.microsoft.com/v1.0/sites/${SITE_DOMAIN}:${SITE_PATH}`, token);
+  let url = `https://graph.microsoft.com/v1.0/sites/${site.id}/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
+  const itens = [];
+  while (url) {                                   // paginação: a lista pode ter mais de 1000 itens
+    const data = await graphGet(url, token);
+    itens.push(...(data.value || []));
+    url = data["@odata.nextLink"] || null;
+  }
+  return itens;
+}
 
-    console.log("Iniciando busca de dados reais no SharePoint...");
-    const items = await buscarDadosDespesas(accessToken);
+const pick = (f, ...keys) => { for (const k of keys) if (f[k] !== undefined && f[k] !== null && f[k] !== "") return f[k]; return ""; };
+const num = (v) => {
+  if (typeof v === "number") return v;
+  const s = String(v ?? "").replace(/[^\d,.-]/g, "");
+  if (!s) return 0;
+  const n = s.includes(",") ? Number(s.replace(/\./g, "").replace(",", ".")) : Number(s);
+  return Number.isFinite(n) ? n : 0;
+};
+const brl = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    let pendentes = 0;
-    let recusados = 0;
-    let aprovados = 0;
+function resumir(itens) {
+  const r = { pendentes: 0, recusados: 0, aprovados: 0, valorPendente: 0, maisAntigo: null };
+  for (const it of itens) {
+    const f = it.fields || {};
+    const st = String(pick(f, "STATUS", "Status") || "Pendente").toLowerCase().trim();
+    if (st.includes("recusado") || st.includes("rejeitado") || st.includes("cancelado")) r.recusados++;
+    else if (st.includes("aprovado")) r.aprovados++;
+    else {                                         // tudo que não é aprovado/recusado = pendente
+      r.pendentes++;
+      r.valorPendente += num(pick(f, "VALORTOTAL", "VALOR_x0020_TOTAL", "ValorTotal"));
+      const d = new Date(pick(f, "DATA_x0020_DE_x0020_COMPRA", "DATACOMPRA") || f.Created || it.createdDateTime);
+      if (!isNaN(d) && (!r.maisAntigo || d < r.maisAntigo)) r.maisAntigo = d;
+    }
+  }
+  return r;
+}
 
-    items.forEach(it => {
-      const f = it.fields || {};
-      const status = String(f.STATUS || f.Status || f.status || "Pendente").toLowerCase().trim();
-
-      if (status.includes("pendente")) {
-        pendentes++;
-      } else if (status.includes("recusado") || status.includes("rejeitado")) {
-        recusados++;
-      } else if (status.includes("aprovado")) {
-        aprovados++;
+// Render (plano free) hiberna: acorda a API e confere se o WhatsApp está conectado
+async function prepararEvolution() {
+  const base = EVOLUTION_API_URL.replace(/\/$/, "");
+  for (let i = 1; i <= 4; i++) {
+    try {
+      const res = await fetch(`${base}/instance/connectionState/${EVOLUTION_INSTANCE}`, {
+        headers: { apikey: EVOLUTION_API_KEY }, signal: AbortSignal.timeout(90_000)
+      });
+      const body = await res.text();
+      console.log(`Evolution connectionState (${res.status}): ${body}`);
+      if (res.ok) {
+        if (!/"state"\s*:\s*"open"/.test(body)) {
+          throw new Error("Instância NÃO está conectada ao WhatsApp (state != open). Reescaneie o QR Code no Evolution.");
+        }
+        return base;
       }
-    });
+      if (res.status === 401 || res.status === 404) throw new Error(`Evolution recusou (${res.status}): ${body}`);
+    } catch (e) {
+      if (/NÃO está conectada|recusou/.test(e.message) || i === 4) throw e;
+      console.log(`Tentativa ${i} falhou (${e.message}). Aguardando 20s...`);
+      await sleep(20_000);
+    }
+  }
+}
 
-    console.log(`Dados processados: ${pendentes} pendentes, ${recusados} recusados, ${aprovados} aprovados.`);
+async function enviarWhatsApp(base, texto) {
+  const res = await fetch(`${base}/message/sendText/${EVOLUTION_INSTANCE}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: EVOLUTION_API_KEY },
+    body: JSON.stringify({ number: WHATSAPP_NUMERO, text: texto }),
+    signal: AbortSignal.timeout(60_000)
+  });
+  const corpo = await res.text();
+  if (!res.ok) throw new Error(`Falha ao enviar WhatsApp (${res.status}): ${corpo}`);
+  console.log("WhatsApp enviado:", corpo);
+}
 
-    const mensagem = `*Resumo Diário de Despesas - Cargo Van* 🚛\n\n` +
-      `📌 *${pendentes}* itens pendentes para aprovação\n` +
-      `❌ *${recusados}* itens recusados\n` +
-      `✅ *${aprovados}* itens aprovados\n\n` +
-      `Para aprovar ou analisar, aceda ao painel do sistema da Cargo Van e navegue até à aba *Aprovar Despesas*.`;
+(async () => {
+  try {
+    exigirEnv();
+    console.log("1/4 Login Azure...");
+    const token = await getGraphAccessToken();
 
-    const response = await fetch(`${API_URL}/message/sendText/${INSTANCE_NAME}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': API_KEY
-      },
-      body: JSON.stringify({
-        number: NUMERO_DESTINO,
-        text: mensagem
-      })
-    });
+    console.log("2/4 Lendo BD_DESPESAS...");
+    const itens = await buscarDespesas(token);
+    const r = resumir(itens);
+    console.log(`${itens.length} itens | ${r.pendentes} pendentes, ${r.recusados} recusados, ${r.aprovados} aprovados`);
 
-    const result = await response.json();
-    console.log("Notificação enviada com sucesso:", JSON.stringify(result, null, 2));
-  } catch (error) {
-    console.error("Erro na execução do script:", error);
+    const dias = r.maisAntigo ? Math.floor((Date.now() - r.maisAntigo) / 86_400_000) : null;
+    const texto =
+      `*Resumo Diário de Despesas - Cargo Van* 🚛\n\n` +
+      `📌 *${r.pendentes}* pendentes (${brl(r.valorPendente)})\n` +
+      (dias !== null ? `⏳ Mais antiga pendente há *${dias}* dia(s)\n` : "") +
+      `❌ *${r.recusados}* recusadas\n` +
+      `✅ *${r.aprovados}* aprovadas\n\n` +
+      `Acesse o painel da Cargo Van > *Aprovar Despesas* para analisar.`;
+
+    console.log("3/4 Verificando Evolution API...");
+    const base = await prepararEvolution();
+
+    console.log("4/4 Enviando...");
+    await enviarWhatsApp(base, texto);
+  } catch (e) {
+    console.error("ERRO:", e.message);
     process.exit(1);
   }
-}
-
-dispararResumo();
+})();
