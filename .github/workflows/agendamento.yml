@@ -1,0 +1,22 @@
+name: Disparo Diario WhatsApp
+
+on:
+  schedule:
+    # 11:00 UTC = 08:00 no horário de Brasília (UTC-3)
+    - cron: '0 11 * * *'
+  workflow_dispatch: # Permite disparar manualmente no GitHub para testar
+
+jobs:
+  enviar-mensagem:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v3
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Executar Script
+        run: node enviar_resumo.js
