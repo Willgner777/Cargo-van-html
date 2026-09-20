@@ -3,76 +3,16 @@ const INSTANCE_NAME = "AutomacaoCargoVanv1";
 const API_KEY = "SuaChaveSeguraAqui9405";
 const NUMERO_DESTINO = "5585994050393";
 
-// Credenciais Microsoft Azure / SharePoint (Passadas via Secrets do GitHub)
-const TENANT_ID = process.env.MS_TENANT_ID;
-const CLIENT_ID = process.env.MS_CLIENT_ID;
-const CLIENT_SECRET = process.env.MS_CLIENT_SECRET;
-const SITE_ID = process.env.SHAREPOINT_SITE_ID; // ID do site SharePoint
-const LIST_NAME = "BD_DESPESAS";
-
-// 1. Autenticar na Microsoft para obter Token de Acesso
-async function obterTokenMicrosoft() {
-  if (!CLIENT_ID || !CLIENT_SECRET || !TENANT_ID) {
-    console.log("Credenciais da Microsoft não configuradas. A utilizar dados de teste...");
-    return null;
-  }
-
-  const url = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
-  const params = new URLSearchParams();
-  params.append('client_id', CLIENT_ID);
-  params.append('scope', 'https://graph.microsoft.com/.default');
-  params.append('client_secret', CLIENT_SECRET);
-  params.append('grant_type', 'client_credentials');
-
-  const res = await fetch(url, { method: 'POST', body: params });
-  const data = await res.json();
-  return data.access_token;
-}
-
-// 2. Consultar e Contar Itens da Lista BD_DESPESAS
-async function obterResumoDespesas() {
-  const token = await obterTokenMicrosoft();
-
-  // Se não houver token configurado, envia valores padrão de salvaguarda
-  if (!token || !SITE_ID) {
-    return { pendentes: 0, recusados: 0, aprovados: 0 };
-  }
-
-  const endpoint = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_NAME}/items?expand=fields(select=Status)`;
-  
-  try {
-    const res = await fetch(endpoint, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    const itens = data.value || [];
-
-    let pendentes = 0;
-    let recusados = 0;
-    let aprovados = 0;
-
-    itens.forEach(item => {
-      const status = item.fields?.Status;
-      if (status === 'Pendente') pendentes++;
-      else if (status === 'Recusado') recusados++;
-      else if (status === 'Aprovado') aprovados++;
-    });
-
-    return { pendentes, recusados, aprovados };
-  } catch (err) {
-    console.error("Erro ao consultar SharePoint:", err);
-    return { pendentes: 0, recusados: 0, aprovados: 0 };
-  }
-}
-
-// 3. Formatar e Disparar Mensagem pelo WhatsApp
 async function dispararResumo() {
-  const dados = await obterResumoDespesas();
+  // Exemplo de dados (substitua depois pelas variáveis dinâmicas do SharePoint)
+  const pendentes = 2;
+  const recusados = 2;
+  const aprovados = 11;
 
   const mensagem = `*Resumo Diário de Despesas - Cargo Van* 🚛\n\n` +
-    `📌 *${dados.pendentes}* itens pendentes para aprovação\n` +
-    `❌ *${dados.recusados}* itens recusados\n` +
-    `✅ *${dados.aprovados}* itens aprovados\n\n` +
+    `📌 *${pendentes}* itens pendentes para aprovação\n` +
+    `❌ *${recusados}* itens recusados\n` +
+    `✅ *${aprovados}* itens aprovados\n\n` +
     `Para aprovar ou analisar, aceda ao painel do sistema da Cargo Van e navegue até à aba *Aprovar Despesas*.`;
 
   try {
@@ -89,9 +29,10 @@ async function dispararResumo() {
     });
 
     const result = await response.json();
-    console.log("Notificação enviada com sucesso via Evolution API:", result);
+    console.log("Notificação enviada com sucesso:", JSON.stringify(result, null, 2));
   } catch (error) {
     console.error("Erro ao enviar mensagem:", error);
+    process.exit(1);
   }
 }
 
