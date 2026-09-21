@@ -2313,17 +2313,7 @@ function updateDespCharts() {
             animation: false,
             interaction: { mode: 'nearest', axis: 'y', intersect: false },
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#FFFFFF',
-                        font: { color: '#FFFFFF' },
-                        padding: 12,
-                        usePointStyle: true,
-                        generateLabels: () => statusOrd.map((it, i) => ({ text: it.nome, fillStyle: it.cor, strokeStyle: it.cor, lineWidth: 0, pointStyle: it.swatch, index: i }))
-                    },
-                    onClick: () => {}
-                },
+                legend: { display: false },
                 datalabels: { display: true, color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold', size: 11 }, formatter: (v, c) => fmt(statusOrd[c.dataIndex].qtd) },
                 tooltip: { callbacks: { label: (c) => fmt(statusOrd[c.dataIndex].qtd), labelColor: (c) => ({ borderColor: statusOrd[c.dataIndex].cor, backgroundColor: statusOrd[c.dataIndex].cor }) } }
             },
@@ -2335,6 +2325,27 @@ function updateDespCharts() {
         plugins: [pyramidPlugin]
     });
 
+    // Custom legend with gradient swatches and white text
+    const legendWrap = $('desp-donutChart').parentElement.querySelector('.chart-legend-pyramid') || (() => {
+        const el = document.createElement('div');
+        el.className = 'chart-legend-pyramid';
+        el.style.display = 'flex'; el.style.flexWrap = 'wrap'; el.style.gap = '14px';
+        el.style.justifyContent = 'center'; el.style.marginTop = '8px';
+        $('desp-donutChart').parentElement.appendChild(el);
+        return el;
+    })();
+    legendWrap.innerHTML = '';
+    statusOrd.forEach(it => {
+        const item = document.createElement('div');
+        item.style.display = 'flex'; item.style.alignItems = 'center'; item.style.gap = '6px';
+        item.style.fontSize = '12px'; item.style.color = '#FFFFFF';
+        const sw = document.createElement('span');
+        sw.style.width = '18px'; sw.style.height = '10px'; sw.style.borderRadius = '3px';
+        sw.style.background = `linear-gradient(90deg, ${it.gradTop}, ${it.gradBot})`;
+        item.appendChild(sw);
+        item.appendChild(document.createTextNode(it.nome));
+        legendWrap.appendChild(item);
+    });
     /* 3. Gasto por Placa (Top 10) */
     const placaMap = {};
     filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
