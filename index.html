@@ -808,10 +808,15 @@ function showView(viewName) {
 /* =========================================================
    PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
    ========================================================= */
+const PULSE_CORES = {
+    'lineChart':      { normal: '59, 130, 246', ultimo: '16, 185, 129' },   // Liberação (inalterado)
+    'desp-lineChart': { normal: '239, 68, 68',  ultimo: '239, 68, 68'  }    // BD_DESPESAS (na cor da linha)
+};
 const pulsePointsPlugin = {
     id: 'pulsePointsPlugin',
     afterDatasetsDraw(chart) {
-        if (chart.canvas.id !== 'lineChart') return;
+        const cores = PULSE_CORES[chart.canvas.id];
+        if (!cores) return;
         const meta = chart.getDatasetMeta(0);
         if (!meta || !meta.data || meta.data.length === 0) return;
 
@@ -833,8 +838,8 @@ const pulsePointsPlugin = {
             ctx.beginPath();
             ctx.arc(point.x, point.y, glowRadius, 0, Math.PI * 2);
             ctx.fillStyle = isLast
-                ? `rgba(16, 185, 129, ${glowAlpha})`
-                : `rgba(59, 130, 246, ${glowAlpha})`;
+                ? `rgba(${cores.ultimo}, ${glowAlpha})`
+                : `rgba(${cores.normal}, ${glowAlpha})`;
             ctx.fill();
             ctx.restore();
 
@@ -844,7 +849,7 @@ const pulsePointsPlugin = {
                 ctx.save();
                 ctx.beginPath();
                 ctx.arc(point.x, point.y, ringRadius, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha})`;
+                ctx.strokeStyle = `rgba(${cores.ultimo}, ${ringAlpha})`;
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 ctx.restore();
@@ -878,16 +883,23 @@ const peakAnnotationPlugin = {
 Chart.register(peakAnnotationPlugin);
 
 /* ---------- Animação do pulso: requestAnimationFrame só quando visível ---------- */
-const pulseState = { raf: 0, last: 0, visivel: false };
+const pulseState = { raf: 0, last: 0 };
+const pulseAlvos = [
+    { id: 'lineChart',      chart: () => lineChartInstance,     visivel: false },
+    { id: 'desp-lineChart', chart: () => despLineChartInstance, visivel: false }
+];
 
 function pulsePodeAnimar() {
-    return !!lineChartInstance && pulseState.visivel && !document.hidden;
+    return !document.hidden && pulseAlvos.some(a => a.visivel && !!a.chart());
 }
 function pulseLoop(ts) {
     if (!pulsePodeAnimar()) { pulseState.raf = 0; return; }
     if (ts - pulseState.last >= 33) {            // ~30 quadros/s: suave e leve
         pulseState.last = ts;
-        try { lineChartInstance.draw(); } catch (e) { /* gráfico sendo recriado */ }
+        pulseAlvos.forEach(a => {
+            const c = a.chart();
+            if (a.visivel && c) { try { c.draw(); } catch (e) { /* gráfico sendo recriado */ } }
+        });
     }
     pulseState.raf = requestAnimationFrame(pulseLoop);
 }
@@ -900,12 +912,14 @@ function atualizarPulso() {
     }
 }
 if ('IntersectionObserver' in window) {
-    new IntersectionObserver((entries) => {
-        pulseState.visivel = entries[0].isIntersecting;
-        atualizarPulso();
-    }, { threshold: 0.1 }).observe($('lineChart'));
+    pulseAlvos.forEach(a => {
+        new IntersectionObserver((entries) => {
+            a.visivel = entries[0].isIntersecting;
+            atualizarPulso();
+        }, { threshold: 0.1 }).observe($(a.id));
+    });
 } else {
-    pulseState.visivel = true;
+    pulseAlvos.forEach(a => { a.visivel = true; });
 }
 document.addEventListener('visibilitychange', atualizarPulso);
 
@@ -2200,28 +2214,79 @@ function updateDespCharts() {
             }
         }
     });
+    atualizarPulso();
 
-    /* 2. Distribuição por Status */
+    /* 2. Distribuição por Status (gráfico PIRÂMIDE) */
     const statusMap = {};
     filteredDespData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
 
+    // cada status mantém a sua cor original; a pirâmide fica com o MENOR no topo e o MAIOR na base
+    const PIRAMIDE_CORES = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+    const statusOrd = Object.entries(statusMap)
+        .map(([nome, qtd], idx) => ({ nome, qtd, cor: PIRAMIDE_CORES[idx % PIRAMIDE_CORES.length] }))
+        .sort((a, b) => a.qtd - b.qtd);
+
+    const pyramidPlugin = {
+        id: 'pyramidPlugin',
+        beforeDatasetsDraw(chart) {
+            const n = statusOrd.length;
+            if (!n) return;
+            const { left, right, top, bottom } = chart.chartArea;
+            const cx = (left + right) / 2;
+            const W = right - left, H = bottom - top;
+            const camada = H / n, gap = 3;
+            const meia = (y) => (W / 2) * ((y - top) / H);      // meia-largura da pirâmide na altura y
+            const { ctx } = chart;
+            statusOrd.forEach((it, i) => {
+                const y0 = top + i * camada;
+                const y1 = y0 + camada - (i === n - 1 ? 0 : gap);
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(cx - meia(y0), y0);
+                ctx.lineTo(cx + meia(y0), y0);
+                ctx.lineTo(cx + meia(y1), y1);
+                ctx.lineTo(cx - meia(y1), y1);
+                ctx.closePath();
+                ctx.fillStyle = it.cor;
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+    };
+
     const ctxD = $('desp-donutChart').getContext('2d');
     if (despDonutChartInstance) despDonutChartInstance.destroy();
-    setEmpty('desp-donutChart', Object.keys(statusMap).length === 0);
+    setEmpty('desp-donutChart', statusOrd.length === 0);
     despDonutChartInstance = new Chart(ctxD, {
-        type: 'doughnut',
+        type: 'bar',
+        // barras invisíveis de largura total: servem só de área de hover/rótulo de cada camada
         data: {
-            labels: Object.keys(statusMap),
-            datasets: [{ data: Object.values(statusMap), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'], borderWidth: 0 }]
+            labels: statusOrd.map(i => i.nome),
+            datasets: [{ data: statusOrd.map(() => 1), backgroundColor: 'transparent', borderWidth: 0, barPercentage: 1, categoryPercentage: 1 }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
-            animation: { duration: 1200 },
+            animation: false,
+            interaction: { mode: 'nearest', axis: 'y', intersect: false },
             plugins: {
-                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } },
-                datalabels: { display: true, color: '#fff', font: { weight: 'bold', size: 11 }, formatter: (v) => fmt(v) }
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#e2e8f0', padding: 12,
+                        generateLabels: () => statusOrd.map((it, i) => ({ text: it.nome, fillStyle: it.cor, strokeStyle: it.cor, lineWidth: 0, index: i }))
+                    },
+                    onClick: () => {}
+                },
+                datalabels: { display: true, color: '#fff', anchor: 'center', align: 'center', font: { weight: 'bold', size: 11 }, formatter: (v, c) => fmt(statusOrd[c.dataIndex].qtd) },
+                tooltip: { callbacks: { label: (c) => fmt(statusOrd[c.dataIndex].qtd), labelColor: (c) => ({ borderColor: statusOrd[c.dataIndex].cor, backgroundColor: statusOrd[c.dataIndex].cor }) } }
+            },
+            scales: {
+                x: { display: false, min: 0, max: 1 },
+                y: { display: false }
             }
-        }
+        },
+        plugins: [pyramidPlugin]
     });
 
     /* 3. Gasto por Placa (Top 10) */
