@@ -2,7 +2,9 @@ name: Disparo Diario WhatsApp
 
 on:
   schedule:
-    - cron: '0 11 * * *'   # 11:00 UTC = 08:00 Brasília
+    # 11:00 UTC = 08:00 Horário de Brasília
+    # 1-6 = Segunda a Sábado
+    - cron: '0 11 * * 1-6'
   workflow_dispatch:
 
 jobs:
