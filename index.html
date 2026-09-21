@@ -72,6 +72,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 #dashboard { display: none; height: 100vh; overflow: hidden; }
 .layout { display: flex; height: 100%; width: 100%; }
 
+/* Sidebar Fixa e Organizada */
 .sidebar {
     width: 280px; min-width: 280px; background: var(--bg-panel);
     border-right: 1px solid var(--border); display: flex; flex-direction: column;
@@ -80,38 +81,15 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .brand { padding: 0 24px 24px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #fff; border-bottom: 1px solid var(--border); }
 .brand svg { width: 24px; height: 24px; fill: var(--accent-blue); }
 .sidebar-menu { padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: .2s; cursor: pointer; position: relative; }
+.sidebar-item { padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: .2s; cursor: pointer; }
 .sidebar-item svg { width: 18px; height: 18px; fill: currentColor; }
 .sidebar-item:hover, .sidebar-item.active { background: var(--bg-panel-hover); color: #fff; }
 .user-profile { padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
 .user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* EFEITO PULSE NA SIDEBAR PARA BD_DESPESAS */
-.pulse-badge {
-    width: 8px;
-    height: 8px;
-    background-color: var(--accent-green);
-    border-radius: 50%;
-    display: inline-block;
-    margin-left: auto;
-    position: relative;
-}
-.pulse-badge::after {
-    content: '';
-    position: absolute;
-    top: -2px; left: -2px; right: -2px; bottom: -2px;
-    border-radius: 50%;
-    border: 2px solid var(--accent-green);
-    animation: bd-pulse 1.8s infinite ease-out;
-}
-@keyframes bd-pulse {
-    0% { transform: scale(0.8); opacity: 0.9; }
-    100% { transform: scale(2.4); opacity: 0; }
-}
-
 .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 24px; gap: 20px; background: var(--bg-base); }
 
-/* BARRA DE FILTROS */
+/* Barra de Filtros Completa */
 .filter-bar {
     background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: center;
@@ -133,7 +111,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .kpi-value { font-size: 26px; font-weight: 800; color: #fff; }
 .kpi-sub { font-size: 11px; color: var(--text-muted); }
 
-/* GRADES DE GRÁFICOS E RANKINGS */
+/* Grades de Gráficos e Rankings */
 .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 .content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media(max-width: 1200px) { .content-grid, .content-grid-3 { grid-template-columns: 1fr; } }
@@ -143,49 +121,19 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .panel-title { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
 .chart-container { position: relative; height: 260px; width: 100%; }
 
-/* ESTILIZAÇÃO COMPONENTE PIRÂMIDE UI/UX */
-.pyramid-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    padding: 10px 0;
-}
-.pyramid-layer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 12px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-.pyramid-layer:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-}
-
-/* LISTAS DE RANKING */
+/* Listas de Ranking */
 .ranking-list { display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto; padding-right: 4px; }
 .ranking-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
 .ranking-item span:first-child { font-weight: 600; color: #cbd5e1; }
 .ranking-item span:last-child { font-weight: 700; color: var(--accent-blue); }
 
-/* TABELA */
+/* Tabela */
 .table-container { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
 th { color: var(--text-muted); padding: 12px 10px; border-bottom: 1px solid var(--border); font-weight: 700; text-transform: uppercase; font-size: 10px; text-align: left; }
 td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd5e1; vertical-align: middle; }
 
-/* BADGES */
+/* Cores Dinâmicas de Status e Perfis */
 .badge-status { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
 .status-concluido { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 .status-andamento { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
@@ -199,6 +147,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--accent-blue); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .3s; z-index: 9999; font-weight: 600; }
 #toast.show { opacity: 1; transform: translateY(0); }
 
+/* ============ NOVOS COMPONENTES DE GRÁFICO (v2) ============ */
 .perf-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
 .perf-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center; }
 .perf-card.sparkline { align-items:stretch; text-align:left; }
@@ -233,15 +182,16 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .timeline-title { font-size:12px; font-weight:700; color:#e6edf3; }
 .timeline-sub { font-size:11px; color:var(--text-muted); }
 
+/* ============ DESPESAS MODULE ============ */
 .view-hidden { display: none !important; }
 
-/* DESPESAS STATUS BADGES */
+/* Despesas Status Badges */
 .badge-despesa { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
 .status-aprovado { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 .status-pendente { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 .status-recusado { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 
-/* ATTACHMENT MODAL */
+/* Attachment Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: .3s; }
 .modal-overlay.show { opacity: 1; visibility: visible; }
 .modal-content { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; max-width: 90vw; max-height: 90vh; width: 800px; overflow: hidden; transform: scale(0.95); transition: .3s; }
@@ -257,8 +207,19 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 .modal-info-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: .5px; }
 .modal-info-value { font-size: 13px; color: var(--text-main); font-weight: 600; }
 
+/* Despesas specific chart containers */
 .desp-chart-container { position: relative; height: 280px; width: 100%; }
 
+/* Sifrão icon for sidebar */
+.sidebar-item .icon-cifrao { width: 18px; height: 18px; fill: currentColor; }
+
+/* Pulse plugin for despesas line chart */
+@keyframes despesa-pulse-ring {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ============ MELHORIAS (v3) ============ */
 .sync-bar { display:none; background:rgba(59,130,246,.08); border:1px solid rgba(59,130,246,.25); color:var(--text-muted); font-size:11px; padding:8px 14px; border-radius:10px; line-height:1.6; }
 .sync-bar.warn { background:rgba(245,158,11,.10); border-color:rgba(245,158,11,.45); color:#fbbf24; }
 .chart-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:16px; color:var(--text-muted); font-size:12px; font-weight:600; pointer-events:none; z-index:2; }
@@ -302,7 +263,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
     <div class="loading-text" id="loading-msg">Sincronizando dados com o SharePoint...</div>
 </div>
 
-<!-- DASHBOARD PRINCIPAL -->
+<!-- DASHBOARD -->
 <div id="dashboard">
     <div class="layout">
         <aside class="sidebar">
@@ -317,8 +278,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </a>
                 <a href="#" class="sidebar-item" onclick="showView('despesas')">
                     <svg class="icon-cifrao" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-1.1 0-2-.9-2-2h-1c0 1.66 1.34 3 3 3s3-1.34 3-3h-1c0 1.1-.9 2-2 2zm0-4c-1.1 0-2-.9-2-2h-1c0 1.66 1.34 3 3 3s3-1.34 3-3h-1c0 1.1-.9 2-2 2zm6-8h-2v-2h2v2zm-4 0h-2v-2h2v2zm-4 0h-2v-2h2v2zm8 4h-2v-2h2v2zm-4 0h-2v-2h2v2zm-4 0h-2v-2h2v2z"/></svg>
-                    BD_DESPESAS
-                    <span class="pulse-badge" title="Sincronização ativa"></span>
+                    Despesas
                 </a>
                 <a class="sidebar-item" onclick="syncSharePointData()">
                     <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
@@ -395,7 +355,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
-            <!-- AVISOS DE QUALIDADE DOS DADOS -->
+            <!-- AVISOS DE QUALIDADE DOS DADOS (aparece só quando necessário) -->
             <div class="panel data-warning" id="dq-panel" style="display:none;"></div>
 
             <!-- GRÁFICOS PRINCIPAIS -->
@@ -422,19 +382,95 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 </div>
             </div>
 
+            <!-- GRÁFICO POR ESTADO (UF) -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--accent-blue);"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Volume de NFs por Estado (UF) vs Status
+                        </div>
+                        <span style="font-size:11px; color:var(--text-muted);">Visão Geográfica Operacional</span>
+                    </div>
+                    <div class="chart-container" style="height: 280px;"><canvas id="stateChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- TABELA DE STATUS OPERACIONAL POR UF -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Status Operacional por Estado (UF)</div></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>UF</th><th>Entregas</th><th>% Concluído</th><th>Status</th></tr></thead>
+                            <tbody id="uf-status-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DISTRIBUIÇÃO DE STATUS + FUNIL OPERACIONAL -->
+            <div class="content-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Distribuição de Status</div></div>
+                    <div class="segmented-bar" id="segmented-bar"></div>
+                    <div class="segmented-legend" id="segmented-legend"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Funil Operacional</div></div>
+                    <div class="funnel-track">
+                        <div class="funnel-item">
+                            <div class="ring" id="funil-ring-andamento" style="--ring-color:#3b82f6; width:80px; height:80px;"><span class="ring-label" id="funil-andamento-label" style="font-size:13px;">0</span></div>
+                            <span class="ring-title">Em Rota</span>
+                        </div>
+                        <div class="funnel-item">
+                            <div class="ring" id="funil-ring-pernoite" style="--ring-color:#8b5cf6; width:80px; height:80px;"><span class="ring-label" id="funil-pernoite-label" style="font-size:13px;">0</span></div>
+                            <span class="ring-title">Pernoite</span>
+                        </div>
+                        <div class="funnel-item">
+                            <div class="ring" id="funil-ring-concluido" style="--ring-color:#10b981; width:80px; height:80px;"><span class="ring-label" id="funil-concluido-label" style="font-size:13px;">0</span></div>
+                            <span class="ring-title">Concluído</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RANKING DE OPERAÇÕES VS META -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Ranking de Operações vs Meta</div><span id="op-rank-resumo" style="font-size:11px; color:var(--text-muted);"></span></div>
+                    <div class="chart-container" id="opTargetWrap" style="height:240px;"><canvas id="opTargetChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Top 5 Motoristas (NFs)</div></div>
+                    <div class="ranking-list" id="ranking-motoristas" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); max-height:none;"></div>
+                </div>
+            </div>
+
+            <!-- FEED DE ÚLTIMAS OCORRÊNCIAS -->
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <div class="panel">
+                    <div class="panel-header"><div class="panel-title">Últimas Ocorrências</div></div>
+                    <div class="timeline-list" id="timeline-ocorrencias"></div>
+                </div>
+            </div>
+
             <!-- TABELA DE REGISTROS -->
             <div class="panel">
                 <div class="panel-header"><div class="panel-title">Últimos Registros Sincronizados</div><span id="table-count" style="font-size:11px;color:var(--text-muted);"></span></div>
                 <div class="table-container">
                     <table>
-                        <thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM Rodados</th><th>NFs</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Documento</th><th>Data</th><th>Motorista</th><th>Cliente / Operação</th><th>Perfil</th><th>KM (Inicial / Final) | Rodados considerado</th><th>NFs</th><th>Status</th></tr></thead>
                         <tbody id="table-body"></tbody>
                     </table>
                 </div>
             </div>
         </main>
 
-        <!-- ============ DESPESAS VIEW ============ -->
+        <!-- ============ DESPESAS VIEW (Hidden by default) ============ -->
         <main class="main-content view-hidden" id="despesas-view">
             <div class="sync-bar"></div>
             <!-- BARRA DE FILTROS DESPESAS -->
@@ -443,7 +479,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                 <div class="filter-group"><label>Data Final</label><input type="date" id="desp-filter-end" class="filter-input"></div>
                 <div class="filter-group"><label>Placa</label><input type="text" id="desp-filter-placa" class="filter-input" placeholder="Filtrar placa..."></div>
                 <div class="filter-group"><label>Serviço</label><input type="text" id="desp-filter-servico" class="filter-input" placeholder="Filtrar serviço..."></div>
-                <div class="filter-group"><label>ID</label><input type="number" id="desp-filter-id" class="filter-input" placeholder="ID"></div>
+                <div class="filter-group"><label>ID</label><input type="number" id="desp-filter-id" class="filter-input" placeholder="ID ACESSOS"></div>
                 <div class="filter-group"><label>Status</label><select id="desp-filter-status" class="filter-input"><option value="">Todos</option><option value="Aprovado">Aprovado</option><option value="Pendente">Pendente</option><option value="Recusado">Recusado</option></select></div>
                 <div class="filter-group"><label>&nbsp;</label><button type="button" class="btn-mini" id="btn-clear-desp">Limpar filtros</button></div>
             </div>
@@ -462,13 +498,9 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                     <div class="panel-header"><div class="panel-title">Evolução Temporal (Data × Valor Total)</div></div>
                     <div class="desp-chart-container"><canvas id="desp-lineChart"></canvas></div>
                 </div>
-                
-                <!-- COMPONENTE SUBSTITUTO DA PIZZA: GRÁFICO DE PIRÂMIDE -->
                 <div class="panel">
-                    <div class="panel-header"><div class="panel-title">Distribuição por Status (Pirâmide)</div></div>
-                    <div class="desp-chart-container" style="display:flex; justify-content:center; align-items:center;">
-                        <div id="desp-pyramid-container" class="pyramid-container"></div>
-                    </div>
+                    <div class="panel-header"><div class="panel-title">Distribuição por Status</div></div>
+                    <div class="desp-chart-container"><canvas id="desp-donutChart"></canvas></div>
                 </div>
             </div>
 
@@ -492,7 +524,11 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                             <tr>
                                 <th>ID</th><th>Placa</th><th>Serviço</th><th>Valor Total</th><th>Valor Unit.</th><th>Qntd</th>
                                 <th>Data Compra</th><th>Status</th><th>Aprovador</th><th>Tipo Doc.</th>
-                                <th>Forma Pag.</th><th>Fornecedor</th><th>Criado Por</th><th>Operação</th>
+                                <th>Forma Pag.</th><th>Fornecedor</th><th>Criado Por</th><th>Informação</th>
+                                <th>UMB</th><th>Banco</th><th>Chave Pix</th><th>Banco Ajud.</th>
+                                <th>Chave Ajud.</th><th>Recebedor</th><th>Descontos</th>
+                                <th>Operação</th><th>Anexo</th><th>Desc. Func.</th>
+                                <th>Parcelado</th><th>Nº Parcelas</th><th>Período Parc.</th>
                             </tr>
                         </thead>
                         <tbody id="desp-table-body"></tbody>
@@ -505,24 +541,40 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
 <div id="toast"></div>
 
+<!-- MODAL ANEXO DESPESAS -->
+<div class="modal-overlay" id="desp-attachment-modal" onclick="closeDespAttachmentModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title" id="desp-modal-title">Comprovante / Anexo</div>
+            <button class="modal-close" onclick="closeDespAttachmentModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <img class="modal-image" id="desp-modal-image" src="" alt="Comprovante" style="display:none;">
+            <div id="desp-modal-no-image" style="display:none; text-align:center; padding:40px; color:var(--text-muted);">Sem anexo disponível</div>
+            <div class="modal-info" id="desp-modal-info"></div>
+        </div>
+    </div>
+</div>
+
 <script>
 /* =========================================================
-   CONFIGURAÇÕES CENTRAIS E REGRAS DE NEGÓCIO
+   CONFIGURAÇÕES CENTRAIS (ajuste aqui, sem procurar no código)
    ========================================================= */
 const CONFIG = {
     SITE: 'willtech7.sharepoint.com:/sites/CARGOVAN:',
     LISTA_LIBERACAO: 'LIBERACAO_VEICULO',
     LISTA_DESPESAS: 'BD_DESPESAS',
-    PAGE_TOP: 1000,
-    MAX_PAGINAS: 500,
-    META_MENSAL_NFS: 20306,
-    NFS_MAX_POR_REGISTRO: 500,
-    KM_MAX_POR_REGISTRO: 5000,
-    KM_DIVISOR_UNIDADE: 1,
-    EFICIENCIA_REFERENCIA: 20,
+    PAGE_TOP: 1000,               // itens por página no Graph
+    MAX_PAGINAS: 500,             // teto de segurança (500 x 1000 = 500 mil itens)
+    META_MENSAL_NFS: 20306,       // meta base de NFs por mês
+    NFS_MAX_POR_REGISTRO: 500,    // acima disso a quantidade é considerada inválida
+    KM_MAX_POR_REGISTRO: 5000,    // acima disso o KM do registro é considerado absurdo
+    KM_DIVISOR_UNIDADE: 1,        // use 1000 se o SharePoint devolver KM em metros
+    EFICIENCIA_REFERENCIA: 20,    // NFs por 100 km que equivale a 100% no anel
     TIMEZONE: 'America/Fortaleza',
     PAGINA_PADRAO: 50,
-    TAMANHOS_PAGINA: [25, 50, 100, 250, 0]
+    TAMANHOS_PAGINA: [25, 50, 100, 250, 0],   // 0 = todos
+    MAX_AVISOS_LISTADOS: 100
 };
 
 const STATUS_INFO = {
@@ -531,6 +583,7 @@ const STATUS_INFO = {
     pernoite:  { label: 'Pernoite',     color: '#8b5cf6', css: 'status-pernoite' },
     outro:     { label: 'Outro',        color: '#f59e0b', css: 'status-outro' }
 };
+const OPERACAO_NAO_INFORMADA = 'NÃO INFORMADA';
 
 const msalConfig = {
     auth: { clientId: "3b29c3bc-e828-4835-a7bf-1f035ae7c981", authority: "https://login.microsoftonline.com/669ab6c9-4a10-4796-a3dc-90f5e7d6ff40", redirectUri: window.location.origin + window.location.pathname },
@@ -539,568 +592,1740 @@ const msalConfig = {
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 const loginRequest = { scopes: ["User.Read", "Sites.Read.All"] };
 
+/* DADOS DA OPERAÇÃO */
 let rawData = [], filteredData = [];
-let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null;
+let lineChartInstance = null, barChartInstance = null, polarChartInstance = null, statusHChartInstance = null, stateChartInstance = null;
+let sparklineChartInstance = null, opTargetChartInstance = null;
+let kmAvisoUnidade = '';
 
+/* DADOS DE DESPESAS */
 let rawDespData = [], filteredDespData = [];
-let despLineChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
+let despLineChartInstance = null, despDonutChartInstance = null, despBarChartInstance = null, despNeonLineChartInstance = null;
 
+/* ESTADO DA SINCRONIZAÇÃO */
+let usandoDadosDemo = false;   // só fica true se algum dia dados fictícios forem carregados
+let sincronizando = false;
+const syncInfo = {
+    quando: null,
+    listas: {}   // { NOME_LISTA: { ok, total, erro, ultimoSucesso } }
+};
+
+Chart.register(ChartDataLabels);
+Chart.defaults.color = '#8b9bb8';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+/* =========================================================
+   UTILITÁRIOS
+   ========================================================= */
 const $ = (id) => document.getElementById(id);
 
-function fmt(num) { const n = Number(num); return (Number.isFinite(n) ? Math.round(n) : 0).toLocaleString('pt-BR'); }
-function fmtMoeda(val) { const n = Number(val); return (Number.isFinite(n) ? n : 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+/** Cria elementos sem usar innerHTML (todo texto entra via textContent/append). */
+function el(tag, opts = {}, ...children) {
+    const n = document.createElement(tag);
+    if (opts.class) n.className = opts.class;
+    if (opts.text != null) n.textContent = opts.text;
+    if (opts.style) n.style.cssText = opts.style;
+    if (opts.attrs) Object.entries(opts.attrs).forEach(([k, v]) => n.setAttribute(k, v));
+    children.forEach(c => { if (c != null && c !== false) n.append(c); });
+    return n;
+}
+function td(content, opts = {}) {
+    const c = el('td', opts);
+    if (content instanceof Node) c.append(content);
+    else if (content != null) c.append(String(content));
+    return c;
+}
+function strong(text) { return el('strong', { text }); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function debounce(fn, ms = 300) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
-function formatDateBR(value) {
-    if(!value) return '—';
-    const parts = value.slice(0, 10).split('-');
-    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : value;
+/* ---------- Números ---------- */
+function fmt(num) {
+    const n = Number(num);
+    return (Number.isFinite(n) ? Math.round(n) : 0).toLocaleString('pt-BR');
+}
+/** KM sempre inteiro, com ponto de milhar e sem vírgula: 255.222 */
+function fmtKm(num) {
+    if (num === null || num === undefined || !Number.isFinite(Number(num))) return '—';
+    return Math.round(Number(num)).toLocaleString('pt-BR');
+}
+function fmtMoeda(val) {
+    const n = Number(val);
+    return (Number.isFinite(n) ? n : 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+function fmtPct(p) {
+    return (Number.isFinite(p) ? p : 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%';
 }
 
-function classifyStatusKey(rawStatus) {
-    const s = String(rawStatus || '').trim().toLowerCase();
-    if (s.includes('conclu')) return 'concluido';
-    if (s.includes('anda'))   return 'andamento';
-    if (s.includes('perno'))  return 'pernoite';
-    return 'outro';
-}
-
-function parseNumberStrict(val) {
-    if (val === null || val === undefined || val === '') return null;
-    if (typeof val === 'number') return isNaN(val) ? null : val;
-    let s = String(val).trim().replace(/\s+/g, '');
-    if (s === '') return null;
-    if (s.includes(',') && s.includes('.')) {
-        s = s.replace(/\./g, '').replace(',', '.');
-    } else if (s.includes(',')) {
+/**
+ * Converte número/texto do SharePoint para número.
+ * Aceita: 12345 | "12345" | "12.345" | "12.345,6" | "12,5" | "12345 km" | "R$ 1.234,56"
+ * Retorna null quando não for possível interpretar.
+ */
+function parseNumberBR(v) {
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    let s = String(v).trim().replace(/[^\d.,\-]/g, '');
+    if (!s || s === '-' || s === '.' || s === ',') return null;
+    const temVirgula = s.includes(','), temPonto = s.includes('.');
+    if (temVirgula && temPonto) {
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+        else s = s.replace(/,/g, '');
+    } else if (temVirgula) {
         s = s.replace(',', '.');
+    } else if (temPonto && /^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+        s = s.replace(/\./g, '');   // "255.222" = duzentos e cinquenta e cinco mil...
     }
     const n = Number(s);
-    return isNaN(n) ? null : n;
+    return Number.isFinite(n) ? n : null;
 }
 
-function parseIsoDateLocal(dateStr) {
-    if(!dateStr) return null;
-    const parts = dateStr.slice(0, 10).split('-');
-    if(parts.length !== 3) return null;
-    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-}
-
-function parseBrazilianDate(dateStr) {
-    if (!dateStr) return null;
-    const parts = String(dateStr).trim().split('/');
-    if (parts.length === 3) {
-        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+function pick(f, ...keys) {
+    for (const k of keys) {
+        if (f[k] !== undefined && f[k] !== null && f[k] !== '') return f[k];
     }
-    return null;
+    return undefined;
+}
+function safeStr(v, def = 'N/A') {
+    if (v === undefined || v === null) return def;
+    if (typeof v === 'object') {
+        const t = v.LookupValue || v.Title || v.Email || v.Url || v.url || '';
+        return String(t).trim() || def;
+    }
+    const s = String(v).trim();
+    return s || def;
+}
+function normalizarChave(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+
+/* ---------- Datas (padrão Brasil) ---------- */
+const _fmtDataLocal = new Intl.DateTimeFormat('en-US', { timeZone: CONFIG.TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+
+/**
+ * Converte qualquer data do SharePoint para 'yyyy-mm-dd' (formato interno / do <input type="date">).
+ * Timestamps são convertidos para o horário de Fortaleza; "T00:00:00Z" é tratado como data pura.
+ */
+function toISODate(value) {
+    if (!value) return '';
+    const s = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (/^\d{4}-\d{2}-\d{2}T00:00:00(\.\d+)?Z$/.test(s)) return s.slice(0, 10);
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : '';
+    const p = _fmtDataLocal.formatToParts(d).reduce((a, x) => (a[x.type] = x.value, a), {});
+    return `${p.year}-${p.month}-${p.day}`;
+}
+/** ÚNICA função de exibição de datas: dd/mm/yyyy */
+function formatDateBR(value) {
+    const iso = toISODate(value);
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+}
+function formatDateTimeBR(date) {
+    return date.toLocaleString('pt-BR', { timeZone: CONFIG.TIMEZONE, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ---------- Status ---------- */
+function classifyStatusKey(st) {
+    const s = String(st || '').toUpperCase();
+    if (s.includes('CONCLUÍDO') || s.includes('CONCLUIDO')) return 'concluido';
+    if (s.includes('ANDAMENTO') || s.includes('ROTA')) return 'andamento';
+    if (s.includes('PERNOITE')) return 'pernoite';
+    return 'outro';
+}
+function statusBadge(st) {
+    return el('span', { class: 'badge-status ' + STATUS_INFO[classifyStatusKey(st)].css, text: st });
+}
+function perfilBadge(perf) {
+    return el('span', { class: 'badge-perfil ' + (perf === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado'), text: perf });
+}
+function despStatusBadge(st) {
+    let css = 'status-pendente';
+    const upper = String(st || '').toUpperCase();
+    if (upper.includes('APROVADO') || upper.includes('CONCLUÍDO') || upper.includes('CONCLUIDO')) css = 'status-aprovado';
+    else if (upper.includes('RECUSADO') || upper.includes('CANCELADO') || upper.includes('REJEITADO')) css = 'status-recusado';
+    return el('span', { class: 'badge-despesa ' + css, text: st });
+}
+
+function padronizarNome(nome) {
+    const s = String(nome || '').trim();
+    if (!s) return 'NÃO INFORMADO';
+    return s.toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+function normalizarOperacao(v) {
+    const t = String(v || '').replace(/\s+/g, ' ').trim().toUpperCase();
+    if (!t) return OPERACAO_NAO_INFORMADA;
+    return t.split('|').map(p => p.trim()).filter(Boolean).join(' | ') || OPERACAO_NAO_INFORMADA;
 }
 
 function showToast(msg) {
-    const t = $('toast'); t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3500);
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), 4500);
 }
 
-function updateSyncBar(count, total, isPartial = false, dateRange = null) {
-    const el = $('sync-bar');
-    if (!el) return;
-    el.style.display = 'block';
-    let txt = `Registros filtrados: <strong>${fmt(count)}</strong> de <strong>${fmt(total)}</strong> totais.`;
-    if (isPartial) txt += ` (Carga limitada a ${fmt(total)} registros pelo parâmetro MAX_PAGINAS)`;
-    if (dateRange && dateRange.min && dateRange.max) txt += `<br>Período disponível dos dados carregados: <strong>${formatDateBR(dateRange.min)}</strong> até <strong>${formatDateBR(dateRange.max)}</strong>.`;
-    el.innerHTML = txt;
+/** Mostra/oculta a mensagem "sem dados" sobre um gráfico. */
+function setEmpty(canvasId, vazio, msg) {
+    const wrap = $(canvasId).parentElement;
+    let box = wrap.querySelector('.chart-empty');
+    if (vazio) {
+        if (!box) { box = el('div', { class: 'chart-empty' }); wrap.append(box); }
+        box.textContent = msg || 'Sem dados para os filtros selecionados.';
+    } else if (box) {
+        box.remove();
+    }
+}
+function emptyRow(colspan, msg) {
+    const tr = el('tr', { class: 'empty-row' });
+    tr.append(el('td', { text: msg, attrs: { colspan: String(colspan) } }));
+    return tr;
 }
 
 /* =========================================================
-   SISTEMA DE AUTENTICAÇÃO E CARGA VIA MSAL + GRAPH API
+   TROCA DE VIEWS (Navegação da Sidebar)
    ========================================================= */
-window.addEventListener('load', async () => {
-    try {
-        await myMSALObj.handleRedirectPromise();
-        const accounts = myMSALObj.getAllAccounts();
-        if (accounts.length > 0) {
-            $('login-view').style.display = 'none';
-            $('loading-screen').style.display = 'flex';$('display-name').textContent = accounts[0].name || accounts[0].username;
-            await loadDashboardData();
-        }
-    } catch (error) {
-        console.error("Erro na inicialização MSAL:", error);
-    }
-});
-
-function iniciarLogin() { myMSALObj.loginRedirect(loginRequest); }
-
-async function getAccessToken() {
-    const accounts = myMSALObj.getAllAccounts();
-    if (accounts.length === 0) throw new Error("Nenhum usuário logado.");
-    const request = { ...loginRequest, account: accounts[0] };
-    try {
-        const response = await myMSALObj.acquireTokenSilent(request);
-        return response.accessToken;
-    } catch (e) {
-        return (await myMSALObj.acquireTokenPopup(request)).accessToken;
-    }
-}
-
-async function fetchAllSharePointItems(token, siteUrl, listName, selectFields = "") {
-    let url = `https://graph.microsoft.com/v1.0/sites/${siteUrl}/lists/${listName}/items?$top=${CONFIG.PAGE_TOP}&$expand=fields`;
-    if (selectFields) url += `($select=${selectFields})`;
-
-    let items = [];
-    let pageCount = 0;
-
-    while (url && pageCount < CONFIG.MAX_PAGINAS) {
-        pageCount++;
-        $('loading-msg').textContent = `Carregando ${listName}... (Página ${pageCount})`;
-        
-        const res = await fetch(url, {
-            headers: { Authorization: `Bearer ${token}`, Prefer: "HonorNonIndexedParams=true" }
-        });
-        if (!res.ok) throw new Error(`Erro ao buscar dados de ${listName}: ${res.statusText}`);
-
-        const data = await res.json();
-        if (data.value) items = items.concat(data.value);
-        url = data['@odata.nextLink'] || null;
-    }
-    return items;
-}
-
-async function loadDashboardData() {
-    try {
-        const token = await getAccessToken();
-
-        // Carga da Liberacao de Veiculos
-        const rawOpItems = await fetchAllSharePointItems(token, CONFIG.SITE, CONFIG.LISTA_LIBERACAO);
-        rawData = processOpItems(rawOpItems);
-
-        // Carga de Despesas
-        const rawDespItems = await fetchAllSharePointItems(token, CONFIG.SITE, CONFIG.LISTA_DESPESAS);
-        rawDespData = processDespItems(rawDespItems);
-
-        initFilterEvents();
-        populateFilterDropdowns();
-
-        $('loading-screen').style.display = 'none';$('dashboard').style.display = 'block';
-
-        applyOpFilters();
-        applyDespFilters();
-    } catch (err) {
-        console.error("Falha ao carregar dados:", err);
-        alert("Ocorreu um erro ao conectar com o SharePoint: " + err.message);
-    }
-}
-
-async function syncSharePointData() {
-    $('dashboard').style.display = 'none';$('loading-screen').style.display = 'flex';
-    await loadDashboardData();
-    showToast('Dados sincronizados com sucesso!');
-}
-
-/* =========================================================
-   TRATAMENTO DE DADOS - OPERAÇÕES
-   ========================================================= */
-function processOpItems(items) {
-    return items.map(item => {
-        const f = item.fields || {};
-        return {
-            id: item.id,
-            documento: f.Title || f.Title0 || '—',
-            dataIso: f.Data ? f.Data.slice(0, 10) : '',
-            motorista: f.Motorista || f.NomeMotorista || 'Não informado',
-            operacao: f.Operacao || f.Cliente || 'Outros',
-            perfil: String(f.Perfil || f.TipoFrota || '').toUpperCase().includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
-            km: parseNumberStrict(f.KM) || 0,
-            nfs: parseNumberStrict(f.NFs) || parseNumberStrict(f.QtdNFs) || 0,
-            status: f.Status || f.StatusOperacao || 'Em andamento'
-        };
-    });
-}
-
-/* =========================================================
-   TRATAMENTO DE DADOS - DESPESAS
-   ========================================================= */
-function processDespItems(items) {
-    return items.map(item => {
-        const f = item.fields || {};
-        return {
-            id: item.id,
-            placa: f.Title || f.Placa || '—',
-            servico: f.Servico || f.ServicoOutros || 'Geral',
-            valorTotal: parseNumberStrict(f.ValorTotal) || 0,
-            valorUnitario: parseNumberStrict(f.ValorUnitario) || 0,
-            quantidade: parseNumberStrict(f.Qntd) || 1,
-            dataCompra: f.DataCompra ? f.DataCompra.slice(0, 10) : '',
-            status: f.Status || 'Pendente',
-            aprovador: f.Aprovador || '—',
-            tipoDoc: f.TipoDocumento || '—',
-            formaPag: f.FormaPagamento || '—',
-            fornecedor: f.Fornecedor || '—',
-            criadoPor: f.CriadoPor || '—',
-            operacao: f.Operacao || '—'
-        };
-    });
-}
-
-/* =========================================================
-   SISTEMA DE FILTROS E EVENTOS
-   ========================================================= */
-function populateFilterDropdowns() {
-    const statusSelect = $('filter-status');
-    statusSelect.innerHTML = '<option value="">Todos</option>';
-    const statuses = [...new Set(rawData.map(d => d.status))].filter(Boolean);
-    statuses.forEach(s => {
-        const opt = document.createElement('option'); opt.value = s; opt.textContent = s;
-        statusSelect.appendChild(opt);
-    });
-}
-
-function initFilterEvents() {
-    ['filter-start', 'filter-end', 'filter-placa', 'filter-doc', 'filter-operacao', 'filter-status', 'filter-perfil'].forEach(id => {
-        $(id).addEventListener('change', applyOpFilters);$(id).addEventListener('keyup', applyOpFilters);
-    });
-
-    $('btn-clear-op').addEventListener('click', () => {
-        ['filter-start', 'filter-end', 'filter-placa', 'filter-doc', 'filter-operacao', 'filter-status', 'filter-perfil'].forEach(id => $(id).value = '');
-        applyOpFilters();
-    });
-
-    ['desp-filter-start', 'desp-filter-end', 'desp-filter-placa', 'desp-filter-servico', 'desp-filter-id', 'desp-filter-status'].forEach(id => {
-        $(id).addEventListener('change', applyDespFilters);$(id).addEventListener('keyup', applyDespFilters);
-    });
-
-    $('btn-clear-desp').addEventListener('click', () => {
-        ['desp-filter-start', 'desp-filter-end', 'desp-filter-placa', 'desp-filter-servico', 'desp-filter-id', 'desp-filter-status'].forEach(id => $(id).value = '');
-        applyDespFilters();
-    });
-}
-
-function applyOpFilters() {
-    const start = $('filter-start').value;
-    const end = $('filter-end').value;
-    const placa = $('filter-placa').value.toLowerCase();
-    const doc = $('filter-doc').value.toLowerCase();
-    const operacao = $('filter-operacao').value.toLowerCase();
-    const status = $('filter-status').value;
-    const perfil = $('filter-perfil').value;
-
-    filteredData = rawData.filter(d => {
-        if (start && d.dataIso < start) return false;
-        if (end && d.dataIso > end) return false;
-        if (placa && !d.documento.toLowerCase().includes(placa)) return false;
-        if (doc && !d.documento.toLowerCase().includes(doc)) return false;
-        if (operacao && !d.operacao.toLowerCase().includes(operacao)) return false;
-        if (status && d.status !== status) return false;
-        if (perfil && d.perfil !== perfil) return false;
-        return true;
-    });
-
-    updateOpDashboardUI();
-}
-
-function applyDespFilters() {
-    const start = $('desp-filter-start').value;
-    const end = $('desp-filter-end').value;
-    const placa = $('desp-filter-placa').value.toLowerCase();
-    const servico = $('desp-filter-servico').value.toLowerCase();
-    const idVal = $('desp-filter-id').value;
-    const status = $('desp-filter-status').value;
-
-    filteredDespData = rawDespData.filter(d => {
-        if (start && d.dataCompra < start) return false;
-        if (end && d.dataCompra > end) return false;
-        if (placa && !d.placa.toLowerCase().includes(placa)) return false;
-        if (servico && !d.servico.toLowerCase().includes(servico)) return false;
-        if (idVal && String(d.id) !== String(idVal)) return false;
-        if (status && d.status !== status) return false;
-        return true;
-    });
-
-    updateDespDashboardUI();
-}
-
-/* =========================================================
-   ATUALIZAÇÃO DA UI - OPERAÇÕES
-   ========================================================= */
-function updateOpDashboardUI() {
-    // KPIs
-    const totalEntregas = filteredData.length;
-    const totalNfs = filteredData.reduce((a, b) => a + b.nfs, 0);
-    const nfsProprio = filteredData.filter(d => d.perfil === 'PRÓPRIO').reduce((a, b) => a + b.nfs, 0);
-    const nfsAgregado = filteredData.filter(d => d.perfil === 'AGREGADO').reduce((a, b) => a + b.nfs, 0);
-    const totalKm = filteredData.reduce((a, b) => a + b.km, 0);
-
-    $('kpi-total').textContent = fmt(totalEntregas);
-    $('kpi-nfs').textContent = fmt(totalNfs);$('kpi-proprio').textContent = fmt(nfsProprio);
-    $('kpi-agregado').textContent = fmt(nfsAgregado);$('km-total-value').textContent = `${fmt(totalKm)} km`;
-
-    // Meta Mensal
-    const pctMeta = Math.min(Math.round((totalNfs / CONFIG.META_MENSAL_NFS) * 100), 100);
-    $('meta-mensal-pct').textContent = `${pctMeta}%`;
-    $('meta-mensal-atual').textContent = fmt(totalNfs);
-    $('meta-mensal-alvo').textContent = fmt(CONFIG.META_MENSAL_NFS);$('meta-mensal-fill').style.width = `${pctMeta}%`;
-
-    // Indicadores Anel
-    const concluidos = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
-    const pctConclusao = totalEntregas ? Math.round((concluidos / totalEntregas) * 100) : 0;
-    $('ring-conclusao-label').textContent = `${pctConclusao}%`;
-    $('ring-conclusao').style.setProperty('--pct', pctConclusao);
-
-    const ef = totalKm ? Math.round((totalNfs / totalKm) * 100) : 0;
-    $('ring-eficiencia-label').textContent = ef;
-    $('ring-eficiencia').style.setProperty('--pct', Math.min(ef, 100));
-
-    // Tabelas & Gráficos
-    renderOpTable();
-    renderOpCharts();
-}
-
-function renderOpTable() {
-    const tbody = $('table-body');
-    tbody.innerHTML = '';
-
-    const sliced = filteredData.slice(0, 50);
-    if (sliced.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Nenhum registro encontrado.</td></tr>';
-        return;
-    }
-
-    sliced.forEach(d => {
-        const tr = document.createElement('tr');
-        const stKey = classifyStatusKey(d.status);
-        const stInfo = STATUS_INFO[stKey];
-
-        tr.innerHTML = `
-            <td><strong>${d.documento}</strong></td>
-            <td>${formatDateBR(d.dataIso)}</td>
-            <td>${d.motorista}</td>
-            <td>${d.operacao}</td>
-            <td><span class="badge-perfil ${d.perfil === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado'}">${d.perfil}</span></td>
-            <td>${fmt(d.km)} km</td>
-            <td>${fmt(d.nfs)}</td>
-            <td><span class="badge-status ${stInfo.css}">${d.status}</span></td>
-        `;
-        tbody.appendChild(tr);
-    });
-    $('table-count').textContent = `Exibindo ${sliced.length} de ${filteredData.length} registros`;
-}
-
-function renderOpCharts() {
-    // Evolução Temporal
-    const dateMap = {};
-    filteredData.forEach(d => {
-        if (!d.dataIso) return;
-        dateMap[d.dataIso] = (dateMap[d.dataIso] || 0) + d.nfs;
-    });
-    const sortedDates = Object.keys(dateMap).sort();
-
-    if (lineChartInstance) lineChartInstance.destroy();
-    lineChartInstance = new Chart($('lineChart'), {
-        type: 'line',
-        data: {
-            labels: sortedDates.map(formatDateBR),
-            datasets: [{ label: 'NFs Entregues', data: sortedDates.map(k => dateMap[k]), borderColor: '#3b82f6', tension: 0.3, fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-
-    // Mix Frota
-    if (polarChartInstance) polarChartInstance.destroy();
-    polarChartInstance = new Chart($('polarChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Próprio', 'Agregado'],
-            datasets: [{
-                data: [
-                    filteredData.filter(d => d.perfil === 'PRÓPRIO').length,
-                    filteredData.filter(d => d.perfil === 'AGREGADO').length
-                ],
-                backgroundColor: ['#3b82f6', '#8b5cf6']
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-}
-
-/* =========================================================
-   ATUALIZAÇÃO DA UI - DESPESAS & PIRÂMIDE REFORMULADA
-   ========================================================= */
-function updateDespDashboardUI() {
-    const totalGasto = filteredDespData.reduce((a, b) => a + b.valorTotal, 0);
-    const totalRegistros = filteredDespData.length;
-    const media = totalRegistros ? totalGasto / totalRegistros : 0;
-
-    let lastDate = '—';
-    if (filteredDespData.length) {
-        const sorted = [...filteredDespData].sort((a, b) => b.dataCompra.localeCompare(a.dataCompra));
-        lastDate = formatDateBR(sorted[0].dataCompra);
-    }
-
-    $('desp-kpi-total').textContent = fmtMoeda(totalGasto);$('desp-kpi-count').textContent = fmt(totalRegistros);
-    $('desp-kpi-avg').textContent = fmtMoeda(media);$('desp-kpi-last').textContent = lastDate;
-
-    renderDespTable();
-    renderDespCharts();
-}
-
-function renderDespTable() {
-    const tbody = $('desp-table-body');
-    tbody.innerHTML = '';
-
-    const sliced = filteredDespData.slice(0, 50);
-    if (sliced.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="14">Nenhuma despesa encontrada.</td></tr>';
-        return;
-    }
-
-    sliced.forEach(d => {
-        let badgeClass = 'status-pendente';
-        if (d.status.toLowerCase().includes('aprov')) badgeClass = 'status-aprovado';
-        if (d.status.toLowerCase().includes('recus')) badgeClass = 'status-recusado';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${d.id}</td>
-            <td><strong>${d.placa}</strong></td>
-            <td>${d.servico}</td>
-            <td style="font-weight:700; color:#fff;">${fmtMoeda(d.valorTotal)}</td>
-            <td>${fmtMoeda(d.valorUnitario)}</td>
-            <td>${fmt(d.quantidade)}</td>
-            <td>${formatDateBR(d.dataCompra)}</td>
-            <td><span class="badge-despesa ${badgeClass}">${d.status}</span></td>
-            <td>${d.aprovador}</td>
-            <td>${d.tipoDoc}</td>
-            <td>${d.formaPag}</td>
-            <td>${d.fornecedor}</td>
-            <td>${d.criadoPor}</td>
-            <td>${d.operacao}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-    $('desp-table-count').textContent = `Exibindo ${sliced.length} de ${filteredDespData.length} registros`;
-}
-
-/* RENDEREIZAÇÃO DOS GRÁFICOS DE DESPESAS (COM PIRÂMIDE) */
-function renderDespCharts() {
-    // 1. Evolução Temporal (Data x Valor Total)
-    const dateMap = {};
-    filteredDespData.forEach(d => {
-        if (!d.dataCompra) return;
-        dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal;
-    });
-    const sortedDates = Object.keys(dateMap).sort();
-
-    if (despLineChartInstance) despLineChartInstance.destroy();
-    despLineChartInstance = new Chart($('desp-lineChart'), {
-        type: 'line',
-        data: {
-            labels: sortedDates.map(formatDateBR),
-            datasets: [{ label: 'Valor Total (R$)', data: sortedDates.map(k => dateMap[k]), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-
-    // 2. COMPONENTE REFORMULADO: GRÁFICO DE PIRÂMIDE POR STATUS
-    const statusMap = {};
-    let totalValorDespesas = 0;
-    filteredDespData.forEach(d => {
-        const st = d.status || 'Pendente';
-        statusMap[st] = (statusMap[st] || 0) + d.valorTotal;
-        totalValorDespesas += d.valorTotal;
-    });
-
-    const pyramidContainer = $('desp-pyramid-container');
-    pyramidContainer.innerHTML = '';
-
-    const statusKeys = Object.keys(statusMap);
-    if (!statusKeys.length || totalValorDespesas === 0) {
-        pyramidContainer.innerHTML = '<div class="chart-empty">Sem dados de despesas.</div>';
-    } else {
-        // Ordena do Maior para o Menor para formar a estrutura da Pirâmide
-        const sortedStatus = statusKeys
-            .map(key => ({ label: key, value: statusMap[key] }))
-            .sort((a, b) => b.value - a.value);
-
-        const colors = [
-            'linear-gradient(90deg, #10b981, #059669)',
-            'linear-gradient(90deg, #3b82f6, #2563eb)',
-            'linear-gradient(90deg, #8b5cf6, #7c3aed)',
-            'linear-gradient(90deg, #f59e0b, #d97706)',
-            'linear-gradient(90deg, #ef4444, #dc2626)'
-        ];
-
-        const maxValue = sortedStatus[0].value || 1;
-
-        sortedStatus.forEach((item, index) => {
-            const layer = document.createElement('div');
-            layer.className = 'pyramid-layer';
-            
-            // Proporção de Largura baseada no maior valor
-            const minWidthPct = 35;
-            const widthPct = minWidthPct + ((item.value / maxValue) * (100 - minWidthPct));
-            
-            layer.style.width = `${widthPct}%`;
-            layer.style.height = `${Math.max(38, 220 / sortedStatus.length)}px`;
-            layer.style.background = colors[index % colors.length];
-
-            const pct = ((item.value / totalValorDespesas) * 100).toFixed(1);
-            layer.innerHTML = `<span>${item.label}: ${fmtMoeda(item.value)} (${pct}%)</span>`;
-            
-            pyramidContainer.appendChild(layer);
-        });
-    }
-
-    // 3. Top 10 Placas
-    const placaMap = {};
-    filteredDespData.forEach(d => {
-        if (!d.placa || d.placa === '—') return;
-        placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal;
-    });
-    const sortedPlacas = Object.keys(placaMap).sort((a, b) => placaMap[b] - placaMap[a]).slice(0, 10);
-
-    if (despBarChartInstance) despBarChartInstance.destroy();
-    despBarChartInstance = new Chart($('desp-barChart'), {
-        type: 'bar',
-        data: {
-            labels: sortedPlacas,
-            datasets: [{ label: 'Gasto R$', data: sortedPlacas.map(p => placaMap[p]), backgroundColor: '#f59e0b' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-
-    // 4. Tipo Documento
-    const docMap = {};
-    filteredDespData.forEach(d => {
-        const doc = d.tipoDoc || 'Outros';
-        docMap[doc] = (docMap[doc] || 0) + d.valorTotal;
-    });
-    const docKeys = Object.keys(docMap);
-
-    if (despNeonLineChartInstance) despNeonLineChartInstance.destroy();
-    despNeonLineChartInstance = new Chart($('desp-neonLineChart'), {
-        type: 'bar',
-        data: {
-            labels: docKeys,
-            datasets: [{ label: 'Valor por Tipo Doc.', data: docKeys.map(k => docMap[k]), backgroundColor: '#8b5cf6' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-}
-
 function showView(viewName) {
     const mainOp = $('operacao-view');
     const mainDesp = $('despesas-view');
     const navItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
 
     if (viewName === 'despesas') {
-        mainOp.classList.add('view-hidden');
-        mainDesp.classList.remove('view-hidden');
+        if (mainOp) mainOp.classList.add('view-hidden');
+        if (mainDesp) mainDesp.classList.remove('view-hidden');
         navItems[0].classList.remove('active');
         navItems[1].classList.add('active');
     } else {
-        mainOp.classList.remove('view-hidden');
-        mainDesp.classList.add('view-hidden');
+        if (mainOp) mainOp.classList.remove('view-hidden');
+        if (mainDesp) mainDesp.classList.add('view-hidden');
         navItems[1].classList.remove('active');
         navItems[0].classList.add('active');
     }
+    setTimeout(atualizarPulso, 50);
 }
+
+/* =========================================================
+   PLUGIN VISUAL: "PULSO DE VIDA" nos pontos do gráfico de linha
+   ========================================================= */
+const pulsePointsPlugin = {
+    id: 'pulsePointsPlugin',
+    afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== 'lineChart') return;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
+
+        const { ctx } = chart;
+        const t = performance.now() / 1000;
+        const lastIndex = meta.data.length - 1;
+
+        meta.data.forEach((point, index) => {
+            const isLast = index === lastIndex;
+            const speed = isLast ? 1.1 : 0.6;
+            const phase = index * 0.35;
+            const pulse = (Math.sin(t * speed + phase) + 1) / 2;
+
+            const baseRadius = isLast ? 6 : 5;
+            const glowRadius = baseRadius + pulse * (isLast ? 9 : 5);
+            const glowAlpha = (isLast ? 0.32 : 0.20) * (0.4 + pulse * 0.6);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, glowRadius, 0, Math.PI * 2);
+            ctx.fillStyle = isLast
+                ? `rgba(16, 185, 129, ${glowAlpha})`
+                : `rgba(59, 130, 246, ${glowAlpha})`;
+            ctx.fill();
+            ctx.restore();
+
+            if (isLast) {
+                const ringRadius = baseRadius + 4 + pulse * 12;
+                const ringAlpha = 0.55 * (1 - pulse);
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, ringRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+        });
+    }
+};
+Chart.register(pulsePointsPlugin);
+
+const peakAnnotationPlugin = {
+    id: 'peakAnnotationPlugin',
+    afterDatasetsDraw(chart) {
+        if (chart.canvas.id !== 'lineChart') return;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !dataset || !dataset.data || !dataset.data.length) return;
+        let maxVal = -Infinity, maxIdx = -1;
+        dataset.data.forEach((v, i) => { if (v > maxVal) { maxVal = v; maxIdx = i; } });
+        if (maxIdx === -1) return;
+        const point = meta.data[maxIdx];
+        const label = formatDateBR(chart.data.labels[maxIdx]);
+        const { ctx } = chart;
+        ctx.save();
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillStyle = '#f59e0b';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Pico: ${label} • ${fmt(maxVal)}`, point.x, Math.max(14, point.y - 24));
+        ctx.restore();
+    }
+};
+Chart.register(peakAnnotationPlugin);
+
+/* ---------- Animação do pulso: requestAnimationFrame só quando visível ---------- */
+const pulseState = { raf: 0, last: 0, visivel: false };
+
+function pulsePodeAnimar() {
+    return !!lineChartInstance && pulseState.visivel && !document.hidden;
+}
+function pulseLoop(ts) {
+    if (!pulsePodeAnimar()) { pulseState.raf = 0; return; }
+    if (ts - pulseState.last >= 33) {            // ~30 quadros/s: suave e leve
+        pulseState.last = ts;
+        try { lineChartInstance.draw(); } catch (e) { /* gráfico sendo recriado */ }
+    }
+    pulseState.raf = requestAnimationFrame(pulseLoop);
+}
+function atualizarPulso() {
+    if (pulsePodeAnimar()) {
+        if (!pulseState.raf) pulseState.raf = requestAnimationFrame(pulseLoop);
+    } else if (pulseState.raf) {
+        cancelAnimationFrame(pulseState.raf);
+        pulseState.raf = 0;
+    }
+}
+if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+        pulseState.visivel = entries[0].isIntersecting;
+        atualizarPulso();
+    }, { threshold: 0.1 }).observe($('lineChart'));
+} else {
+    pulseState.visivel = true;
+}
+document.addEventListener('visibilitychange', atualizarPulso);
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+function iniciarLogin() {
+    $("login-view").style.display = "none";
+    $("loading-screen").style.display = "flex";
+    myMSALObj.loginPopup(loginRequest)
+        .then(response => {
+            $("display-name").textContent = response.account.name;
+            syncSharePointData(response.account);
+        })
+        .catch(error => {
+            console.error(error);
+            $("loading-screen").style.display = "none";
+            $("login-view").style.display = "flex";
+            showToast("Erro ao conectar.");
+        });
+}
+
+/* =========================================================
+   SINCRONIZAÇÃO SHAREPOINT (LIBERACAO_VEICULO + BD_DESPESAS)
+   ========================================================= */
+async function getToken(account) {
+    try {
+        return await myMSALObj.acquireTokenSilent({ ...loginRequest, account });
+    } catch (e) {
+        if (e instanceof msal.InteractionRequiredAuthError) return await myMSALObj.acquireTokenPopup(loginRequest);
+        throw e;
+    }
+}
+
+async function fetchComRetry(url, accessToken, tentativas = 3) {
+    for (let i = 1; ; i++) {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        if (res.ok) return res;
+        if ((res.status === 429 || res.status >= 500) && i < tentativas) {
+            await sleep((Number(res.headers.get('Retry-After')) || i * 2) * 1000);
+            continue;
+        }
+        throw new Error(`HTTP ${res.status}`);
+    }
+}
+
+/** Busca TODAS as páginas de uma lista, seguindo @odata.nextLink até o fim. */
+async function fetchAllPages(listName, accessToken) {
+    let url = `https://graph.microsoft.com/v1.0/sites/${CONFIG.SITE}/lists/${listName}/items?expand=fields&$top=${CONFIG.PAGE_TOP}`;
+    const items = [];
+    let paginas = 0;
+    while (url) {
+        if (++paginas > CONFIG.MAX_PAGINAS) {
+            throw new Error(`limite de ${CONFIG.MAX_PAGINAS} páginas atingido (dados possivelmente incompletos)`);
+        }
+        const res = await fetchComRetry(url, accessToken);
+        const data = await res.json();
+        if (Array.isArray(data.value)) { for (const it of data.value) items.push(it); }
+        url = data['@odata.nextLink'] || null;
+    }
+    return items;
+}
+
+/* ---------- Mapeamento LIBERACAO_VEICULO ---------- */
+/**
+ * Regra de KM (prioridade):
+ *  1) KMRODADOS, quando válido (> 0 e dentro do limite);
+ *  2) senão, KMFINAL - KMINICIAL (quando positivo e dentro do limite);
+ *  3) negativos e valores absurdos são ignorados (e listados no aviso).
+ */
+function calcularKm(f) {
+    const div = CONFIG.KM_DIVISOR_UNIDADE || 1;
+    const esc = (n) => (n === null ? null : n / div);
+    const ini = esc(parseNumberBR(f.KMINICIAL));
+    const fin = esc(parseNumberBR(f.KMFINAL));
+    const rod = esc(parseNumberBR(f.KMRODADOS));
+    const MAX = CONFIG.KM_MAX_POR_REGISTRO;
+
+    const r = { kmInicial: ini, kmFinal: fin, kmRodadosBruto: rod, kmConsiderado: 0, kmOrigem: '', kmMotivo: '', kmAlerta: false };
+    let motivoRod = '';
+
+    if (rod !== null && rod > 0 && rod <= MAX) {
+        r.kmConsiderado = rod;
+        r.kmOrigem = 'KMRODADOS';
+        return r;
+    }
+    if (rod !== null && rod < 0) motivoRod = 'KMRODADOS negativo';
+    else if (rod !== null && rod > MAX) motivoRod = `KMRODADOS absurdo (${fmtKm(rod)} km)`;
+
+    if (ini !== null && fin !== null) {
+        const diff = fin - ini;
+        if (diff > 0 && diff <= MAX) {
+            r.kmConsiderado = diff;
+            r.kmOrigem = 'KMFINAL − KMINICIAL';
+            if (motivoRod) r.kmMotivo = motivoRod + '; usado o cálculo por KM final − inicial';
+            return r;
+        }
+        if (diff < 0) { r.kmMotivo = motivoRod || 'KM final menor que o inicial'; r.kmAlerta = true; return r; }
+        if (diff > MAX) { r.kmMotivo = motivoRod || `Diferença absurda entre KM final e inicial (${fmtKm(diff)} km)`; r.kmAlerta = true; return r; }
+    }
+    if (motivoRod) { r.kmMotivo = motivoRod; r.kmAlerta = true; }
+    return r;
+}
+
+function chaveKm(r) {
+    if (r.kmConsiderado <= 0) return null;
+    if (r.kmInicial > 0 && r.kmFinal > 0) return `${r.documento}|${r.kmInicial}|${r.kmFinal}`;
+    if (r.documento !== 'N/A') return `${r.documento}|${r.kmConsiderado}|${r.criado}`;
+    return null;
+}
+/** Garante que a mesma distância não seja somada duas vezes. */
+function marcarKmDuplicado(lista) {
+    const vistos = new Set();
+    lista.forEach(r => {
+        const k = chaveKm(r);
+        if (!k) return;
+        if (vistos.has(k)) {
+            r.kmMotivo = 'Duplicado: a mesma distância já foi contada em outro registro';
+            r.kmConsiderado = 0;
+            r.kmAlerta = true;
+        } else {
+            vistos.add(k);
+        }
+    });
+}
+
+function mapLiberacaoItem(it) {
+    const f = it.fields || {};
+    const perfilStr = String(pick(f, 'PR_x00d3_PRIOOUAGREGADO', 'PERFILDOVE_x00cd_CULO') || 'PRÓPRIO').toUpperCase();
+
+    let nfs = parseNumberBR(f.QNTDDEENTREGA) || 0;
+    if (nfs > CONFIG.NFS_MAX_POR_REGISTRO) nfs = parseNumberBR(f.QTDENTREGASFINALIZADAS) || 0;
+    let nfsZerada = false;
+    if (nfs > CONFIG.NFS_MAX_POR_REGISTRO) { nfs = 0; nfsZerada = true; }
+    if (nfs < 0) nfs = 0;
+
+    const operacao = normalizarOperacao(f.CLIENTE_x007c_OPERA_x00c7__x00c3);
+    let uf = 'GERAL';
+    const parts = operacao.split(' | ');
+    if (parts.length > 1 && parts[0].length === 2) uf = parts[0];
+
+    const observacao = String(f.OBSERVA_x00c7__x00c3_O || '').toUpperCase();
+    const km = calcularKm(f);
+
+    return {
+        id: it.id,
+        criado: toISODate(f.Created),
+        documento: safeStr(f.N_x00ba_DOCUMENTO, 'N/A'),
+        motorista: padronizarNome(f.NOME),
+        qtdNFs: nfs,
+        nfsZerada,
+        ...km,
+        status: String(f.STATUS || 'CONCLUÍDO').toUpperCase(),
+        perfil: perfilStr.includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
+        operacao,
+        uf,
+        observacao,
+        observacaoKey: normalizarChave(observacao)
+    };
+}
+
+function mapLiberacaoLista(items) {
+    const lista = items.map(mapLiberacaoItem);
+    marcarKmDuplicado(lista);
+    // mais recentes primeiro (data e, em empate, id)
+    lista.sort((a, b) => b.criado.localeCompare(a.criado) || Number(b.id) - Number(a.id));
+    diagnosticarUnidadeKm(lista);
+    return lista;
+}
+
+/** Ajuda a descobrir se o SharePoint está devolvendo KM em metros (ou outra unidade). */
+function diagnosticarUnidadeKm(lista) {
+    const vals = lista.map(r => r.kmRodadosBruto).filter(v => v !== null && v > 0).sort((a, b) => a - b);
+    kmAvisoUnidade = '';
+    if (!vals.length) return;
+    const mediana = vals[Math.floor(vals.length / 2)];
+    console.info('[Diagnóstico KM] registros com KMRODADOS > 0:', vals.length,
+        '| mínimo:', vals[0], '| mediana:', mediana, '| máximo:', vals[vals.length - 1],
+        '| divisor de unidade em uso:', CONFIG.KM_DIVISOR_UNIDADE);
+    if (mediana > 1500 && CONFIG.KM_DIVISOR_UNIDADE === 1) {
+        kmAvisoUnidade = `A mediana de KM rodados por registro é ${fmtKm(mediana)}. Se o SharePoint estiver devolvendo metros, altere CONFIG.KM_DIVISOR_UNIDADE para 1000.`;
+    }
+}
+
+/* ---------- Mapeamento BD_DESPESAS ---------- */
+function normalizarAnexo(v) {
+    if (!v) return '';
+    if (typeof v === 'object') return String(v.Url || v.url || v.serverRelativeUrl || '').trim();
+    const s = String(v).trim();
+    if (s.startsWith('{')) { try { const o = JSON.parse(s); return String(o.Url || o.url || '').trim(); } catch (e) { /* segue como texto */ } }
+    return s;
+}
+
+function mapDespesaItem(it) {
+    const f = it.fields || {};
+
+    console.log("ITEM DESPESA:", f);
+    console.log("CHAVES:", Object.keys(f));
+
+    const num = (v, def = 0) => {
+        const n = parseNumberBR(v);
+        return n === null ? def : n;
+    };
+
+    return {
+        id: it.id,
+
+        placa: safeStr(pick(f,'Placa','PLACA')).toUpperCase(),
+
+        servico: safeStr(pick(f,'Servico','SERVICO')).toUpperCase(),
+
+        valorTotal: num(
+            pick(
+                f,
+                'Valor_total',
+                'VALORTOTAL',
+                'VALOR_x0020_TOTAL',
+                'ValorTotal'
+            )
+        ),
+
+        valorUnit: num(
+            pick(
+                f,
+                'Valor_unitario',
+                'VALORUNIT_x00c1_RIO',
+                'VALOR_x0020_UNIT_x00c1_RIO',
+                'ValorUnitario'
+            )
+        ),
+
+        qntd: num(
+            pick(
+                f,
+                'Qntd',
+                'QNTD',
+                'Quantidade'
+            ),
+            1
+        ),
+
+        dataCompra: toISODate(
+            pick(
+                f,
+                'Data_compra',
+                'DATACOMPRA',
+                'Created'
+            )
+        ),
+
+        status: safeStr(
+            pick(
+                f,
+                'Status',
+                'STATUS'
+            ),
+            'Pendente'
+        ),
+
+        aprovador: safeStr(
+            pick(
+                f,
+                'Aprovador',
+                'APROVADOR'
+            )
+        ),
+
+        tipoDoc: safeStr(
+            pick(
+                f,
+                'Tipo_documento',
+                'TIPODOCUMENTO'
+            )
+        ),
+
+        formaPag: safeStr(
+            pick(
+                f,
+                'Formas_pagamento',
+                'FORMAPAGAMENTO'
+            )
+        ),
+
+        fornecedor: safeStr(
+            pick(
+                f,
+                'Fornecedor',
+                'FORNECEDOR'
+            )
+        ),
+
+        criadoPor: safeStr(
+            pick(
+                f,
+                'Criado_por_user',
+                'CRIADOPOR'
+            )
+        ),
+
+        informacao: safeStr(
+            pick(
+                f,
+                'Informacao',
+                'INFORMACAO'
+            )
+        ),
+
+        umb: safeStr(
+            pick(
+                f,
+                'UMB'
+            )
+        ),
+
+        banco: safeStr(
+            pick(
+                f,
+                'Banco',
+                'BANCO'
+            )
+        ),
+
+        chavePix: safeStr(
+            pick(
+                f,
+                'ChavePix',
+                'CHAVEPIX'
+            )
+        ),
+
+        bancoAjud: safeStr(
+            pick(
+                f,
+                'BancoAjudante',
+                'BANCOAJUDANTE'
+            )
+        ),
+
+        chaveAjud: safeStr(
+            pick(
+                f,
+                'ChaveAjudante',
+                'CHAVEAJUDANTE'
+            )
+        ),
+
+        recebedor: safeStr(
+            pick(
+                f,
+                'Nome_recebedor',
+                'RECEBEDOR'
+            )
+        ),
+
+        descontos: num(
+            pick(
+                f,
+                'Descontos',
+                'DESCONTOS'
+            )
+        ),
+
+        operacao: safeStr(
+            pick(
+                f,
+                'Operacao',
+                'OPERACAO'
+            )
+        ),
+
+        anexo: normalizarAnexo(
+            pick(
+                f,
+                'Anexo',
+                'ANEXO'
+            )
+        ) || (f.Attachments ? 'Sim' : ''),
+
+        descFunc: safeStr(
+            pick(
+                f,
+                'Desconto_funcionario',
+                'DESCFUNC'
+            )
+        ),
+
+        parcelado: safeStr(
+            pick(
+                f,
+                'Parcelado',
+                'PARCELADO'
+            ),
+            'NÃO'
+        ),
+
+        numParcelas: safeStr(
+            pick(
+                f,
+                'Numero_parcelas',
+                'NUMPARCELAS'
+            )
+        ),
+
+        periodoParcelamento: safeStr(
+            pick(
+                f,
+                'Periodo_parcelas',
+                'PERIODOPARCELAMENTO'
+            )
+        )
+    };
+}
+function mapDespesasLista(items) {
+    const lista = items.map(mapDespesaItem);
+
+    lista.sort((a, b) =>
+        (b.dataCompra || '').localeCompare(a.dataCompra || '') ||
+        Number(b.id) - Number(a.id)
+    );
+
+    return lista;
+}
+/* ---------- Orquestração da sincronização ---------- */
+const LISTAS_SYNC = [
+    {
+        nome: CONFIG.LISTA_LIBERACAO,
+        aplicar: (items) => { rawData = mapLiberacaoLista(items); popularFiltrosDinamicos(); },
+        tamanhoAtual: () => rawData.length
+    },
+    {
+        nome: CONFIG.LISTA_DESPESAS,
+        aplicar: (items) => { rawDespData = mapDespesasLista(items); },
+        tamanhoAtual: () => rawDespData.length
+    }
+];
+
+async function syncSharePointData(account) {
+    if (sincronizando) return;
+    if (!account) account = myMSALObj.getAllAccounts()[0];
+    if (!account) { iniciarLogin(); return; }
+
+    sincronizando = true;
+    $("loading-screen").style.display = "flex";
+    $("loading-msg").textContent = "Sincronizando dados com o SharePoint...";
+    syncInfo.quando = new Date();
+
+    try {
+        let token;
+        try {
+            token = await getToken(account);
+        } catch (e) {
+            console.error(e);
+            LISTAS_SYNC.forEach(l => registrarFalha(l, 'falha de autenticação: ' + (e.message || e)));
+            return;
+        }
+
+        const resultados = await Promise.allSettled(LISTAS_SYNC.map(l => fetchAllPages(l.nome, token.accessToken)));
+
+        resultados.forEach((r, i) => {
+            const lista = LISTAS_SYNC[i];
+            if (r.status === 'rejected') {
+                console.error(`Falha em ${lista.nome}:`, r.reason);
+                registrarFalha(lista, r.reason && r.reason.message ? r.reason.message : String(r.reason));
+                return;
+            }
+            const items = r.value;
+            if (items.length === 0 && lista.tamanhoAtual() > 0) {
+                registrarFalha(lista, 'a consulta retornou 0 itens');
+                return;
+            }
+            try {
+                lista.aplicar(items);   // só substitui os dados anteriores se o mapeamento deu certo
+                syncInfo.listas[lista.nome] = { ok: true, total: items.length, erro: '', ultimoSucesso: new Date() };
+            } catch (e) {
+                console.error(e);
+                registrarFalha(lista, 'dados fora do formato esperado (' + (e.message || e) + ')');
+            }
+        });
+    } finally {
+        sincronizando = false;
+        $('loading-screen').style.display = 'none';
+        $('dashboard').style.display = 'block';
+        renderSyncBar();
+        applyFilters();
+        applyDespFilters();
+        atualizarPulso();
+
+        const falhas = LISTAS_SYNC.filter(l => syncInfo.listas[l.nome] && !syncInfo.listas[l.nome].ok).map(l => l.nome);
+        if (falhas.length) showToast(`⚠️ Falha ao sincronizar: ${falhas.join(', ')}. Dados anteriores preservados.`);
+        else showToast(`✅ Sincronizado: ${fmt(rawData.length)} Veículos | ${fmt(rawDespData.length)} Despesas`);
+    }
+}
+
+function registrarFalha(lista, motivo) {
+    const anterior = syncInfo.listas[lista.nome] || {};
+    syncInfo.listas[lista.nome] = { ok: false, total: lista.tamanhoAtual(), erro: motivo, ultimoSucesso: anterior.ultimoSucesso || null };
+}
+
+function renderSyncBar() {
+    const partes = [];
+    let temFalha = false;
+    LISTAS_SYNC.forEach(l => {
+        const s = syncInfo.listas[l.nome];
+        if (!s) return;
+        if (s.ok) {
+            partes.push(`${l.nome}: ✔ ${fmt(s.total)} registros`);
+        } else {
+            temFalha = true;
+            const anterior = s.ultimoSucesso
+                ? `exibindo dados da sincronização de ${formatDateTimeBR(s.ultimoSucesso)}`
+                : (s.total > 0 ? 'exibindo dados anteriores' : 'nenhum dado carregado');
+            partes.push(`${l.nome}: ✖ falhou (${s.erro}) — ${anterior}`);
+        }
+    });
+    const cab = syncInfo.quando ? `Última tentativa: ${formatDateTimeBR(syncInfo.quando)}` : '';
+    const demo = usandoDadosDemo ? '⚠ DADOS DE DEMONSTRAÇÃO (não são dados reais) · ' : '';
+    document.querySelectorAll('.sync-bar').forEach(bar => {
+        bar.className = 'sync-bar' + ((temFalha || usandoDadosDemo) ? ' warn' : '');
+        bar.textContent = [demo + cab, ...partes].filter(Boolean).join('  |  ');
+        bar.style.display = (cab || demo) ? 'block' : 'none';
+    });
+}
+
+/* =========================================================
+   PAGINAÇÃO (tabelas)
+   ========================================================= */
+const pagerState = {
+    op: { page: 1, size: CONFIG.PAGINA_PADRAO, pages: 1 },
+    desp: { page: 1, size: CONFIG.PAGINA_PADRAO, pages: 1 }
+};
+const pagerEls = {};
+
+function paginate(lista, st) {
+    const size = st.size === 0 ? Math.max(lista.length, 1) : st.size;
+    st.pages = Math.max(1, Math.ceil(lista.length / size));
+    st.page = Math.min(Math.max(1, st.page), st.pages);
+    const start = (st.page - 1) * size;
+    st.start = start;
+    return lista.slice(start, start + size);
+}
+
+function mountPager(key, tbodyId, rerender) {
+    const container = $(tbodyId).closest('.table-container');
+    const sel = el('select', { class: 'filter-input pager-size' });
+    CONFIG.TAMANHOS_PAGINA.forEach(n => sel.append(new Option(n === 0 ? 'Todos' : `${n} por página`, String(n))));
+    sel.value = String(pagerState[key].size);
+    const info = el('span', { class: 'pager-info' });
+    const prev = el('button', { class: 'btn-mini', text: '‹ Anterior', attrs: { type: 'button' } });
+    const next = el('button', { class: 'btn-mini', text: 'Próxima ›', attrs: { type: 'button' } });
+    sel.addEventListener('change', () => { pagerState[key].size = Number(sel.value); pagerState[key].page = 1; rerender(); });
+    prev.addEventListener('click', () => { pagerState[key].page--; rerender(); });
+    next.addEventListener('click', () => { pagerState[key].page++; rerender(); });
+    container.after(el('div', { class: 'pager' }, sel, info, prev, next));
+    pagerEls[key] = { info, prev, next };
+}
+
+function atualizarPager(key, total, exibidos) {
+    const st = pagerState[key], p = pagerEls[key];
+    if (!p) return;
+    if (total === 0) {
+        p.info.textContent = 'Sem registros';
+    } else {
+        p.info.textContent = `Página ${st.page} de ${st.pages} · registros ${fmt(st.start + 1)}–${fmt(st.start + exibidos)}`;
+    }
+    p.prev.disabled = st.page <= 1;
+    p.next.disabled = st.page >= st.pages;
+}
+
+/* =========================================================
+   LÓGICA OPERAÇÃO (LIBERACAO_VEICULO)
+   ========================================================= */
+function popularFiltrosDinamicos() {
+    const sel = $('filter-status');
+    const atual = sel.value;
+    const statusSet = new Set();
+    rawData.forEach(d => { if (d.status) statusSet.add(d.status); });
+    sel.replaceChildren(new Option('Todos', ''));
+    [...statusSet].sort().forEach(st => sel.append(new Option(st, st)));
+    if (atual && statusSet.has(atual)) sel.value = atual;
+}
+
+function applyFilters() {
+    const s = $('filter-start').value;
+    const e = $('filter-end').value;
+    const placa = normalizarChave($('filter-placa').value);
+    const doc = $('filter-doc').value.trim().toLowerCase();
+    const op = $('filter-operacao').value.trim().toLowerCase();
+    const st = $('filter-status').value;
+    const perf = $('filter-perfil').value;
+
+    filteredData = rawData.filter(it => {
+        if (s && (!it.criado || it.criado < s)) return false;
+        if (e && (!it.criado || it.criado > e)) return false;
+        if (placa && !it.observacaoKey.includes(placa)) return false;
+        if (doc && !it.documento.toLowerCase().includes(doc)) return false;
+        if (op && !it.operacao.toLowerCase().includes(op) && !it.uf.toLowerCase().includes(op)) return false;
+        if (st && it.status !== st) return false;
+        if (perf && it.perfil !== perf) return false;
+        return true;
+    });
+
+    pagerState.op.page = 1;
+    updateDashboardUI();
+}
+
+function limparFiltrosOperacao() {
+    ['filter-start', 'filter-end', 'filter-placa', 'filter-doc', 'filter-operacao', 'filter-status', 'filter-perfil'].forEach(id => { $(id).value = ''; });
+    applyFilters();
+}
+
+const applyFiltersDebounced = debounce(applyFilters, 300);
+['filter-start', 'filter-end', 'filter-status', 'filter-perfil'].forEach(id => $(id).addEventListener('change', applyFilters));
+['filter-placa', 'filter-doc', 'filter-operacao'].forEach(id => $(id).addEventListener('input', applyFiltersDebounced));
+
+/* ---------- Meta mensal de NFs ---------- */
+/**
+ * Regra:
+ *  - sem filtro de data: meses distintos existentes nos dados;
+ *  - com filtro: meses de calendário abrangidos pelo intervalo (um mês = 1 x meta).
+ */
+function calcularMeta() {
+    const base = CONFIG.META_MENSAL_NFS;
+    const s = $('filter-start').value, e = $('filter-end').value;
+    const mesesDados = [...new Set(rawData.filter(d => d.criado).map(d => d.criado.slice(0, 7)))].sort();
+
+    let meses = 0, origem = 'dados';
+    if (!s && !e) {
+        meses = mesesDados.length;
+    } else {
+        origem = 'filtro';
+        const ini = s ? s.slice(0, 7) : mesesDados[0];
+        const fim = e ? e.slice(0, 7) : mesesDados[mesesDados.length - 1];
+        if (ini && fim) {
+            const [iy, im] = ini.split('-').map(Number), [fy, fm] = fim.split('-').map(Number);
+            meses = Math.max(1, (fy - iy) * 12 + (fm - im) + 1);
+        } else {
+            meses = 1;
+        }
+    }
+    return { base, meses, total: base * meses, origem };
+}
+
+function renderMetaMensal(totalNFs, meta) {
+    const pct = meta.total > 0 ? Math.round((totalNFs / meta.total) * 100) : 0;
+    $('meta-mensal-fill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+    $('meta-mensal-atual').textContent = fmt(totalNFs);
+    $('meta-mensal-alvo').textContent = fmt(meta.total);
+    $('meta-mensal-pct').textContent = pct + '%';
+    $('meta-mensal-detalhe').textContent = meta.meses > 0
+        ? `Meta base ${fmt(meta.base)} NFs/mês × ${meta.meses} ${meta.meses === 1 ? 'mês' : 'meses'} ${meta.origem === 'filtro' ? '(período filtrado)' : '(meses com dados)'} = ${fmt(meta.total)} NFs`
+        : 'Sem dados para calcular a meta.';
+}
+
+/* ---------- Indicadores ---------- */
+function renderIndicadores(totalNFs, totalKm, concluidos, totalRegistros) {
+    $('km-total-value').textContent = fmtKm(totalKm) + ' km';
+
+    const pctConclusao = totalRegistros > 0 ? Math.round((concluidos / totalRegistros) * 100) : 0;
+    $('ring-conclusao').style.setProperty('--pct', pctConclusao);
+    $('ring-conclusao-label').textContent = pctConclusao + '%';
+
+    const eficiencia = totalKm > 0 ? (totalNFs / (totalKm / 100)) : 0;
+    const pctEficiencia = Math.max(0, Math.min(100, Math.round((eficiencia / CONFIG.EFICIENCIA_REFERENCIA) * 100)));
+    $('ring-eficiencia').style.setProperty('--pct', pctEficiencia);
+    $('ring-eficiencia-label').textContent = eficiencia.toFixed(1);
+}
+
+function renderFunil(data) {
+    const counts = { andamento: 0, pernoite: 0, concluido: 0, outro: 0 };
+    data.forEach(d => { counts[classifyStatusKey(d.status)]++; });
+    const total = data.length || 1;
+    const setRing = (id, value) => { const r = $(id); if (r) r.style.setProperty('--pct', Math.round((value / total) * 100)); };
+    setRing('funil-ring-andamento', counts.andamento);
+    setRing('funil-ring-pernoite', counts.pernoite);
+    setRing('funil-ring-concluido', counts.concluido);
+    $('funil-andamento-label').textContent = fmt(counts.andamento);
+    $('funil-pernoite-label').textContent = fmt(counts.pernoite);
+    $('funil-concluido-label').textContent = fmt(counts.concluido);
+}
+
+function contarStatus(data) {
+    const counts = { concluido: 0, andamento: 0, pernoite: 0, outro: 0 };
+    data.forEach(d => counts[classifyStatusKey(d.status)]++);
+    return counts;
+}
+
+function renderSegmentedBar(data) {
+    const counts = contarStatus(data);
+    const total = data.length || 1;
+    const bar = $('segmented-bar'), legend = $('segmented-legend');
+    bar.replaceChildren();
+    legend.replaceChildren();
+
+    Object.keys(counts).forEach(key => {
+        const pct = (counts[key] / total) * 100;
+        if (pct <= 0) return;
+        bar.append(el('div', { class: 'segment', style: `width:${pct}%; background:${STATUS_INFO[key].color};` }));
+        legend.append(el('div', { class: 'segmented-legend-item' },
+            el('span', { class: 'segmented-legend-dot', style: `background:${STATUS_INFO[key].color}` }),
+            `${STATUS_INFO[key].label}: ${fmt(counts[key])} (${Math.round(pct)}%)`));
+    });
+    if (!data.length) legend.append(el('div', { class: 'segmented-legend-item', text: 'Sem dados para os filtros selecionados.' }));
+}
+
+/** Legenda do gráfico "Status da Operação": Concluído: 120 / Em andamento: 35 ... */
+function renderStatusLegend(data) {
+    const counts = contarStatus(data);
+    const box = $('status-legend');
+    box.replaceChildren();
+    Object.keys(STATUS_INFO).forEach(key => {
+        box.append(el('div', { class: 'legend-item' },
+            el('span', { class: 'segmented-legend-dot', style: `background:${STATUS_INFO[key].color}` }),
+            el('span', { text: `${STATUS_INFO[key].label}: ` }),
+            strong(fmt(counts[key]))));
+    });
+}
+
+function renderUfStatusTable(data) {
+    const map = {};
+    data.forEach(d => {
+        if (!map[d.uf]) map[d.uf] = { total: 0, concluido: 0 };
+        map[d.uf].total++;
+        if (classifyStatusKey(d.status) === 'concluido') map[d.uf].concluido++;
+    });
+    const rows = Object.entries(map).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
+
+    const tbody = $('uf-status-table-body');
+    tbody.replaceChildren();
+    if (!rows.length) { tbody.append(emptyRow(4, 'Sem dados para os filtros selecionados.')); return; }
+    rows.forEach(([uf, info]) => {
+        const pct = info.total > 0 ? Math.round((info.concluido / info.total) * 100) : 0;
+        const badge = pct >= 80 ? el('span', { class: 'badge-status status-concluido', text: 'NORMAL' })
+            : pct >= 50 ? el('span', { class: 'badge-status status-andamento', text: 'ATENÇÃO' })
+                : el('span', { class: 'badge-status status-outro', text: 'CRÍTICO' });
+        const tr = el('tr');
+        tr.append(td(strong(uf)), td(fmt(info.total)), td(pct + '%'), td(badge));
+        tbody.append(tr);
+    });
+}
+
+function renderOcorrencias(data) {
+    const sorted = [...data].filter(d => d.criado).sort((a, b) => b.criado.localeCompare(a.criado) || Number(b.id) - Number(a.id)).slice(0, 10);
+    const container = $('timeline-ocorrencias');
+    container.replaceChildren();
+    if (!sorted.length) { container.append(el('div', { class: 'timeline-sub', text: 'Nenhuma ocorrência para os filtros selecionados.' })); return; }
+    sorted.forEach(it => {
+        const key = classifyStatusKey(it.status);
+        const sub = el('span', { class: 'timeline-sub' }, `${it.operacao} · ${formatDateBR(it.criado)} · `, statusBadge(it.status));
+        container.append(el('div', { class: 'timeline-item' },
+            el('span', { class: 'timeline-dot', style: `background:${STATUS_INFO[key].color}` }),
+            el('div', { class: 'timeline-body' },
+                el('span', { class: 'timeline-title', text: `${it.documento} — ${it.motorista}` }),
+                sub)));
+    });
+}
+
+function renderRankingMotoristas(data) {
+    const motMap = {};
+    data.forEach(d => { motMap[d.motorista] = (motMap[d.motorista] || 0) + d.qtdNFs; });
+    const top = Object.entries(motMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const container = $('ranking-motoristas');
+    container.replaceChildren();
+    if (!top.length) { container.append(el('div', { class: 'timeline-sub', text: 'Sem dados para os filtros selecionados.' })); return; }
+    top.forEach(([mot, qtd]) => {
+        container.append(el('div', { class: 'ranking-item' }, el('span', { text: mot }), el('span', { text: `${fmt(qtd)} NFs` })));
+    });
+}
+
+/* ---------- Avisos de qualidade dos dados ---------- */
+function renderAvisosQualidade(data) {
+    const panel = $('dq-panel');
+    const kmIgnorados = data.filter(d => d.kmAlerta);
+    const nfsZeradas = data.filter(d => d.nfsZerada).length;
+    const semData = data.filter(d => !d.criado).length;
+
+    const msgs = [];
+    if (kmIgnorados.length) msgs.push(`${fmt(kmIgnorados.length)} registro(s) com KM ignorado no total (negativo, absurdo ou duplicado).`);
+    if (nfsZeradas) msgs.push(`${fmt(nfsZeradas)} registro(s) com quantidade de NFs acima de ${fmt(CONFIG.NFS_MAX_POR_REGISTRO)} foram contados como 0 NFs.`);
+    if (semData) msgs.push(`${fmt(semData)} registro(s) sem data de criação (ficam fora dos gráficos por data e dos filtros de período).`);
+    if (kmAvisoUnidade) msgs.push(kmAvisoUnidade);
+
+    if (!msgs.length) { panel.style.display = 'none'; panel.replaceChildren(); return; }
+
+    panel.style.display = '';
+    panel.replaceChildren();
+    panel.append(el('div', { class: 'panel-header' }, el('div', { class: 'panel-title', text: '⚠ Avisos de Qualidade dos Dados' })));
+    const ul = el('ul', { class: 'dq-list' });
+    msgs.forEach(m => ul.append(el('li', { text: m })));
+    panel.append(ul);
+
+    if (kmIgnorados.length) {
+        const det = el('details', { class: 'dq-details' }, el('summary', { text: `Ver registros com KM ignorado (${fmt(kmIgnorados.length)})` }));
+        const box = el('div', { class: 'dq-rows' });
+        kmIgnorados.slice(0, CONFIG.MAX_AVISOS_LISTADOS).forEach(r => {
+            box.append(el('div', { class: 'dq-row', text: `Doc ${r.documento} · ${formatDateBR(r.criado)} · ${r.motorista} · KM inicial ${fmtKm(r.kmInicial)} / final ${fmtKm(r.kmFinal)} · ${r.kmMotivo}` }));
+        });
+        if (kmIgnorados.length > CONFIG.MAX_AVISOS_LISTADOS) {
+            box.append(el('div', { class: 'dq-row', text: `… e mais ${fmt(kmIgnorados.length - CONFIG.MAX_AVISOS_LISTADOS)} registro(s).` }));
+        }
+        det.append(box);
+        panel.append(det);
+    }
+}
+
+/* ---------- Tabela "Últimos Registros Sincronizados" ---------- */
+function tdKm(it) {
+    const c = el('td');
+    c.append(`Inicial: ${fmtKm(it.kmInicial)} · Final: ${fmtKm(it.kmFinal)}`, el('br'),
+        el('span', { text: `Rodados considerado: ${fmtKm(it.kmConsiderado)} km`, style: 'font-size:10px; color:var(--accent-green); font-weight:700;' }));
+    if (it.kmOrigem) c.append(el('span', { text: ` (via ${it.kmOrigem})`, style: 'font-size:10px; color:var(--text-muted);' }));
+    if (it.kmMotivo) c.append(el('br'), el('span', { text: it.kmMotivo, style: 'font-size:10px; color:var(--accent-warning); font-weight:600;' }));
+    return c;
+}
+
+function renderTabelaOperacao() {
+    const tbody = $('table-body');
+    tbody.replaceChildren();
+    const total = filteredData.length;
+    const slice = paginate(filteredData, pagerState.op);
+
+    if (!total) {
+        tbody.append(emptyRow(8, 'Nenhum registro encontrado para os filtros aplicados.'));
+    } else {
+        slice.forEach(it => {
+            const tr = el('tr');
+            tr.append(
+                td(strong(it.documento)),
+                td(formatDateBR(it.criado)),
+                td(it.motorista),
+                td(it.operacao, { style: 'color:var(--accent-warning)' }),
+                td(perfilBadge(it.perfil)),
+                tdKm(it),
+                td(strong(fmt(it.qtdNFs))),
+                td(statusBadge(it.status))
+            );
+            tbody.append(tr);
+        });
+    }
+    $('table-count').textContent = `Mostrando ${fmt(slice.length)} de ${fmt(total)} registros`;
+    atualizarPager('op', total, slice.length);
+}
+
+function updateDashboardUI() {
+    $('kpi-total').textContent = fmt(filteredData.length);
+
+    const totalNFs = filteredData.reduce((acc, cur) => acc + cur.qtdNFs, 0);
+    $('kpi-nfs').textContent = fmt(totalNFs);
+
+    const nfsProprio = filteredData.filter(d => d.perfil === 'PRÓPRIO').reduce((acc, cur) => acc + cur.qtdNFs, 0);
+    const nfsAgregado = filteredData.filter(d => d.perfil === 'AGREGADO').reduce((acc, cur) => acc + cur.qtdNFs, 0);
+    $('kpi-proprio').textContent = fmt(nfsProprio);
+    $('kpi-agregado').textContent = fmt(nfsAgregado);
+
+    renderTabelaOperacao();
+    renderRankingMotoristas(filteredData);
+    updateCharts(nfsProprio, nfsAgregado);
+
+    const totalKm = filteredData.reduce((acc, cur) => acc + cur.kmConsiderado, 0);
+    const concluidosCount = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
+    const meta = calcularMeta();
+
+    renderIndicadores(totalNFs, totalKm, concluidosCount, filteredData.length);
+    renderAvisosQualidade(filteredData);
+    renderMetaMensal(totalNFs, meta);
+    renderFunil(filteredData);
+    renderSegmentedBar(filteredData);
+    renderStatusLegend(filteredData);
+    renderUfStatusTable(filteredData);
+    renderOcorrencias(filteredData);
+    updateKmSparkline(filteredData);
+    updateOpTargetChart(filteredData, meta, totalNFs);
+}
+
+/* =========================================================
+   GRÁFICOS (mesmos gráficos; só com valores/legendas melhores)
+   ========================================================= */
+function updateKmSparkline(data) {
+    const dateMap = {};
+    data.forEach(d => { if (d.criado && d.kmConsiderado > 0) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.kmConsiderado; });
+    const dates = Object.keys(dateMap).sort().slice(-14);
+    const values = dates.map(d => dateMap[d]);
+
+    const ctx = $('kmSparklineChart').getContext('2d');
+    if (sparklineChartInstance) sparklineChartInstance.destroy();
+
+    const grad = ctx.createLinearGradient(0, 0, 0, 50);
+    grad.addColorStop(0, 'rgba(16,185,129,0.5)');
+    grad.addColorStop(1, 'rgba(16,185,129,0)');
+
+    sparklineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: dates, datasets: [{ data: values, borderColor: '#10b981', backgroundColor: grad, borderWidth: 2, fill: true, tension: 0.35, pointRadius: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 800 },
+            plugins: {
+                legend: { display: false }, datalabels: { display: false },
+                tooltip: { callbacks: { title: (items) => formatDateBR(items[0].label), label: (c) => `${fmtKm(c.parsed.y)} km` } }
+            },
+            scales: { x: { display: false }, y: { display: false } }
+        }
+    });
+}
+
+/**
+ * Ranking de Operações vs Meta de NFs.
+ * Agrupa por operação (nome normalizado), soma as NFs e compara com a meta total de NFs do período.
+ */
+function updateOpTargetChart(data, meta, totalNFsGeral) {
+    const wrap = $('opTargetWrap');
+    const mapa = {};
+    data.forEach(d => {
+        if (d.operacao === OPERACAO_NAO_INFORMADA) return;
+        mapa[d.operacao] = (mapa[d.operacao] || 0) + d.qtdNFs;
+    });
+    const ranking = Object.entries(mapa).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+    const pctGeral = meta.total > 0 ? (totalNFsGeral / meta.total) * 100 : 0;
+    $('op-rank-resumo').textContent = meta.meses > 0
+        ? `Meta de NFs: ${fmt(meta.total)} (${meta.meses} ${meta.meses === 1 ? 'mês' : 'meses'} × ${fmt(meta.base)}) · Realizado total: ${fmt(totalNFsGeral)} (${fmtPct(pctGeral)})`
+        : 'Sem meses com dados para calcular a meta';
+
+    wrap.style.height = Math.max(240, ranking.length * 38 + 50) + 'px';
+    if (opTargetChartInstance) opTargetChartInstance.destroy();
+    opTargetChartInstance = null;
+    setEmpty('opTargetChart', ranking.length === 0, 'Nenhuma operação válida para os filtros selecionados.');
+    if (!ranking.length) return;
+
+    const pctMeta = (v) => meta.total > 0 ? (v / meta.total) * 100 : 0;
+    const ctx = $('opTargetChart').getContext('2d');
+    opTargetChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ranking.map(i => i[0]),
+            datasets: [{
+                data: ranking.map(i => i[1]),
+                backgroundColor: 'rgba(59,130,246,0.85)',
+                borderRadius: 8,
+                barPercentage: 0.6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 6, right: 20 } },
+            animation: { duration: 1000 },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    display: true, color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold', size: 10 },
+                    formatter: (v) => `${fmt(v)} NFs · ${fmtPct(pctMeta(v))} da meta`
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => [`Realizado: ${fmt(c.parsed.x)} NFs`, `Meta de NFs (período): ${fmt(meta.total)}`, `${fmtPct(pctMeta(c.parsed.x))} da meta`]
+                    }
+                }
+            },
+            scales: {
+                x: { display: false, beginAtZero: true, grace: '55%' },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+const truncarTick = (max) => function (v) {
+    const l = String(this.getLabelForValue(v));
+    return l.length > max ? l.slice(0, max - 1) + '…' : l;
+};
+
+function updateCharts(proprios, agregados) {
+    /* ---------- Evolução de Entregas (NFs) ---------- */
+    const dateMap = {};
+    filteredData.forEach(d => { if (d.criado) dateMap[d.criado] = (dateMap[d.criado] || 0) + d.qtdNFs; });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+
+    const ctxL = $('lineChart').getContext('2d');
+    if (lineChartInstance) lineChartInstance.destroy();
+    lineChartInstance = null;
+
+    const gradL = ctxL.createLinearGradient(0, 0, 0, 250);
+    gradL.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+    gradL.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+    setEmpty('lineChart', dates.length === 0);
+    lineChartInstance = new Chart(ctxL, {
+        type: 'line',
+        data: {
+            labels: dates,   // datas internas (yyyy-mm-dd); exibição sempre via formatDateBR
+            datasets: [{
+                data: lineData,
+                borderColor: '#3b82f6',
+                backgroundColor: gradL,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointRadius: (c) => (c.dataIndex === c.dataset.data.length - 1 ? 6 : 5),
+                pointHoverRadius: 8,
+                pointBackgroundColor: (c) => (c.dataIndex === c.dataset.data.length - 1 ? '#10b981' : '#3b82f6'),
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1500, easing: 'easeOutQuart' },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { title: (items) => formatDateBR(items[0].label), label: (c) => `${fmt(c.parsed.y)} NFs` } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { callback(v) { return formatDateBR(this.getLabelForValue(v)); } } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' }
+            }
+        }
+    });
+    atualizarPulso();
+
+    /* ---------- Volume por Cliente / Operação ---------- */
+    const opMap = {};
+    filteredData.forEach(d => { opMap[d.operacao] = (opMap[d.operacao] || 0) + d.qtdNFs; });
+    const sortedOps = Object.entries(opMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+    const ctxB = $('barChart').getContext('2d');
+    if (barChartInstance) barChartInstance.destroy();
+    const gradB = ctxB.createLinearGradient(0, 0, 0, 250);
+    gradB.addColorStop(0, 'rgba(245, 158, 11, 0.9)');
+    gradB.addColorStop(1, 'rgba(245, 158, 11, 0.2)');
+
+    setEmpty('barChart', sortedOps.length === 0);
+    barChartInstance = new Chart(ctxB, {
+        type: 'bar',
+        data: {
+            labels: sortedOps.map(i => i[0]),
+            datasets: [{ data: sortedOps.map(i => i[1]), backgroundColor: gradB, borderRadius: 12, borderSkipped: false, barPercentage: 0.6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 11 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { title: (items) => items[0].label, label: (c) => `Total: ${fmt(c.parsed.y)} NFs` } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { callback: truncarTick(16) } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
+            }
+        }
+    });
+
+    /* ---------- Mix de Frota ---------- */
+    const ctxP = $('polarChart').getContext('2d');
+    if (polarChartInstance) polarChartInstance.destroy();
+    const totalMix = proprios + agregados;
+    const pctMix = (v) => totalMix > 0 ? (v / totalMix) * 100 : 0;
+    const coresMix = ['rgba(59, 130, 246, 0.85)', 'rgba(139, 92, 246, 0.85)'];
+
+    setEmpty('polarChart', totalMix === 0);
+    polarChartInstance = new Chart(ctxP, {
+        type: 'polarArea',
+        data: { labels: ['Próprio', 'Agregado'], datasets: [{ data: [proprios, agregados], backgroundColor: coresMix, borderWidth: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { animateRotate: true, animateScale: true, duration: 1200 },
+            scales: { r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } } },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#e2e8f0', padding: 15, font: { size: 12, weight: '600' },
+                        generateLabels: (chart) => chart.data.labels.map((l, i) => {
+                            const v = chart.data.datasets[0].data[i];
+                            return {
+                                text: `${l}: ${fmt(v)} NFs (${fmtPct(pctMix(v))})`,
+                                fillStyle: coresMix[i], strokeStyle: coresMix[i], lineWidth: 0,
+                                fontColor: '#e2e8f0', hidden: !chart.getDataVisibility(i), index: i
+                            };
+                        })
+                    }
+                },
+                datalabels: {
+                    display: (c) => Number(c.dataset.data[c.dataIndex]) > 0,
+                    color: '#fff', textAlign: 'center', font: { weight: 'bold', size: 12 },
+                    formatter: (v) => `${fmt(v)}\n${fmtPct(pctMix(v))}`
+                },
+                tooltip: { callbacks: { label: (c) => `${c.label}: ${fmt(c.raw)} NFs (${fmtPct(pctMix(c.raw))})` } }
+            }
+        }
+    });
+
+    /* ---------- Status da Operação ---------- */
+    const statusMap = {};
+    filteredData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
+    const statusLabels = Object.keys(statusMap);
+    const statusCounts = Object.values(statusMap);
+    const totalStatus = statusCounts.reduce((a, b) => a + b, 0);
+
+    const ctxSH = $('statusHChart').getContext('2d');
+    if (statusHChartInstance) statusHChartInstance.destroy();
+
+    setEmpty('statusHChart', statusLabels.length === 0);
+    statusHChartInstance = new Chart(ctxSH, {
+        type: 'bar',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: statusLabels.map(l => STATUS_INFO[classifyStatusKey(l)].color),   // cor fixa por tipo de status
+                borderRadius: 10,
+                barPercentage: 0.55
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'right', font: { weight: 'bold', size: 11 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { label: (c) => `${fmt(c.parsed.x)} registros (${fmtPct(totalStatus ? (c.parsed.x / totalStatus) * 100 : 0)})` } }
+            },
+            scales: {
+                x: { display: false, beginAtZero: true, grace: '35%' },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+
+    /* ---------- NFs por Estado (UF) ---------- */
+    const stateMap = {};
+    filteredData.forEach(d => { stateMap[d.uf] = (stateMap[d.uf] || 0) + d.qtdNFs; });
+    const sortedStates = Object.entries(stateMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const ctxSt = $('stateChart').getContext('2d');
+    if (stateChartInstance) stateChartInstance.destroy();
+    const gradSt = ctxSt.createLinearGradient(0, 0, 0, 260);
+    gradSt.addColorStop(0, 'rgba(16, 185, 129, 0.9)');
+    gradSt.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
+
+    setEmpty('stateChart', sortedStates.length === 0);
+    stateChartInstance = new Chart(ctxSt, {
+        type: 'bar',
+        data: {
+            labels: sortedStates.map(i => i[0]),
+            datasets: [{ label: 'NFs por Estado', data: sortedStates.map(i => i[1]), backgroundColor: gradSt, borderRadius: 10, barPercentage: 0.65 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 11 }, formatter: (value) => fmt(value) },
+                tooltip: { callbacks: { label: (c) => `${fmt(c.parsed.y)} NFs` } }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
+            }
+        }
+    });
+}
+
+/* =========================================================
+   LÓGICA DESPESAS (BD_DESPESAS)
+   ========================================================= */
+function applyDespFilters() {
+    const s = $('desp-filter-start').value;
+    const e = $('desp-filter-end').value;
+    const placa = normalizarChave($('desp-filter-placa').value);
+    const servico = $('desp-filter-servico').value.trim().toLowerCase();
+    const idVal = $('desp-filter-id').value.trim();
+    const st = $('desp-filter-status').value;
+
+    filteredDespData = rawDespData.filter(it => {
+        if (s && (!it.dataCompra || it.dataCompra < s)) return false;
+        if (e && (!it.dataCompra || it.dataCompra > e)) return false;
+        if (placa && !normalizarChave(it.placa).includes(placa)) return false;
+        if (servico && !it.servico.toLowerCase().includes(servico)) return false;
+        if (idVal && String(it.id) !== idVal) return false;
+        if (st && it.status.toLowerCase() !== st.toLowerCase()) return false;
+        return true;
+    });
+
+    pagerState.desp.page = 1;
+    updateDespDashboardUI();
+}
+
+function limparFiltrosDespesas() {
+    ['desp-filter-start', 'desp-filter-end', 'desp-filter-placa', 'desp-filter-servico', 'desp-filter-id', 'desp-filter-status'].forEach(id => { $(id).value = ''; });
+    applyDespFilters();
+}
+
+const applyDespFiltersDebounced = debounce(applyDespFilters, 300);
+['desp-filter-start', 'desp-filter-end', 'desp-filter-status'].forEach(id => $(id).addEventListener('change', applyDespFilters));
+['desp-filter-placa', 'desp-filter-servico', 'desp-filter-id'].forEach(id => $(id).addEventListener('input', applyDespFiltersDebounced));
+
+function renderTabelaDespesas() {
+    const tbody = $('desp-table-body');
+    tbody.replaceChildren();
+    const total = filteredDespData.length;
+    const slice = paginate(filteredDespData, pagerState.desp);
+
+    if (!total) {
+        tbody.append(emptyRow(27, 'Nenhuma despesa encontrada para os filtros aplicados.'));
+    } else {
+        slice.forEach(it => {
+            const tr = el('tr');
+            const hasAnexo = it.anexo && it.anexo.length > 5;
+            let anexoCell;
+            if (hasAnexo) {
+                anexoCell = el('button', { class: 'btn-anexo', text: 'Ver Anexo', attrs: { type: 'button' } });
+                anexoCell.addEventListener('click', () => openDespAttachmentModal(it));
+            } else {
+                anexoCell = el('span', { text: 'Sem anexo', style: 'color:var(--text-muted)' });
+            }
+            tr.append(
+                td(strong('#' + it.id)),
+                td(strong(it.placa)),
+                td(it.servico),
+                td(fmtMoeda(it.valorTotal), { style: 'color:var(--accent-green); font-weight:700;' }),
+                td(fmtMoeda(it.valorUnit)),
+                td(it.qntd),
+                td(formatDateBR(it.dataCompra)),
+                td(despStatusBadge(it.status)),
+                td(it.aprovador), td(it.tipoDoc), td(it.formaPag), td(it.fornecedor), td(it.criadoPor), td(it.informacao),
+                td(it.umb), td(it.banco), td(it.chavePix), td(it.bancoAjud), td(it.chaveAjud), td(it.recebedor),
+                td(fmtMoeda(it.descontos)),
+                td(it.operacao),
+                td(anexoCell),
+                td(it.descFunc), td(it.parcelado), td(it.numParcelas), td(it.periodoParcelamento)
+            );
+            tbody.append(tr);
+        });
+    }
+    $('desp-table-count').textContent = `Mostrando ${fmt(slice.length)} de ${fmt(total)} registros`;
+    atualizarPager('desp', total, slice.length);
+}
+
+function updateDespDashboardUI() {
+    const totalGasto = filteredDespData.reduce((acc, cur) => acc + cur.valorTotal, 0);
+    const totalCount = filteredDespData.length;
+    const mediaGasto = totalCount > 0 ? (totalGasto / totalCount) : 0;
+
+    let ultimaData = '--';
+    const datas = filteredDespData.map(d => d.dataCompra).filter(Boolean).sort();
+    if (datas.length) ultimaData = formatDateBR(datas[datas.length - 1]);
+
+    $('desp-kpi-total').textContent = fmtMoeda(totalGasto);
+    $('desp-kpi-count').textContent = fmt(totalCount);
+    $('desp-kpi-avg').textContent = fmtMoeda(mediaGasto);
+    $('desp-kpi-last').textContent = ultimaData;
+
+    renderTabelaDespesas();
+    updateDespCharts();
+}
+
+function updateDespCharts() {
+    /* 1. Evolução Temporal de Despesas */
+    const dateMap = {};
+    filteredDespData.forEach(d => { if (d.dataCompra) dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal; });
+    const dates = Object.keys(dateMap).sort().slice(-10);
+    const lineData = dates.map(d => dateMap[d]);
+
+    const ctxL = $('desp-lineChart').getContext('2d');
+    if (despLineChartInstance) despLineChartInstance.destroy();
+    const gradL = ctxL.createLinearGradient(0, 0, 0, 260);
+    gradL.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+    gradL.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+    setEmpty('desp-lineChart', dates.length === 0);
+    despLineChartInstance = new Chart(ctxL, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{ data: lineData, borderColor: '#ef4444', backgroundColor: gradL, borderWidth: 3, fill: true, tension: 0.35, pointRadius: 5, pointBackgroundColor: '#ef4444', pointBorderColor: '#ffffff' }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) },
+                tooltip: { callbacks: { title: (items) => formatDateBR(items[0].label), label: (c) => fmtMoeda(c.parsed.y) } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { callback(v) { return formatDateBR(this.getLabelForValue(v)); } } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '20%' }
+            }
+        }
+    });
+
+    /* 2. Distribuição por Status */
+    const statusMap = {};
+    filteredDespData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
+
+    const ctxD = $('desp-donutChart').getContext('2d');
+    if (despDonutChartInstance) despDonutChartInstance.destroy();
+    setEmpty('desp-donutChart', Object.keys(statusMap).length === 0);
+    despDonutChartInstance = new Chart(ctxD, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(statusMap),
+            datasets: [{ data: Object.values(statusMap), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'], borderWidth: 0 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } },
+                datalabels: { display: true, color: '#fff', font: { weight: 'bold', size: 11 }, formatter: (v) => fmt(v) }
+            }
+        }
+    });
+
+    /* 3. Gasto por Placa (Top 10) */
+    const placaMap = {};
+    filteredDespData.forEach(d => { placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal; });
+    const sortedPlacas = Object.entries(placaMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+    const ctxB = $('desp-barChart').getContext('2d');
+    if (despBarChartInstance) despBarChartInstance.destroy();
+    const gradB = ctxB.createLinearGradient(0, 0, 0, 260);
+    gradB.addColorStop(0, 'rgba(139, 92, 246, 0.9)');
+    gradB.addColorStop(1, 'rgba(139, 92, 246, 0.2)');
+
+    setEmpty('desp-barChart', sortedPlacas.length === 0);
+    despBarChartInstance = new Chart(ctxB, {
+        type: 'bar',
+        data: { labels: sortedPlacas.map(i => i[0]), datasets: [{ data: sortedPlacas.map(i => i[1]), backgroundColor: gradB, borderRadius: 8, barPercentage: 0.6 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) },
+                tooltip: { callbacks: { label: (c) => fmtMoeda(c.parsed.y) } }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: false, beginAtZero: true, grace: '30%' }
+            }
+        }
+    });
+
+    /* 4. Tipo Documento × Valor Total */
+    const docMap = {};
+    filteredDespData.forEach(d => { docMap[d.tipoDoc] = (docMap[d.tipoDoc] || 0) + d.valorTotal; });
+    const sortedDocs = Object.entries(docMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const ctxN = $('desp-neonLineChart').getContext('2d');
+    if (despNeonLineChartInstance) despNeonLineChartInstance.destroy();
+    setEmpty('desp-neonLineChart', sortedDocs.length === 0);
+    despNeonLineChartInstance = new Chart(ctxN, {
+        type: 'line',
+        data: {
+            labels: sortedDocs.map(i => i[0]),
+            datasets: [{ data: sortedDocs.map(i => i[1]), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', borderWidth: 3, fill: true, tension: 0.2, pointRadius: 6, pointBackgroundColor: '#10b981', pointBorderColor: '#ffffff' }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: true, color: '#fff', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => fmtMoeda(v) },
+                tooltip: { callbacks: { label: (c) => fmtMoeda(c.parsed.y) } }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.3)' }, grace: '25%' }
+            }
+        }
+    });
+}
+
+/* =========================================================
+   MODAL DE ANEXO DA DESPESA
+   ========================================================= */
+function openDespAttachmentModal(item) {
+    const img = $('desp-modal-image');
+    const noImg = $('desp-modal-no-image');
+    $('desp-modal-title').textContent = `Comprovante - ID #${item.id} (${item.placa})`;
+
+    if (/^https:\/\//i.test(item.anexo || '')) {
+        img.src = item.anexo;
+        img.style.display = 'block';
+        noImg.style.display = 'none';
+    } else {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+        noImg.style.display = 'block';
+    }
+
+    const info = $('desp-modal-info');
+    info.replaceChildren();
+    [['Fornecedor', item.fornecedor], ['Valor Total', fmtMoeda(item.valorTotal)], ['Forma Pagamento', item.formaPag], ['Aprovador', item.aprovador]].forEach(([label, valor]) => {
+        info.append(el('div', { class: 'modal-info-item' },
+            el('span', { class: 'modal-info-label', text: label }),
+            el('span', { class: 'modal-info-value', text: valor })));
+    });
+    $('desp-attachment-modal').classList.add('show');
+}
+
+function closeDespAttachmentModal(e) {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal-close')) {
+        $('desp-attachment-modal').classList.remove('show');
+    }
+}
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeDespAttachmentModal(); });
+
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
+mountPager('op', 'table-body', renderTabelaOperacao);
+mountPager('desp', 'desp-table-body', renderTabelaDespesas);
+$('btn-clear-op').addEventListener('click', limparFiltrosOperacao);
+$('btn-clear-desp').addEventListener('click', limparFiltrosDespesas);
 </script>
 </body>
 </html>
