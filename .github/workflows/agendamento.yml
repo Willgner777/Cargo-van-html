@@ -12,6 +12,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'   # <-- Atualizado de '20' para '24'
       - name: Executar Script (Teste Direto)
         run: node enviar_resumo.js
