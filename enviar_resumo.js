@@ -192,7 +192,7 @@ async function enviarWhatsApp(base, texto) {
       `*RELATÓRIO DE DESPESAS* 🚛\n` +
       `Resumo diário — Cargo Van\n\n` +
       `📊 *Status das Solicitações:*\n` +
-      `⏳ *${r.pendentes}* Pendente(s) de Aprovação\n` +
+      `⏳ *${r.pendentes}* Pendente(s)\n` +
       `✅ *${r.aprovados}* Aprovada(s)\n` +
       `❌ *${r.recusados}* Recusada(s)\n\n` +
       `──────────\n` +
