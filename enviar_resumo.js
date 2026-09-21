@@ -1,23 +1,26 @@
-// enviar_resumo.js — Resumo diário de BD_DESPESAS (STATUS) via WhatsApp (Evolution API)
-// Credenciais vêm de GitHub Secrets (variáveis de ambiente). Nada sensível no código.
+// enviar_resumo.js — TESTE DIRETO COM CREDENCIAIS EMBUTIDAS
+// ATENÇÃO: Use apenas para validação rápida no GitHub Actions.
 
-const {
-  AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET,
-  EVOLUTION_API_URL, EVOLUTION_INSTANCE, EVOLUTION_API_KEY, WHATSAPP_NUMERO
-} = process.env;
+/* ---------------- CREDENCIAIS DE TESTE DIRETO ---------------- */
+const AZURE_TENANT_ID = "669ab6c9-4a10-4796-a3dc-90f5e7d6ff40";
+const AZURE_CLIENT_ID = "71a3b4e0-0789-4770-bb83-7a677b16dd0e";
+const AZURE_CLIENT_SECRET = "COLE_AQUI_O_VALOR_DO_SECRET_GERADO_NO_AZURE"; // <-- Cole o Valor (Value) do secret novo
 
+const EVOLUTION_API_URL = "https://evolution-api.onrender.com";
+const EVOLUTION_INSTANCE = "AutomacaoCargoVanv1";
+const EVOLUTION_API_KEY = "SuaChaveSeguraAqui9405";
+const WHATSAPP_NUMERO = "5585994050393";
+
+/* ---------------- CONFIGURAÇÕES DO SHAREPOINT ---------------- */
 const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const LISTA_DESPESAS = "BD_DESPESAS";
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-const limpar = (v) => String(v ?? "").trim();   // remove espaços/quebras coladas nos secrets
+const limpar = (v) => String(v ?? "").trim();
 
 function exigirEnv() {
-  const obrigatorias = { AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET,
-    EVOLUTION_API_URL, EVOLUTION_INSTANCE, EVOLUTION_API_KEY, WHATSAPP_NUMERO };
-  const faltando = Object.entries(obrigatorias).filter(([, v]) => !limpar(v)).map(([k]) => k);
-  if (faltando.length) throw new Error(`Secrets ausentes no GitHub: ${faltando.join(", ")}`);
+  console.log("Modo de teste direto ativado (ignorando verificação de secrets).");
 }
 
 /* ---------------- Azure / Graph ---------------- */
@@ -71,7 +74,7 @@ async function buscarDespesas(token) {
   const siteId = await obterSiteId(token);
   let url = `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
   const itens = [];
-  while (url) {                                   // paginação
+  while (url) {
     const data = await graphGet(url, token);
     itens.push(...(data.value || []));
     url = data["@odata.nextLink"] || null;
@@ -87,7 +90,7 @@ function contarStatus(itens) {
     const st = limpar(f.STATUS ?? f.Status ?? "Pendente").toLowerCase();
     if (st.includes("recusado") || st.includes("rejeitado") || st.includes("cancelado")) r.recusados++;
     else if (st.includes("aprovado")) r.aprovados++;
-    else r.pendentes++;                           // vazio ou "pendente"
+    else r.pendentes++;
   }
   return r;
 }
