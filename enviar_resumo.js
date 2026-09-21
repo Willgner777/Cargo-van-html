@@ -161,12 +161,12 @@ async function enviarWhatsApp(base, texto) {
     console.log(`${itens.length} itens | ${r.pendentes} pendentes, ${r.recusados} recusados, ${r.aprovados} aprovados`);
 
     const texto =
-      `*SISTEMA DE GESTÃO DE DESPESAS* 🚛\n` +
-      `*Resumo Operacional Diário — Cargo Van*\n\n` +
+      `*RELATÓRIO DIÁRIO DE DESPESAS* 🚛\n` +
+      `Resumo — Cargo Van*\n\n` +
       `📊 *Status das Solicitações:*\n` +
-      `▫️ *${r.pendentes}* Pendente(s) de Aprovação ⏳\n` +
-      `▫️ *${r.aprovados}* Aprovada(s) ✅\n` +
-      `▫️ *${r.recusados}* Recusada(s) / Rejeitada(s) ❌\n\n` +
+      `⏳ *${r.pendentes}* Pendente(s) de Aprovação\n` +
+      `✅ *${r.aprovados}* Aprovada(s)\n` +
+      `❌ *${r.recusados}* Recusada(s)\n\n` +
       `───────────────\n` +
       `🤖 _By Tech Solutions Bot_`;
 
