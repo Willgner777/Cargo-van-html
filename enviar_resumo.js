@@ -11,13 +11,10 @@ const {
   WHATSAPP_NUMERO
 } = process.env;
 
-/* ---------------- CONFIGURAÇÕES DO SHAREPOINT & POWER APPS ---------------- */
+/* ---------------- CONFIGURAÇÕES DO SHAREPOINT ---------------- */
 const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const LISTA_DESPESAS = "BD_DESPESAS";
-
-// Link direto do seu aplicativo Power Apps
-const URL_POWER_APPS = "https://apps.powerapps.com/play/e/default-669ab6c9-4a10-4796-a3dc-90f5e7d6ff40/a/6d3a4210-eb0c-4b05-833d-4dd7b9954bb0?tenantId=669ab6c9-4a10-4796-a3dc-90f5e7d6ff40&hint=ca56ffa4-162b-4cd7-bb88-a155a07dc94d&sourcetime=1788901458248&source=portal#";
 
 // Link RAW direto da imagem no seu repositório GitHub
 const URL_IMAGEM_RAW = "https://raw.githubusercontent.com/Willgner777/Cargo-van-html/main/imagens/banner_bot_tech_solutions.png";
@@ -198,9 +195,7 @@ async function enviarWhatsApp(base, texto) {
       `⏳ *${r.pendentes}* Pendente(s) de Aprovação\n` +
       `✅ *${r.aprovados}* Aprovada(s)\n` +
       `❌ *${r.recusados}* Recusada(s)\n\n` +
-      `📲 *Acesse o aplicativo pelo link:*\n` +
-      `🔗 ${URL_POWER_APPS}\n\n` +
-      `───────────────\n` +
+      `──────────\n` +
       `🤖 _By Tech Solutions Bot_`;
 
     console.log("3/4 Verificando Evolution API...");
