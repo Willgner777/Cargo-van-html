@@ -2249,11 +2249,20 @@ function updateDespCharts() {
         return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
     };
     const hashCode = s => { let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i); h|=0;} return h; };
+    const gradientDataURL = (cTop, cBot) => {
+        const c = document.createElement('canvas'); c.width = 40; c.height = 10;
+        const g = c.getContext('2d').createLinearGradient(0,0,40,0);
+        g.addColorStop(0, cTop); g.addColorStop(1, cBot);
+        c.getContext('2d').fillStyle = g;
+        c.getContext('2d').fillRect(0,0,40,10);
+        return c.toDataURL();
+    };
     const statusOrd = Object.entries(statusMap)
         .map(([nome, qtd]) => {
             const [cTop, cBot] = getGradientPair(nome);
             const base = cBot;
-            return { nome, qtd, cor: base, gradTop: cTop, gradBot: cBot };
+            const swatch = gradientDataURL(cTop, cBot);
+            return { nome, qtd, cor: base, gradTop: cTop, gradBot: cBot, swatch };
         })
         .sort((a, b) => a.qtd - b.qtd);
 
@@ -2310,7 +2319,8 @@ function updateDespCharts() {
                         color: '#FFFFFF',
                         font: { color: '#FFFFFF' },
                         padding: 12,
-                        generateLabels: () => statusOrd.map((it, i) => ({ text: it.nome, fillStyle: it.cor, strokeStyle: it.cor, lineWidth: 0, index: i }))
+                        usePointStyle: true,
+                        generateLabels: () => statusOrd.map((it, i) => ({ text: it.nome, fillStyle: it.cor, strokeStyle: it.cor, lineWidth: 0, pointStyle: it.swatch, index: i }))
                     },
                     onClick: () => {}
                 },
