@@ -135,15 +135,34 @@ async function prepararEvolution() {
 }
 
 async function enviarWhatsApp(base, texto) {
-  const res = await fetch(`${base}/message/sendText/${limpar(EVOLUTION_INSTANCE)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", apikey: limpar(EVOLUTION_API_KEY) },
-    body: JSON.stringify({ number: limpar(WHATSAPP_NUMERO), text: texto }),
-    signal: AbortSignal.timeout(60_000)
-  });
-  const corpo = await res.text();
-  if (!res.ok) throw new Error(`Falha ao enviar WhatsApp (${res.status}): ${corpo}`);
-  console.log("WhatsApp enviado:", corpo);
+  // Separa os números por vírgula, limpa espaços em branco e filtra vazios
+  const numeros = limpar(WHATSAPP_NUMERO)
+    .split(",")
+    .map(n => n.trim())
+    .filter(Boolean);
+
+  console.log(`Disparando envio para ${numeros.length} destinatário(s)...`);
+
+  for (const num of numeros) {
+    try {
+      const res = await fetch(`${base}/message/sendText/${limpar(EVOLUTION_INSTANCE)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: limpar(EVOLUTION_API_KEY) },
+        body: JSON.stringify({ number: num, text: texto }),
+        signal: AbortSignal.timeout(60_000)
+      });
+      const corpo = await res.text();
+      if (!res.ok) {
+        console.error(`Falha ao enviar para ${num} (${res.status}): ${corpo}`);
+      } else {
+        console.log(`WhatsApp enviado com sucesso para ${num}!`);
+      }
+    } catch (err) {
+      console.error(`Erro no envio para ${num}:`, err.message);
+    }
+    // Pausa de 2 segundos entre envios para evitar bloqueios da API
+    await sleep(2000);
+  }
 }
 
 /* ---------------- Execução ---------------- */
