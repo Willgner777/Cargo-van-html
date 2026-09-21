@@ -2307,7 +2307,9 @@ function updateDespCharts() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#FFFFFF', padding: 12,
+                        color: '#FFFFFF',
+                        font: { color: '#FFFFFF' },
+                        padding: 12,
                         generateLabels: () => statusOrd.map((it, i) => ({ text: it.nome, fillStyle: it.cor, strokeStyle: it.cor, lineWidth: 0, index: i }))
                     },
                     onClick: () => {}
