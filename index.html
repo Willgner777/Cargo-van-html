@@ -611,7 +611,7 @@ const syncInfo = {
 };
 
 Chart.register(ChartDataLabels);
-Chart.defaults.color = '#8b9bb8';
+Chart.defaults.color = '#FFFFFF';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
 /* =========================================================
@@ -1993,13 +1993,13 @@ function updateCharts(proprios, agregados) {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#e2e8f0', padding: 15, font: { size: 12, weight: '600' },
+                        color: '#FFFFFF', padding: 15, font: { size: 12, weight: '600' },
                         generateLabels: (chart) => chart.data.labels.map((l, i) => {
                             const v = chart.data.datasets[0].data[i];
                             return {
                                 text: `${l}: ${fmt(v)} NFs (${fmtPct(pctMix(v))})`,
                                 fillStyle: coresMix[i], strokeStyle: coresMix[i], lineWidth: 0,
-                                fontColor: '#e2e8f0', hidden: !chart.getDataVisibility(i), index: i
+                                fontColor: '#FFFFFF', hidden: !chart.getDataVisibility(i), index: i
                             };
                         })
                     }
@@ -2221,9 +2221,40 @@ function updateDespCharts() {
     filteredDespData.forEach(d => { statusMap[d.status] = (statusMap[d.status] || 0) + 1; });
 
     // cada status mantém a sua cor original; a pirâmide fica com o MENOR no topo e o MAIOR na base
-    const PIRAMIDE_CORES = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+    const statusGradients = {
+        'APROVADO': ['#6ee7b7', '#10b981'],
+        'PENDENTE': ['#fcd34d', '#f59e0b'],
+        'RECUSADO': ['#fca5a5', '#ef4444'],
+    };
+    const getGradientPair = (nome) => {
+        const key = String(nome || '').toUpperCase();
+        if (key.includes('APROVADO')) return ['#6ee7b7', '#10b981'];
+        if (key.includes('PENDENTE')) return ['#fcd34d', '#f59e0b'];
+        if (key.includes('RECUSADO')) return ['#fca5a5', '#ef4444'];
+        // fallback suave: verde -> amarelo -> vermelho
+        const fallback = ['#10b981', '#f59e0b', '#ef4444'];
+        const idx = Math.abs(hashCode(key)) % fallback.length;
+        const c1 = fallback[idx];
+        const c2 = lighten(c1, 0.25);
+        return [c2, c1];
+    };
+    const lighten = (hex, amt) => {
+        let c = hex.replace('#','');
+        if (c.length===3) c=c.split('').map(x=>x+x).join('');
+        let num=parseInt(c,16);
+        let r=(num>>16)+Math.round(255*amt);
+        let g=((num>>8)&255)+Math.round(255*amt);
+        let b=(num&255)+Math.round(255*amt);
+        r=Math.min(255,r); g=Math.min(255,g); b=Math.min(255,b);
+        return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+    };
+    const hashCode = s => { let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i); h|=0;} return h; };
     const statusOrd = Object.entries(statusMap)
-        .map(([nome, qtd], idx) => ({ nome, qtd, cor: PIRAMIDE_CORES[idx % PIRAMIDE_CORES.length] }))
+        .map(([nome, qtd]) => {
+            const [cTop, cBot] = getGradientPair(nome);
+            const base = cBot;
+            return { nome, qtd, cor: base, gradTop: cTop, gradBot: cBot };
+        })
         .sort((a, b) => a.qtd - b.qtd);
 
     const pyramidPlugin = {
@@ -2235,7 +2266,7 @@ function updateDespCharts() {
             const cx = (left + right) / 2;
             const W = right - left, H = bottom - top;
             const camada = H / n, gap = 3;
-            const meia = (y) => (W / 2) * ((y - top) / H);      // meia-largura da pirâmide na altura y
+            const meia = (y) => (W / 2) * ((y - top) / H);
             const { ctx } = chart;
             statusOrd.forEach((it, i) => {
                 const y0 = top + i * camada;
@@ -2247,7 +2278,10 @@ function updateDespCharts() {
                 ctx.lineTo(cx + meia(y1), y1);
                 ctx.lineTo(cx - meia(y1), y1);
                 ctx.closePath();
-                ctx.fillStyle = it.cor;
+                const grad = ctx.createLinearGradient(0, y0, 0, y1);
+                grad.addColorStop(0, it.gradTop);
+                grad.addColorStop(1, it.gradBot);
+                ctx.fillStyle = grad;
                 ctx.fill();
                 ctx.restore();
             });
@@ -2273,7 +2307,7 @@ function updateDespCharts() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#e2e8f0', padding: 12,
+                        color: '#FFFFFF', padding: 12,
                         generateLabels: () => statusOrd.map((it, i) => ({ text: it.nome, fillStyle: it.cor, strokeStyle: it.cor, lineWidth: 0, index: i }))
                     },
                     onClick: () => {}
