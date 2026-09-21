@@ -1,9 +1,6 @@
 // enviar_resumo.js — Resumo diário de BD_DESPESAS (STATUS) via WhatsApp (Evolution API)
 // Credenciais seguras vindas dos Secrets do GitHub Actions.
 
-const fs = require("fs");
-const path = require("path");
-
 const {
   AZURE_TENANT_ID,
   AZURE_CLIENT_ID,
@@ -22,6 +19,9 @@ const LISTA_DESPESAS = "BD_DESPESAS";
 // Link direto do seu aplicativo Power Apps
 const URL_POWER_APPS = "https://apps.powerapps.com/play/e/default-669ab6c9-4a10-4796-a3dc-90f5e7d6ff40/a/6d3a4210-eb0c-4b05-833d-4dd7b9954bb0?tenantId=669ab6c9-4a10-4796-a3dc-90f5e7d6ff40&hint=ca56ffa4-162b-4cd7-bb88-a155a07dc94d&sourcetime=1788901458248&source=portal#";
 
+// Link RAW direto da imagem no seu repositório GitHub
+const URL_IMAGEM_RAW = "https://raw.githubusercontent.com/Willgner777/Cargo-van-html/main/imagens/banner_bot_tech_solutions.png";
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const limpar = (v) => String(v ?? "").trim();
 
@@ -39,16 +39,6 @@ function exigirEnv() {
   if (faltando.length) {
     throw new Error(`Secrets ausentes no GitHub: ${faltando.join(", ")}`);
   }
-}
-
-// Converte a imagem da pasta "imagens/banner_bot_tech_solutions.png" para Base64
-function obterImagemBase64() {
-  const caminhoImagem = path.join(__dirname, "imagens", "banner_bot_tech_solutions.png");
-  if (!fs.existsSync(caminhoImagem)) {
-    throw new Error(`A imagem não foi encontrada em: ${caminhoImagem}`);
-  }
-  const bitmap = fs.readFileSync(caminhoImagem);
-  return `data:image/png;base64,${bitmap.toString("base64")}`;
 }
 
 /* ---------------- Azure / Graph ---------------- */
@@ -150,43 +140,40 @@ async function prepararEvolution() {
   }
 }
 
+/* ---------------- Envio Único de WhatsApp ---------------- */
 async function enviarWhatsApp(base, texto) {
-  const numeros = limpar(WHATSAPP_NUMERO)
-    .split(",")
-    .map(n => n.trim())
-    .filter(Boolean);
+  const numero = limpar(WHATSAPP_NUMERO);
 
-  const imagemBase64 = obterImagemBase64();
+  if (!numero) {
+    throw new Error("O número de WhatsApp não foi informado na variável WHATSAPP_NUMERO.");
+  }
 
-  console.log(`Disparando envio para ${numeros.length} destinatário(s)...`);
+  console.log(`Disparando envio para o número: ${numero}...`);
 
-  for (const num of numeros) {
-    try {
-      const res = await fetch(`${base}/message/sendMedia/${limpar(EVOLUTION_INSTANCE)}`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
-          apikey: limpar(EVOLUTION_API_KEY) 
-        },
-        body: JSON.stringify({
-          number: num,
-          media: imagemBase64,
-          mediatype: "image",
-          caption: texto
-        }),
-        signal: AbortSignal.timeout(60_000)
-      });
+  try {
+    const res = await fetch(`${base}/message/sendMedia/${limpar(EVOLUTION_INSTANCE)}`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json", 
+        apikey: limpar(EVOLUTION_API_KEY) 
+      },
+      body: JSON.stringify({
+        number: numero,
+        media: URL_IMAGEM_RAW,
+        mediatype: "image",
+        caption: texto
+      }),
+      signal: AbortSignal.timeout(60_000)
+    });
 
-      const corpo = await res.text();
-      if (!res.ok) {
-        console.error(`Falha ao enviar para ${num} (${res.status}): ${corpo}`);
-      } else {
-        console.log(`WhatsApp com imagem enviado com sucesso para ${num}!`);
-      }
-    } catch (err) {
-      console.error(`Erro no envio para ${num}:`, err.message);
+    const corpo = await res.text();
+    if (!res.ok) {
+      console.error(`Falha ao enviar para ${numero} (${res.status}): ${corpo}`);
+    } else {
+      console.log(`WhatsApp enviado com sucesso para ${numero}!`);
     }
-    await sleep(2000);
+  } catch (err) {
+    console.error(`Erro no envio para ${numero}:`, err.message);
   }
 }
 
