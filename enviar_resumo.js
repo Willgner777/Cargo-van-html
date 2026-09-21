@@ -16,6 +16,9 @@ const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const LISTA_DESPESAS = "BD_DESPESAS";
 
+// URL que abrirá ao clicar no botão
+const URL_SHAREPOINT = `https://${SITE_DOMAIN}${SITE_PATH}/Lists/${LISTA_DESPESAS}`;
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const limpar = (v) => String(v ?? "").trim();
 
@@ -135,7 +138,6 @@ async function prepararEvolution() {
 }
 
 async function enviarWhatsApp(base, texto) {
-  // Separa os números por vírgula, limpa espaços em branco e filtra vazios
   const numeros = limpar(WHATSAPP_NUMERO)
     .split(",")
     .map(n => n.trim())
@@ -145,12 +147,29 @@ async function enviarWhatsApp(base, texto) {
 
   for (const num of numeros) {
     try {
-      const res = await fetch(`${base}/message/sendText/${limpar(EVOLUTION_INSTANCE)}`, {
+      // Alterado o endpoint para /message/sendButtons
+      const res = await fetch(`${base}/message/sendButtons/${limpar(EVOLUTION_INSTANCE)}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: limpar(EVOLUTION_API_KEY) },
-        body: JSON.stringify({ number: num, text: texto }),
+        headers: { 
+          "Content-Type": "application/json", 
+          apikey: limpar(EVOLUTION_API_KEY) 
+        },
+        body: JSON.stringify({
+          number: num,
+          title: "*RELATÓRIO DE DESPESAS* 🚛",
+          description: texto,
+          footer: "By Tech Solutions Bot",
+          buttons: [
+            {
+              type: "url",
+              displayText: "Acessar SharePoint",
+              url: URL_SHAREPOINT
+            }
+          ]
+        }),
         signal: AbortSignal.timeout(60_000)
       });
+
       const corpo = await res.text();
       if (!res.ok) {
         console.error(`Falha ao enviar para ${num} (${res.status}): ${corpo}`);
@@ -160,7 +179,6 @@ async function enviarWhatsApp(base, texto) {
     } catch (err) {
       console.error(`Erro no envio para ${num}:`, err.message);
     }
-    // Pausa de 2 segundos entre envios para evitar bloqueios da API
     await sleep(2000);
   }
 }
@@ -180,14 +198,12 @@ async function enviarWhatsApp(base, texto) {
     console.log(`${itens.length} itens | ${r.pendentes} pendentes, ${r.recusados} recusados, ${r.aprovados} aprovados`);
 
     const texto =
-      `*RELATÓRIO DE DESPESAS* 🚛\n` +
       `Resumo diário — Cargo Van\n\n` +
       `📊 *Status das Solicitações:*\n` +
       `⏳ *${r.pendentes}* Pendente(s) de Aprovação\n` +
       `✅ *${r.aprovados}* Aprovada(s)\n` +
       `❌ *${r.recusados}* Recusada(s)\n\n` +
-      `───────────────\n` +
-      `🤖 _By Tech Solutions Bot_`;
+      `Para acessar o painel, clique no botão abaixo:`;
 
     console.log("3/4 Verificando Evolution API...");
     const base = await prepararEvolution();
