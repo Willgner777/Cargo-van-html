@@ -11,13 +11,13 @@ const {
   WHATSAPP_NUMERO
 } = process.env;
 
-/* ---------------- CONFIGURAÇÕES DO SHAREPOINT ---------------- */
+/* ---------------- CONFIGURAÇÕES DO SHAREPOINT & POWER APPS ---------------- */
 const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const LISTA_DESPESAS = "BD_DESPESAS";
 
-// URL que abrirá ao clicar no botão
-const URL_SHAREPOINT = `https://${SITE_DOMAIN}${SITE_PATH}/Lists/${LISTA_DESPESAS}`;
+// Link direto do seu aplicativo Power Apps:
+const URL_POWER_APPS = "https://apps.powerapps.com/play/e/default-669ab6c9-4a10-4796-a3dc-90f5e7d6ff40/a/6d3a4210-eb0c-4b05-833d-4dd7b9954bb0?tenantId=669ab6c9-4a10-4796-a3dc-90f5e7d6ff40&hint=ca56ffa4-162b-4cd7-bb88-a155a07dc94d&sourcetime=1788901458248&source=portal#";
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const limpar = (v) => String(v ?? "").trim();
@@ -147,7 +147,6 @@ async function enviarWhatsApp(base, texto) {
 
   for (const num of numeros) {
     try {
-      // Alterado o endpoint para /message/sendButtons
       const res = await fetch(`${base}/message/sendButtons/${limpar(EVOLUTION_INSTANCE)}`, {
         method: "POST",
         headers: { 
@@ -162,8 +161,8 @@ async function enviarWhatsApp(base, texto) {
           buttons: [
             {
               type: "url",
-              displayText: "Acessar SharePoint",
-              url: URL_SHAREPOINT
+              displayText: "PC - CARGO VAN V1",
+              url: URL_POWER_APPS
             }
           ]
         }),
@@ -203,7 +202,7 @@ async function enviarWhatsApp(base, texto) {
       `⏳ *${r.pendentes}* Pendente(s) de Aprovação\n` +
       `✅ *${r.aprovados}* Aprovada(s)\n` +
       `❌ *${r.recusados}* Recusada(s)\n\n` +
-      `Para acessar o painel, clique no botão abaixo:`;
+      `Para acessar o Power Apps, clique no botão abaixo:`;
 
     console.log("3/4 Verificando Evolution API...");
     const base = await prepararEvolution();
