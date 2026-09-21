@@ -72,7 +72,6 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 #dashboard { display: none; height: 100vh; overflow: hidden; }
 .layout { display: flex; height: 100%; width: 100%; }
 
-/* Sidebar Fixa e Organizada */
 .sidebar {
     width: 280px; min-width: 280px; background: var(--bg-panel);
     border-right: 1px solid var(--border); display: flex; flex-direction: column;
@@ -87,10 +86,10 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .user-profile { padding: 16px 24px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); }
 .user-name { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Indicador Pulsante BD_DESPESAS na Sidebar */
+/* EFEITO PULSE NA SIDEBAR PARA BD_DESPESAS */
 .pulse-badge {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     background-color: var(--accent-green);
     border-radius: 50%;
     display: inline-block;
@@ -112,7 +111,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 
 .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 24px; gap: 20px; background: var(--bg-base); }
 
-/* Barra de Filtros Completa */
+/* BARRA DE FILTROS */
 .filter-bar {
     background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: center;
@@ -134,7 +133,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .kpi-value { font-size: 26px; font-weight: 800; color: #fff; }
 .kpi-sub { font-size: 11px; color: var(--text-muted); }
 
-/* Grades de Gráficos e Rankings */
+/* GRADES DE GRÁFICOS E RANKINGS */
 .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 .content-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media(max-width: 1200px) { .content-grid, .content-grid-3 { grid-template-columns: 1fr; } }
@@ -144,7 +143,7 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
 .panel-title { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
 .chart-container { position: relative; height: 260px; width: 100%; }
 
-/* UI/UX PYRAMID CHART CUSTOM COMPONENT */
+/* ESTILIZAÇÃO COMPONENTE PIRÂMIDE UI/UX */
 .pyramid-container {
     display: flex;
     flex-direction: column;
@@ -174,19 +173,19 @@ body { background: var(--bg-base); color: var(--text-main); overflow-x: hidden; 
     box-shadow: 0 6px 16px rgba(0,0,0,0.4);
 }
 
-/* Listas de Ranking */
+/* LISTAS DE RANKING */
 .ranking-list { display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto; padding-right: 4px; }
 .ranking-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
 .ranking-item span:first-child { font-weight: 600; color: #cbd5e1; }
 .ranking-item span:last-child { font-weight: 700; color: var(--accent-blue); }
 
-/* Tabela */
+/* TABELA */
 .table-container { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
 th { color: var(--text-muted); padding: 12px 10px; border-bottom: 1px solid var(--border); font-weight: 700; text-transform: uppercase; font-size: 10px; text-align: left; }
 td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd5e1; vertical-align: middle; }
 
-/* Cores Dinâmicas de Status e Perfis */
+/* BADGES */
 .badge-status { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
 .status-concluido { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 .status-andamento { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
@@ -236,13 +235,13 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
 .view-hidden { display: none !important; }
 
-/* Despesas Status Badges */
+/* DESPESAS STATUS BADGES */
 .badge-despesa { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-block; }
 .status-aprovado { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 .status-pendente { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 .status-recusado { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 
-/* Attachment Modal */
+/* ATTACHMENT MODAL */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: .3s; }
 .modal-overlay.show { opacity: 1; visibility: visible; }
 .modal-content { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; max-width: 90vw; max-height: 90vh; width: 800px; overflow: hidden; transform: scale(0.95); transition: .3s; }
@@ -303,7 +302,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
     <div class="loading-text" id="loading-msg">Sincronizando dados com o SharePoint...</div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- DASHBOARD PRINCIPAL -->
 <div id="dashboard">
     <div class="layout">
         <aside class="sidebar">
@@ -464,7 +463,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
                     <div class="desp-chart-container"><canvas id="desp-lineChart"></canvas></div>
                 </div>
                 
-                <!-- GRÁFICO DE PIRÂMIDE REFORMULADO (UI/UX) -->
+                <!-- COMPONENTE SUBSTITUTO DA PIZZA: GRÁFICO DE PIRÂMIDE -->
                 <div class="panel">
                     <div class="panel-header"><div class="panel-title">Distribuição por Status (Pirâmide)</div></div>
                     <div class="desp-chart-container" style="display:flex; justify-content:center; align-items:center;">
@@ -508,7 +507,7 @@ td { padding: 12px 10px; border-bottom: 1px solid rgba(30,41,59,.4); color: #cbd
 
 <script>
 /* =========================================================
-   CONFIGURAÇÕES CENTRAIS
+   CONFIGURAÇÕES CENTRAIS E REGRAS DE NEGÓCIO
    ========================================================= */
 const CONFIG = {
     SITE: 'willtech7.sharepoint.com:/sites/CARGOVAN:',
@@ -557,98 +556,551 @@ function formatDateBR(value) {
     return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : value;
 }
 
+function classifyStatusKey(rawStatus) {
+    const s = String(rawStatus || '').trim().toLowerCase();
+    if (s.includes('conclu')) return 'concluido';
+    if (s.includes('anda'))   return 'andamento';
+    if (s.includes('perno'))  return 'pernoite';
+    return 'outro';
+}
+
+function parseNumberStrict(val) {
+    if (val === null || val === undefined || val === '') return null;
+    if (typeof val === 'number') return isNaN(val) ? null : val;
+    let s = String(val).trim().replace(/\s+/g, '');
+    if (s === '') return null;
+    if (s.includes(',') && s.includes('.')) {
+        s = s.replace(/\./g, '').replace(',', '.');
+    } else if (s.includes(',')) {
+        s = s.replace(',', '.');
+    }
+    const n = Number(s);
+    return isNaN(n) ? null : n;
+}
+
+function parseIsoDateLocal(dateStr) {
+    if(!dateStr) return null;
+    const parts = dateStr.slice(0, 10).split('-');
+    if(parts.length !== 3) return null;
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+}
+
+function parseBrazilianDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = String(dateStr).trim().split('/');
+    if (parts.length === 3) {
+        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    }
+    return null;
+}
+
+function showToast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function updateSyncBar(count, total, isPartial = false, dateRange = null) {
+    const el = $('sync-bar');
+    if (!el) return;
+    el.style.display = 'block';
+    let txt = `Registros filtrados: <strong>${fmt(count)}</strong> de <strong>${fmt(total)}</strong> totais.`;
+    if (isPartial) txt += ` (Carga limitada a ${fmt(total)} registros pelo parâmetro MAX_PAGINAS)`;
+    if (dateRange && dateRange.min && dateRange.max) txt += `<br>Período disponível dos dados carregados: <strong>${formatDateBR(dateRange.min)}</strong> até <strong>${formatDateBR(dateRange.max)}</strong>.`;
+    el.innerHTML = txt;
+}
+
+/* =========================================================
+   SISTEMA DE AUTENTICAÇÃO E CARGA VIA MSAL + GRAPH API
+   ========================================================= */
+window.addEventListener('load', async () => {
+    try {
+        await myMSALObj.handleRedirectPromise();
+        const accounts = myMSALObj.getAllAccounts();
+        if (accounts.length > 0) {
+            $('login-view').style.display = 'none';
+            $('loading-screen').style.display = 'flex';$('display-name').textContent = accounts[0].name || accounts[0].username;
+            await loadDashboardData();
+        }
+    } catch (error) {
+        console.error("Erro na inicialização MSAL:", error);
+    }
+});
+
+function iniciarLogin() { myMSALObj.loginRedirect(loginRequest); }
+
+async function getAccessToken() {
+    const accounts = myMSALObj.getAllAccounts();
+    if (accounts.length === 0) throw new Error("Nenhum usuário logado.");
+    const request = { ...loginRequest, account: accounts[0] };
+    try {
+        const response = await myMSALObj.acquireTokenSilent(request);
+        return response.accessToken;
+    } catch (e) {
+        return (await myMSALObj.acquireTokenPopup(request)).accessToken;
+    }
+}
+
+async function fetchAllSharePointItems(token, siteUrl, listName, selectFields = "") {
+    let url = `https://graph.microsoft.com/v1.0/sites/${siteUrl}/lists/${listName}/items?$top=${CONFIG.PAGE_TOP}&$expand=fields`;
+    if (selectFields) url += `($select=${selectFields})`;
+
+    let items = [];
+    let pageCount = 0;
+
+    while (url && pageCount < CONFIG.MAX_PAGINAS) {
+        pageCount++;
+        $('loading-msg').textContent = `Carregando ${listName}... (Página ${pageCount})`;
+        
+        const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}`, Prefer: "HonorNonIndexedParams=true" }
+        });
+        if (!res.ok) throw new Error(`Erro ao buscar dados de ${listName}: ${res.statusText}`);
+
+        const data = await res.json();
+        if (data.value) items = items.concat(data.value);
+        url = data['@odata.nextLink'] || null;
+    }
+    return items;
+}
+
+async function loadDashboardData() {
+    try {
+        const token = await getAccessToken();
+
+        // Carga da Liberacao de Veiculos
+        const rawOpItems = await fetchAllSharePointItems(token, CONFIG.SITE, CONFIG.LISTA_LIBERACAO);
+        rawData = processOpItems(rawOpItems);
+
+        // Carga de Despesas
+        const rawDespItems = await fetchAllSharePointItems(token, CONFIG.SITE, CONFIG.LISTA_DESPESAS);
+        rawDespData = processDespItems(rawDespItems);
+
+        initFilterEvents();
+        populateFilterDropdowns();
+
+        $('loading-screen').style.display = 'none';$('dashboard').style.display = 'block';
+
+        applyOpFilters();
+        applyDespFilters();
+    } catch (err) {
+        console.error("Falha ao carregar dados:", err);
+        alert("Ocorreu um erro ao conectar com o SharePoint: " + err.message);
+    }
+}
+
+async function syncSharePointData() {
+    $('dashboard').style.display = 'none';$('loading-screen').style.display = 'flex';
+    await loadDashboardData();
+    showToast('Dados sincronizados com sucesso!');
+}
+
+/* =========================================================
+   TRATAMENTO DE DADOS - OPERAÇÕES
+   ========================================================= */
+function processOpItems(items) {
+    return items.map(item => {
+        const f = item.fields || {};
+        return {
+            id: item.id,
+            documento: f.Title || f.Title0 || '—',
+            dataIso: f.Data ? f.Data.slice(0, 10) : '',
+            motorista: f.Motorista || f.NomeMotorista || 'Não informado',
+            operacao: f.Operacao || f.Cliente || 'Outros',
+            perfil: String(f.Perfil || f.TipoFrota || '').toUpperCase().includes('AGREGADO') ? 'AGREGADO' : 'PRÓPRIO',
+            km: parseNumberStrict(f.KM) || 0,
+            nfs: parseNumberStrict(f.NFs) || parseNumberStrict(f.QtdNFs) || 0,
+            status: f.Status || f.StatusOperacao || 'Em andamento'
+        };
+    });
+}
+
+/* =========================================================
+   TRATAMENTO DE DADOS - DESPESAS
+   ========================================================= */
+function processDespItems(items) {
+    return items.map(item => {
+        const f = item.fields || {};
+        return {
+            id: item.id,
+            placa: f.Title || f.Placa || '—',
+            servico: f.Servico || f.ServicoOutros || 'Geral',
+            valorTotal: parseNumberStrict(f.ValorTotal) || 0,
+            valorUnitario: parseNumberStrict(f.ValorUnitario) || 0,
+            quantidade: parseNumberStrict(f.Qntd) || 1,
+            dataCompra: f.DataCompra ? f.DataCompra.slice(0, 10) : '',
+            status: f.Status || 'Pendente',
+            aprovador: f.Aprovador || '—',
+            tipoDoc: f.TipoDocumento || '—',
+            formaPag: f.FormaPagamento || '—',
+            fornecedor: f.Fornecedor || '—',
+            criadoPor: f.CriadoPor || '—',
+            operacao: f.Operacao || '—'
+        };
+    });
+}
+
+/* =========================================================
+   SISTEMA DE FILTROS E EVENTOS
+   ========================================================= */
+function populateFilterDropdowns() {
+    const statusSelect = $('filter-status');
+    statusSelect.innerHTML = '<option value="">Todos</option>';
+    const statuses = [...new Set(rawData.map(d => d.status))].filter(Boolean);
+    statuses.forEach(s => {
+        const opt = document.createElement('option'); opt.value = s; opt.textContent = s;
+        statusSelect.appendChild(opt);
+    });
+}
+
+function initFilterEvents() {
+    ['filter-start', 'filter-end', 'filter-placa', 'filter-doc', 'filter-operacao', 'filter-status', 'filter-perfil'].forEach(id => {
+        $(id).addEventListener('change', applyOpFilters);$(id).addEventListener('keyup', applyOpFilters);
+    });
+
+    $('btn-clear-op').addEventListener('click', () => {
+        ['filter-start', 'filter-end', 'filter-placa', 'filter-doc', 'filter-operacao', 'filter-status', 'filter-perfil'].forEach(id => $(id).value = '');
+        applyOpFilters();
+    });
+
+    ['desp-filter-start', 'desp-filter-end', 'desp-filter-placa', 'desp-filter-servico', 'desp-filter-id', 'desp-filter-status'].forEach(id => {
+        $(id).addEventListener('change', applyDespFilters);$(id).addEventListener('keyup', applyDespFilters);
+    });
+
+    $('btn-clear-desp').addEventListener('click', () => {
+        ['desp-filter-start', 'desp-filter-end', 'desp-filter-placa', 'desp-filter-servico', 'desp-filter-id', 'desp-filter-status'].forEach(id => $(id).value = '');
+        applyDespFilters();
+    });
+}
+
+function applyOpFilters() {
+    const start = $('filter-start').value;
+    const end = $('filter-end').value;
+    const placa = $('filter-placa').value.toLowerCase();
+    const doc = $('filter-doc').value.toLowerCase();
+    const operacao = $('filter-operacao').value.toLowerCase();
+    const status = $('filter-status').value;
+    const perfil = $('filter-perfil').value;
+
+    filteredData = rawData.filter(d => {
+        if (start && d.dataIso < start) return false;
+        if (end && d.dataIso > end) return false;
+        if (placa && !d.documento.toLowerCase().includes(placa)) return false;
+        if (doc && !d.documento.toLowerCase().includes(doc)) return false;
+        if (operacao && !d.operacao.toLowerCase().includes(operacao)) return false;
+        if (status && d.status !== status) return false;
+        if (perfil && d.perfil !== perfil) return false;
+        return true;
+    });
+
+    updateOpDashboardUI();
+}
+
+function applyDespFilters() {
+    const start = $('desp-filter-start').value;
+    const end = $('desp-filter-end').value;
+    const placa = $('desp-filter-placa').value.toLowerCase();
+    const servico = $('desp-filter-servico').value.toLowerCase();
+    const idVal = $('desp-filter-id').value;
+    const status = $('desp-filter-status').value;
+
+    filteredDespData = rawDespData.filter(d => {
+        if (start && d.dataCompra < start) return false;
+        if (end && d.dataCompra > end) return false;
+        if (placa && !d.placa.toLowerCase().includes(placa)) return false;
+        if (servico && !d.servico.toLowerCase().includes(servico)) return false;
+        if (idVal && String(d.id) !== String(idVal)) return false;
+        if (status && d.status !== status) return false;
+        return true;
+    });
+
+    updateDespDashboardUI();
+}
+
+/* =========================================================
+   ATUALIZAÇÃO DA UI - OPERAÇÕES
+   ========================================================= */
+function updateOpDashboardUI() {
+    // KPIs
+    const totalEntregas = filteredData.length;
+    const totalNfs = filteredData.reduce((a, b) => a + b.nfs, 0);
+    const nfsProprio = filteredData.filter(d => d.perfil === 'PRÓPRIO').reduce((a, b) => a + b.nfs, 0);
+    const nfsAgregado = filteredData.filter(d => d.perfil === 'AGREGADO').reduce((a, b) => a + b.nfs, 0);
+    const totalKm = filteredData.reduce((a, b) => a + b.km, 0);
+
+    $('kpi-total').textContent = fmt(totalEntregas);
+    $('kpi-nfs').textContent = fmt(totalNfs);$('kpi-proprio').textContent = fmt(nfsProprio);
+    $('kpi-agregado').textContent = fmt(nfsAgregado);$('km-total-value').textContent = `${fmt(totalKm)} km`;
+
+    // Meta Mensal
+    const pctMeta = Math.min(Math.round((totalNfs / CONFIG.META_MENSAL_NFS) * 100), 100);
+    $('meta-mensal-pct').textContent = `${pctMeta}%`;
+    $('meta-mensal-atual').textContent = fmt(totalNfs);
+    $('meta-mensal-alvo').textContent = fmt(CONFIG.META_MENSAL_NFS);$('meta-mensal-fill').style.width = `${pctMeta}%`;
+
+    // Indicadores Anel
+    const concluidos = filteredData.filter(d => classifyStatusKey(d.status) === 'concluido').length;
+    const pctConclusao = totalEntregas ? Math.round((concluidos / totalEntregas) * 100) : 0;
+    $('ring-conclusao-label').textContent = `${pctConclusao}%`;
+    $('ring-conclusao').style.setProperty('--pct', pctConclusao);
+
+    const ef = totalKm ? Math.round((totalNfs / totalKm) * 100) : 0;
+    $('ring-eficiencia-label').textContent = ef;
+    $('ring-eficiencia').style.setProperty('--pct', Math.min(ef, 100));
+
+    // Tabelas & Gráficos
+    renderOpTable();
+    renderOpCharts();
+}
+
+function renderOpTable() {
+    const tbody = $('table-body');
+    tbody.innerHTML = '';
+
+    const sliced = filteredData.slice(0, 50);
+    if (sliced.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Nenhum registro encontrado.</td></tr>';
+        return;
+    }
+
+    sliced.forEach(d => {
+        const tr = document.createElement('tr');
+        const stKey = classifyStatusKey(d.status);
+        const stInfo = STATUS_INFO[stKey];
+
+        tr.innerHTML = `
+            <td><strong>${d.documento}</strong></td>
+            <td>${formatDateBR(d.dataIso)}</td>
+            <td>${d.motorista}</td>
+            <td>${d.operacao}</td>
+            <td><span class="badge-perfil ${d.perfil === 'PRÓPRIO' ? 'perfil-proprio' : 'perfil-agregado'}">${d.perfil}</span></td>
+            <td>${fmt(d.km)} km</td>
+            <td>${fmt(d.nfs)}</td>
+            <td><span class="badge-status ${stInfo.css}">${d.status}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+    $('table-count').textContent = `Exibindo ${sliced.length} de ${filteredData.length} registros`;
+}
+
+function renderOpCharts() {
+    // Evolução Temporal
+    const dateMap = {};
+    filteredData.forEach(d => {
+        if (!d.dataIso) return;
+        dateMap[d.dataIso] = (dateMap[d.dataIso] || 0) + d.nfs;
+    });
+    const sortedDates = Object.keys(dateMap).sort();
+
+    if (lineChartInstance) lineChartInstance.destroy();
+    lineChartInstance = new Chart($('lineChart'), {
+        type: 'line',
+        data: {
+            labels: sortedDates.map(formatDateBR),
+            datasets: [{ label: 'NFs Entregues', data: sortedDates.map(k => dateMap[k]), borderColor: '#3b82f6', tension: 0.3, fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Mix Frota
+    if (polarChartInstance) polarChartInstance.destroy();
+    polarChartInstance = new Chart($('polarChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Próprio', 'Agregado'],
+            datasets: [{
+                data: [
+                    filteredData.filter(d => d.perfil === 'PRÓPRIO').length,
+                    filteredData.filter(d => d.perfil === 'AGREGADO').length
+                ],
+                backgroundColor: ['#3b82f6', '#8b5cf6']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+/* =========================================================
+   ATUALIZAÇÃO DA UI - DESPESAS & PIRÂMIDE REFORMULADA
+   ========================================================= */
+function updateDespDashboardUI() {
+    const totalGasto = filteredDespData.reduce((a, b) => a + b.valorTotal, 0);
+    const totalRegistros = filteredDespData.length;
+    const media = totalRegistros ? totalGasto / totalRegistros : 0;
+
+    let lastDate = '—';
+    if (filteredDespData.length) {
+        const sorted = [...filteredDespData].sort((a, b) => b.dataCompra.localeCompare(a.dataCompra));
+        lastDate = formatDateBR(sorted[0].dataCompra);
+    }
+
+    $('desp-kpi-total').textContent = fmtMoeda(totalGasto);$('desp-kpi-count').textContent = fmt(totalRegistros);
+    $('desp-kpi-avg').textContent = fmtMoeda(media);$('desp-kpi-last').textContent = lastDate;
+
+    renderDespTable();
+    renderDespCharts();
+}
+
+function renderDespTable() {
+    const tbody = $('desp-table-body');
+    tbody.innerHTML = '';
+
+    const sliced = filteredDespData.slice(0, 50);
+    if (sliced.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="14">Nenhuma despesa encontrada.</td></tr>';
+        return;
+    }
+
+    sliced.forEach(d => {
+        let badgeClass = 'status-pendente';
+        if (d.status.toLowerCase().includes('aprov')) badgeClass = 'status-aprovado';
+        if (d.status.toLowerCase().includes('recus')) badgeClass = 'status-recusado';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${d.id}</td>
+            <td><strong>${d.placa}</strong></td>
+            <td>${d.servico}</td>
+            <td style="font-weight:700; color:#fff;">${fmtMoeda(d.valorTotal)}</td>
+            <td>${fmtMoeda(d.valorUnitario)}</td>
+            <td>${fmt(d.quantidade)}</td>
+            <td>${formatDateBR(d.dataCompra)}</td>
+            <td><span class="badge-despesa ${badgeClass}">${d.status}</span></td>
+            <td>${d.aprovador}</td>
+            <td>${d.tipoDoc}</td>
+            <td>${d.formaPag}</td>
+            <td>${d.fornecedor}</td>
+            <td>${d.criadoPor}</td>
+            <td>${d.operacao}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    $('desp-table-count').textContent = `Exibindo ${sliced.length} de ${filteredDespData.length} registros`;
+}
+
+/* RENDEREIZAÇÃO DOS GRÁFICOS DE DESPESAS (COM PIRÂMIDE) */
+function renderDespCharts() {
+    // 1. Evolução Temporal (Data x Valor Total)
+    const dateMap = {};
+    filteredDespData.forEach(d => {
+        if (!d.dataCompra) return;
+        dateMap[d.dataCompra] = (dateMap[d.dataCompra] || 0) + d.valorTotal;
+    });
+    const sortedDates = Object.keys(dateMap).sort();
+
+    if (despLineChartInstance) despLineChartInstance.destroy();
+    despLineChartInstance = new Chart($('desp-lineChart'), {
+        type: 'line',
+        data: {
+            labels: sortedDates.map(formatDateBR),
+            datasets: [{ label: 'Valor Total (R$)', data: sortedDates.map(k => dateMap[k]), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // 2. COMPONENTE REFORMULADO: GRÁFICO DE PIRÂMIDE POR STATUS
+    const statusMap = {};
+    let totalValorDespesas = 0;
+    filteredDespData.forEach(d => {
+        const st = d.status || 'Pendente';
+        statusMap[st] = (statusMap[st] || 0) + d.valorTotal;
+        totalValorDespesas += d.valorTotal;
+    });
+
+    const pyramidContainer = $('desp-pyramid-container');
+    pyramidContainer.innerHTML = '';
+
+    const statusKeys = Object.keys(statusMap);
+    if (!statusKeys.length || totalValorDespesas === 0) {
+        pyramidContainer.innerHTML = '<div class="chart-empty">Sem dados de despesas.</div>';
+    } else {
+        // Ordena do Maior para o Menor para formar a estrutura da Pirâmide
+        const sortedStatus = statusKeys
+            .map(key => ({ label: key, value: statusMap[key] }))
+            .sort((a, b) => b.value - a.value);
+
+        const colors = [
+            'linear-gradient(90deg, #10b981, #059669)',
+            'linear-gradient(90deg, #3b82f6, #2563eb)',
+            'linear-gradient(90deg, #8b5cf6, #7c3aed)',
+            'linear-gradient(90deg, #f59e0b, #d97706)',
+            'linear-gradient(90deg, #ef4444, #dc2626)'
+        ];
+
+        const maxValue = sortedStatus[0].value || 1;
+
+        sortedStatus.forEach((item, index) => {
+            const layer = document.createElement('div');
+            layer.className = 'pyramid-layer';
+            
+            // Proporção de Largura baseada no maior valor
+            const minWidthPct = 35;
+            const widthPct = minWidthPct + ((item.value / maxValue) * (100 - minWidthPct));
+            
+            layer.style.width = `${widthPct}%`;
+            layer.style.height = `${Math.max(38, 220 / sortedStatus.length)}px`;
+            layer.style.background = colors[index % colors.length];
+
+            const pct = ((item.value / totalValorDespesas) * 100).toFixed(1);
+            layer.innerHTML = `<span>${item.label}: ${fmtMoeda(item.value)} (${pct}%)</span>`;
+            
+            pyramidContainer.appendChild(layer);
+        });
+    }
+
+    // 3. Top 10 Placas
+    const placaMap = {};
+    filteredDespData.forEach(d => {
+        if (!d.placa || d.placa === '—') return;
+        placaMap[d.placa] = (placaMap[d.placa] || 0) + d.valorTotal;
+    });
+    const sortedPlacas = Object.keys(placaMap).sort((a, b) => placaMap[b] - placaMap[a]).slice(0, 10);
+
+    if (despBarChartInstance) despBarChartInstance.destroy();
+    despBarChartInstance = new Chart($('desp-barChart'), {
+        type: 'bar',
+        data: {
+            labels: sortedPlacas,
+            datasets: [{ label: 'Gasto R$', data: sortedPlacas.map(p => placaMap[p]), backgroundColor: '#f59e0b' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // 4. Tipo Documento
+    const docMap = {};
+    filteredDespData.forEach(d => {
+        const doc = d.tipoDoc || 'Outros';
+        docMap[doc] = (docMap[doc] || 0) + d.valorTotal;
+    });
+    const docKeys = Object.keys(docMap);
+
+    if (despNeonLineChartInstance) despNeonLineChartInstance.destroy();
+    despNeonLineChartInstance = new Chart($('desp-neonLineChart'), {
+        type: 'bar',
+        data: {
+            labels: docKeys,
+            datasets: [{ label: 'Valor por Tipo Doc.', data: docKeys.map(k => docMap[k]), backgroundColor: '#8b5cf6' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
 function showView(viewName) {
     const mainOp = $('operacao-view');
     const mainDesp = $('despesas-view');
     const navItems = document.querySelectorAll('.sidebar-menu .sidebar-item');
 
     if (viewName === 'despesas') {
-        if (mainOp) mainOp.classList.add('view-hidden');
-        if (mainDesp) mainDesp.classList.remove('view-hidden');
+        mainOp.classList.add('view-hidden');
+        mainDesp.classList.remove('view-hidden');
         navItems[0].classList.remove('active');
         navItems[1].classList.add('active');
     } else {
-        if (mainOp) mainOp.classList.remove('view-hidden');
-        if (mainDesp) mainDesp.classList.add('view-hidden');
+        mainOp.classList.remove('view-hidden');
+        mainDesp.classList.add('view-hidden');
         navItems[1].classList.remove('active');
         navItems[0].classList.add('active');
     }
 }
-
-/* =========================================================
-   MÓDULO DE PIRÂMIDE (UI/UX CUSTOM CHART)
-   ========================================================= */
-function updatePyramidChart(statusCounts, totalValor) {
-    const container = $('desp-pyramid-container');
-    container.innerHTML = '';
-
-    const statusKeys = Object.keys(statusCounts);
-    if (!statusKeys.length || totalValor === 0) {
-        container.innerHTML = '<div class="chart-empty">Sem dados para os filtros selecionados.</div>';
-        return;
-    }
-
-    // Ordenação do maior para o menor para formar a Pirâmide/Funil
-    const sortedStatus = statusKeys
-        .map(key => ({ label: key, value: statusCounts[key] }))
-        .sort((a, b) => b.value - a.value);
-
-    const colors = [
-        'linear-gradient(90deg, #10b981, #059669)',
-        'linear-gradient(90deg, #3b82f6, #2563eb)',
-        'linear-gradient(90deg, #8b5cf6, #7c3aed)',
-        'linear-gradient(90deg, #f59e0b, #d97706)',
-        'linear-gradient(90deg, #ef4444, #dc2626)'
-    ];
-
-    const maxValue = sortedStatus[0].value || 1;
-
-    sortedStatus.forEach((item, index) => {
-        const layer = document.createElement('div');
-        layer.className = 'pyramid-layer';
-        
-        // Cálculo de largura proporcional UI/UX
-        const minWidthPct = 35;
-        const widthPct = minWidthPct + ((item.value / maxValue) * (100 - minWidthPct));
-        
-        layer.style.width = `${widthPct}%`;
-        layer.style.height = `${Math.max(38, 220 / sortedStatus.length)}px`;
-        layer.style.background = colors[index % colors.length];
-
-        const pct = ((item.value / totalValor) * 100).toFixed(1);
-        layer.innerHTML = `<span>${item.label}: ${fmtMoeda(item.value)} (${pct}%)</span>`;
-        
-        container.appendChild(layer);
-    });
-}
-
-/* =========================================================
-   ATUALIZAÇÃO DE DESPESAS DA TELA
-   ========================================================= */
-function applyDespFilters() {
-    filteredDespData = [...rawDespData]; // Exemplo de atribuição reativa
-    updateDespDashboardUI();
-}
-
-function updateDespDashboardUI() {
-    const totalGasto = filteredDespData.reduce((acc, c) => acc + (c.valorTotal || 0), 0);
-    $('desp-kpi-total').textContent = fmtMoeda(totalGasto);$('desp-kpi-count').textContent = fmt(filteredDespData.length);
-    
-    // Agrupamento por Status para o Gráfico de Pirâmide
-    const statusMap = {};
-    filteredDespData.forEach(d => {
-        const st = d.status || 'Pendente';
-        statusMap[st] = (statusMap[st] || 0) + (d.valorTotal || 0);
-    });
-
-    updatePyramidChart(statusMap, totalGasto);
-}
-
-// Inicialização simulada do painel ao carregar
-document.addEventListener('DOMContentLoaded', () => {
-    $('dashboard').style.display = 'block';
-    updateDespDashboardUI();
-});
 </script>
 </body>
 </html>
