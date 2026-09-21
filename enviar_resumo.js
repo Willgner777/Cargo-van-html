@@ -214,8 +214,12 @@ async function enviarWhatsApp(base, texto) {
     const r = contarStatus(itens);
     console.log(`[INFO] ${itens.length} itens | ${r.pendentes} pendentes, ${r.recusados} recusados, ${r.aprovados} aprovados`);
 
-    // Captura a data e hora atual no padrão brasileiro
-    const dataAtual = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
+    // Captura a data e hora atual no padrão brasileiro (Fuso horário de Brasília)
+    const dataAtual = new Intl.DateTimeFormat('pt-BR', { 
+      dateStyle: 'short', 
+      timeStyle: 'short',
+      timeZone: 'America/Sao_Paulo' // Força o fuso horário de Brasília
+    }).format(new Date());
 
     const texto =
       `*RELATÓRIO DE DESPESAS* 🚛\n` +
@@ -226,7 +230,7 @@ async function enviarWhatsApp(base, texto) {
       `❌ *${r.recusados}* Recusada(s)\n\n` +
       `──────────\n` +
       `🤖 _By Tech Solutions Bot_\n` +
-      `🕒 _Atualizado em: ${dataAtual}_`; // Data adicionada dinamicamente
+      `🕒 _Atualizado em: ${dataAtual}_`; // Data adicionada dinamicamente com fuso correto
 
     console.log("[INFO] 3/4 Verificando Evolution API...");
     const base = await prepararEvolution();
