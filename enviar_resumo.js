@@ -1,4 +1,4 @@
-// enviar_resumo.js — Resumo diário de BD_DESPESAS (STATUS) via WhatsApp (Evolution API)
+// enviar_resumo.js — Relatório de Operações (LIBERACAO_VEICULO) via WhatsApp (Evolution API)
 // Credenciais seguras vindas dos Secrets do GitHub Actions.
 
 const {
@@ -14,7 +14,7 @@ const {
 /* ---------------- CONFIGURAÇÕES DO SHAREPOINT ---------------- */
 const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
-const LISTA_DESPESAS = "BD_DESPESAS";
+const NOME_LISTA = "LIBERACAO_VEICULO";
 
 // Link RAW direto da imagem no seu repositório GitHub
 const URL_IMAGEM_RAW = "https://raw.githubusercontent.com/Willgner777/Cargo-van-html/main/imagens/banner_bot_tech_solutions.png";
@@ -85,9 +85,9 @@ async function obterSiteId(token) {
   }
 }
 
-async function buscarDespesas(token) {
+async function buscarItensLista(token, nomeLista) {
   const siteId = await obterSiteId(token);
-  let url = `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${LISTA_DESPESAS}/items?expand=fields&$top=1000`;
+  let url = `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${nomeLista}/items?expand=fields&$top=1000`;
   const itens = [];
   while (url) {
     const data = await graphGet(url, token);
@@ -97,15 +97,24 @@ async function buscarDespesas(token) {
   return itens;
 }
 
-/* ---------------- Contagem por STATUS ---------------- */
-function contarStatus(itens) {
-  const r = { pendentes: 0, recusados: 0, aprovados: 0 };
+/* ---------------- Contagem por STATUS (LIBERACAO_VEICULO) ---------------- */
+function contarStatusOperacoes(itens) {
+  const r = { emAndamento: 0, pernoite: 0, concluidos: 0, outros: 0 };
+  
   for (const it of itens) {
     const f = it.fields || {};
-    const st = limpar(f.STATUS ?? f.Status ?? "Pendente").toLowerCase();
-    if (st.includes("recusado") || st.includes("rejeitado") || st.includes("cancelado")) r.recusados++;
-    else if (st.includes("aprovado")) r.aprovados++;
-    else r.pendentes++;
+    // Lê a coluna STATUS baseada exatamente nas opções da lista
+    const st = limpar(f.STATUS ?? f.Status ?? "").toUpperCase();
+    
+    if (st.includes("ANDAMENTO")) {
+      r.emAndamento++;
+    } else if (st.includes("PERNOITE")) {
+      r.pernoite++;
+    } else if (st.includes("CONCLUÍDO") || st.includes("CONCLUIDO")) {
+      r.concluidos++;
+    } else {
+      r.outros++;
+    }
   }
   return r;
 }
@@ -150,7 +159,6 @@ async function enviarWhatsApp(base, texto) {
 
   console.log(`[INFO] Disparando envio para ${numeros.length} destinatário(s)...`);
 
-  // Define as opções padrão da requisição
   const requestOptions = (num) => ({
     method: "POST",
     headers: { 
@@ -166,14 +174,10 @@ async function enviarWhatsApp(base, texto) {
     signal: AbortSignal.timeout(60_000)
   });
 
-  // Cria um array de execuções com intervalos escalonados (Cascata)
   const promessasEnvio = numeros.map(async (num, index) => {
-    // Escalonamento: O primeiro vai no tempo 0s, o segundo aos 3s, terceiro aos 6s, etc.
     await sleep(index * 3000);
-    
     console.log(`[INFO] Processando envio para: ${num}`);
     const res = await fetch(`${base}/message/sendMedia/${limpar(EVOLUTION_INSTANCE)}`, requestOptions(num));
-    
     const corpo = await res.text();
     if (!res.ok) {
       throw new Error(`Falha HTTP ${res.status}: ${corpo}`);
@@ -181,10 +185,8 @@ async function enviarWhatsApp(base, texto) {
     return num;
   });
 
-  // Aguarda todos terminarem (mesmo se alguns falharem, o script não quebra)
   const resultados = await Promise.allSettled(promessasEnvio);
 
-  // Exibe o relatório de disparos
   const sucessos = resultados.filter(r => r.status === "fulfilled");
   const falhas = resultados.filter(r => r.status === "rejected");
 
@@ -194,7 +196,7 @@ async function enviarWhatsApp(base, texto) {
 
   if (falhas.length > 0) {
     console.warn("\n[WARN] Detalhes das falhas de envio:");
-    falhas.forEach((f, i) => console.warn(`   Erro ${i + 1}: ${f.reason.message}`));
+    falhas.forEach((f, i) => console.warn(`    Erro ${i + 1}: ${f.reason.message}`));
   } else {
     console.log(`[INFO] Todos os relatórios foram enviados com sucesso!`);
   }
@@ -209,28 +211,28 @@ async function enviarWhatsApp(base, texto) {
     const token = await getGraphAccessToken();
     diagnosticarToken(token);
 
-    console.log("[INFO] 2/4 Lendo BD_DESPESAS...");
-    const itens = await buscarDespesas(token);
-    const r = contarStatus(itens);
-    console.log(`[INFO] ${itens.length} itens | ${r.pendentes} pendentes, ${r.recusados} recusados, ${r.aprovados} aprovados`);
+    console.log(`[INFO] 2/4 Lendo lista ${NOME_LISTA}...`);
+    const itens = await buscarItensLista(token, NOME_LISTA);
+    const r = contarStatusOperacoes(itens);
+    
+    console.log(`[INFO] ${itens.length} registros | ${r.emAndamento} em andamento, ${r.pernoite} em pernoite, ${r.concluidos} concluídos`);
 
     // Captura a data e hora atual no padrão brasileiro (Fuso horário de Brasília)
     const dataAtual = new Intl.DateTimeFormat('pt-BR', { 
       dateStyle: 'short', 
       timeStyle: 'short',
-      timeZone: 'America/Sao_Paulo' // Força o fuso horário de Brasília
+      timeZone: 'America/Sao_Paulo'
     }).format(new Date());
 
     const texto =
-      `*RELATÓRIO DE DESPESAS* 🚛\n` +
-      `Resumo diário — Cargo Van\n\n` +
-      `📊 *Status das Solicitações:*\n` +
-      `⏳ *${r.pendentes}* Pendente(s)\n` +
-      `✅ *${r.aprovados}* Aprovada(s)\n` +
-      `❌ *${r.recusados}* Recusada(s)\n\n` +
+      `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — Cargo Van\n\n` +
+      `📊 *Status dos Veículos e Viagens:*\n` +
+      `🔄 *${r.emAndamento}* Em Andamento\n` +
+      `🌙 *${r.pernoite}* Em Pernoite\n` +
+      `✅ *${r.concluidos}* Concluído(s)\n\n` +
       `──────────\n` +
       `🤖 _By Tech Solutions Bot_\n` +
-      `🕒 _Atualizado em: ${dataAtual}_`; // Data adicionada dinamicamente com fuso correto
+      `🕒 _Atualizado em: ${dataAtual}_`;
 
     console.log("[INFO] 3/4 Verificando Evolution API...");
     const base = await prepararEvolution();
