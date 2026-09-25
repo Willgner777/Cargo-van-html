@@ -1,0 +1,23 @@
+name: Listar Grupos WhatsApp
+
+on:
+  workflow_dispatch:
+
+jobs:
+  listar-grupos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Rodar listar_grupos.js
+        env:
+          EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
+          EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
+          EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
+        run: node listar_grupos.js
