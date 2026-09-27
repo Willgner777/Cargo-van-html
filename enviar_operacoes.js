@@ -14,6 +14,10 @@ const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const NOME_LISTA = "LIBERACAO_VEICULO";
 
+// >>> Ajuste aqui se o nome interno do campo for diferente <<<
+const CAMPO_CLIENTE_OPERACAO = "CLIENTE_x007c_OPERA_x00c7__x00c3"; // Coluna "CLIENTE | OPERAÇÃO"
+// A data usada no filtro é a coluna padrão "Criado" do SharePoint (metadado createdDateTime do item)
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const limpar = (v) => String(v ?? "").trim();
 
@@ -85,17 +89,33 @@ async function buscarItens(token) {
   return itens;
 }
 
+// Verifica se a data de criação do item (campo padrão "Criado" / createdDateTime) é hoje,
+// comparando apenas dd/mm/aaaa no fuso America/Sao_Paulo (hora é ignorada)
+function isHojeSaoPaulo(createdDateTime) {
+  if (!createdDateTime) return false;
+
+  const d = new Date(createdDateTime);
+  if (isNaN(d.getTime())) return false;
+
+  const formatador = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }); // yyyy-mm-dd
+  return formatador.format(d) === formatador.format(new Date());
+}
+
 (async () => {
   try {
     const token = await getGraphAccessToken();
 
     const itens = await buscarItens(token);
 
+    // Filtra somente os itens de hoje (não acumulativo), usando o campo padrão "Criado"
+    const itensHoje = itens.filter(it => isHojeSaoPaulo(it.createdDateTime));
+
     let emAndamento = 0;
     let pernoite = 0;
     let concluidos = 0;
+    const porClienteOperacao = {};
 
-    for (const it of itens) {
+    for (const it of itensHoje) {
       const f = it.fields || {};
 
       const st = limpar(
@@ -112,6 +132,19 @@ async function buscarItens(token) {
       ) {
         concluidos++;
       }
+
+      const clienteOperacao = limpar(f[CAMPO_CLIENTE_OPERACAO]);
+      if (clienteOperacao) {
+        porClienteOperacao[clienteOperacao] = (porClienteOperacao[clienteOperacao] || 0) + 1;
+      }
+    }
+
+    let blocoClientes = "";
+    for (const [chave, qtd] of Object.entries(porClienteOperacao)) {
+      blocoClientes += `${chave}\nQntd: ${qtd}\n\n`;
+    }
+    if (!blocoClientes) {
+      blocoClientes = "Nenhuma operação registrada hoje.\n\n";
     }
 
     const dataAtual = new Intl.DateTimeFormat(
@@ -125,6 +158,9 @@ async function buscarItens(token) {
 
     const texto =
       `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — Cargo Van\n\n` +
+      `📋 *Clientes em Operações:*\n\n` +
+      blocoClientes +
+      `──────────\n` +
       `📊 *Status dos Veículos e Viagens:*\n` +
       `🔄 *${emAndamento}* Em Andamento\n` +
       `🌙 *${pernoite}* Em Pernoite\n` +
