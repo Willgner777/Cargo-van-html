@@ -16,10 +16,21 @@ const NOME_LISTA = "LIBERACAO_VEICULO";
 
 // >>> Ajuste aqui se o nome interno do campo for diferente <<<
 const CAMPO_CLIENTE_OPERACAO = "CLIENTE_x007c_OPERA_x00c7__x00c3"; // Coluna "CLIENTE | OPERAÇÃO"
+const CAMPO_MOTORISTA = "NOME"; // Coluna "Motorista"
 // A data usada no filtro é a coluna padrão "Criado" do SharePoint (metadado createdDateTime do item)
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const limpar = (v) => String(v ?? "").trim();
+
+// "JOÃO FRANCISCO" -> "João Francisco"
+function titleCase(nome) {
+  return limpar(nome)
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
 
 async function getGraphAccessToken() {
   const res = await fetch(
@@ -114,6 +125,7 @@ function isHojeSaoPaulo(createdDateTime) {
     let pernoite = 0;
     let concluidos = 0;
     const porClienteOperacao = {};
+    const motoristasPorGrupo = {}; // chave -> Set de nomes (Title Case)
 
     for (const it of itensHoje) {
       const f = it.fields || {};
@@ -136,15 +148,29 @@ function isHojeSaoPaulo(createdDateTime) {
       const clienteOperacao = limpar(f[CAMPO_CLIENTE_OPERACAO]);
       if (clienteOperacao) {
         porClienteOperacao[clienteOperacao] = (porClienteOperacao[clienteOperacao] || 0) + 1;
+
+        const nomeMotorista = titleCase(f[CAMPO_MOTORISTA]);
+        if (nomeMotorista) {
+          if (!motoristasPorGrupo[clienteOperacao]) {
+            motoristasPorGrupo[clienteOperacao] = new Set();
+          }
+          motoristasPorGrupo[clienteOperacao].add(nomeMotorista);
+        }
       }
     }
 
     let blocoClientes = "";
     for (const [chave, qtd] of Object.entries(porClienteOperacao)) {
-      blocoClientes += `${chave}\nQntd: ${qtd}\n\n`;
+      const motoristas = Array.from(motoristasPorGrupo[chave] || []).join(", ");
+
+      blocoClientes += `> 📍 ${chave}\n> ▫️ Qtd: ${qtd}\n`;
+      if (motoristas) {
+        blocoClientes += `> ▫️ Motoristas: ${motoristas}\n`;
+      }
+      blocoClientes += `\n`;
     }
     if (!blocoClientes) {
-      blocoClientes = "Nenhuma operação registrada hoje.\n\n";
+      blocoClientes = "> Nenhuma operação registrada hoje.\n\n";
     }
 
     const dataAtual = new Intl.DateTimeFormat(
@@ -158,14 +184,13 @@ function isHojeSaoPaulo(createdDateTime) {
 
     const texto =
       `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — Cargo Van\n\n` +
-      `📋 *Clientes em Operações:*\n\n` +
+      `> 📋 *Clientes em Operação:*\n>\n` +
       blocoClientes +
-      `──────────\n` +
-      `📊 *Status dos Veículos e Viagens:*\n` +
-      `🔄 *${emAndamento}* Em Andamento\n` +
-      `🌙 *${pernoite}* Em Pernoite\n` +
-      `✅ *${concluidos}* Concluído(s)\n\n` +
-      `──────────\n` +
+      `> ───────────────\n>\n` +
+      `> 📊 *Status dos Veículos e Viagens:*\n` +
+      `> 🔄 Em Andamento: ${emAndamento}\n` +
+      `> 🌙 Pernoite: ${pernoite}\n` +
+      `> ✅ Concluído: ${concluidos}\n\n` +
       `🤖 By Tech Solutions Bot\n` +
       `🕒 Atualizado em: ${dataAtual}`;
 
