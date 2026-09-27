@@ -183,7 +183,7 @@ function isHojeSaoPaulo(createdDateTime) {
     ).format(new Date());
 
     const texto =
-      `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — Cargo Van\n\n` +
+      `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — CARGO VAN EX\n\n` +
       `> 📋 *Clientes em Operação:*\n` +
       blocoClientes +
       `> ───────────────\n` +
