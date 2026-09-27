@@ -186,9 +186,9 @@ function isHojeSaoPaulo(createdDateTime) {
       `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — CARGO VAN EX\n\n` +
       `> 📋 *Clientes em Operação:*\n` +
       blocoClientes +
-      `> ───────────────\n` +
+      `> ────────────\n` +
       `⠀\n` +
-      `> 📊 *Status dos Veículos e Viagens:*\n` +
+      `> 📊 *Status dos Veículos:*\n` +
       `> 🔄 Em Andamento: ${emAndamento}\n` +
       `> 🌙 Pernoite: ${pernoite}\n` +
       `> ✅ Concluído: ${concluidos}\n\n` +
