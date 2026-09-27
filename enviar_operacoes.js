@@ -187,6 +187,7 @@ function isHojeSaoPaulo(createdDateTime) {
       `> 📋 *Clientes em Operação:*\n` +
       blocoClientes +
       `> ───────────────\n` +
+      `⠀\n` +
       `> 📊 *Status dos Veículos e Viagens:*\n` +
       `> 🔄 Em Andamento: ${emAndamento}\n` +
       `> 🌙 Pernoite: ${pernoite}\n` +
