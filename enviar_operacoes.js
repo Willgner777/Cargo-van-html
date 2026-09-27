@@ -184,9 +184,9 @@ function isHojeSaoPaulo(createdDateTime) {
 
     const texto =
       `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — Cargo Van\n\n` +
-      `> 📋 *Clientes em Operação:*\n>\n` +
+      `> 📋 *Clientes em Operação:*\n` +
       blocoClientes +
-      `> ───────────────\n>\n` +
+      `> ───────────────\n` +
       `> 📊 *Status dos Veículos e Viagens:*\n` +
       `> 🔄 Em Andamento: ${emAndamento}\n` +
       `> 🌙 Pernoite: ${pernoite}\n` +
