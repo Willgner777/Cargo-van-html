@@ -1,8 +1,8 @@
-name: Relatorio Operacoes (17h)
+name: Relatorio Operacoes (08h-18h)
 
 on:
   schedule:
-    - cron: '0 20 * * 1-6' # Segunda a Sábado às 17:00 Brasília
+    - cron: '0 11-21 * * 1-6' # Segunda a Sábado, de 1 em 1 hora, das 08:00 às 18:00 Brasília (UTC-3)
   workflow_dispatch:
 
 jobs:
