@@ -1,0 +1,26 @@
+name: Indisponibilidade Frota (08h30 e 17h30)
+
+on:
+  schedule:
+    - cron: '30 11 * * 1-6' # Segunda a Sábado, 08:30 Brasília (UTC-3)
+    - cron: '30 20 * * 1-6' # Segunda a Sábado, 17:30 Brasília (UTC-3)
+  workflow_dispatch:
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Executar Script
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
+          EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
+          EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
+          WHATSAPP_NUMERO: ${{ secrets.WHATSAPP_NUMERO }}
+        run: node enviar_indisponibilidade.js
