@@ -131,8 +131,8 @@ async function buscarItens(token, lista = NOME_LISTA_DISP) {
     ).format(new Date());
 
     const texto =
-      `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — CARGO VAN EX\n\n` +
-      `> 🔎 *Indisponibilidade Frota* (${inativos.length} ${inativos.length === 1 ? "inativo" : "inativos"})\n>\n` +
+      `⚠️ *INDISPONIBILIDADE FROTA* — CARGO VAN EX\n\n` +
+      `> 🔎 *Indisponivél* (${inativos.length} ${inativos.length === 1 ? "inativo" : "inativos"})\n>\n` +
       blocoDisp +
       `> ${SEP}\n\n` +
       `🤖 By Tech Solutions Bot\n` +
