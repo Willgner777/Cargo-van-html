@@ -173,10 +173,10 @@ function isHojeSaoPaulo(createdDateTime) {
       for (const m of motoristas) {
         blocoClientes += `> 👤 ${m}\n`;
       }
-      blocoClientes += `>\n`;
+      blocoClientes += `\n`;
     }
     if (!blocoClientes) {
-      blocoClientes = "> Nenhuma operação registrada hoje.\n>\n";
+      blocoClientes = "> Nenhuma operação registrada hoje.\n\n";
     }
 
     const dataAtual = new Intl.DateTimeFormat(
@@ -190,7 +190,7 @@ function isHojeSaoPaulo(createdDateTime) {
 
     const texto =
       `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — CARGO VAN EX\n\n` +
-      `> 📋 *Clientes em Operação* (${totalOperacoes})\n>\n` +
+      `> 📋 *Clientes em Operação* (${totalOperacoes})\n\n` +
       blocoClientes +
       `> ${SEP}\n` +
       `⠀\n` +
