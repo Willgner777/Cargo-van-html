@@ -112,13 +112,16 @@ async function buscarItens(token, lista = NOME_LISTA_DISP) {
     let blocoDisp = "";
     for (const it of inativos) {
       const f = it.fields || {};
-      blocoDisp += `> 🚛 *${limpar(f.PLACA)}* — ${titleCase(f.MOTORISTA)}\n`;
+      const motorista = titleCase(f.MOTORISTA);
+      blocoDisp += `> 🚛 *${limpar(f.PLACA)}*\n`;
+      if (motorista) {
+        blocoDisp += `> 👤 ${motorista}\n`;
+      }
       blocoDisp += `> 📍 ${limpar(f.OPERACAO)}\n`;
-      blocoDisp += `> 🔧 ${limpar(f.STATUS)} · ${limpar(f.STATUS_DISP)}\n`;
-      blocoDisp += `>\n`;
+      blocoDisp += `> 🔧 ${limpar(f.STATUS)} · ${limpar(f.STATUS_DISP)}\n\n`;
     }
     if (!blocoDisp) {
-      blocoDisp = "> Nenhum veículo inativo.\n>\n";
+      blocoDisp = "> Nenhum veículo inativo.\n\n";
     }
 
     const dataAtual = new Intl.DateTimeFormat(
@@ -132,7 +135,7 @@ async function buscarItens(token, lista = NOME_LISTA_DISP) {
 
     const texto =
       `⚠️ *INDISPONIBILIDADE FROTA* — CARGO VAN EX\n\n` +
-      `> 🔎 *Indisponivél* (${inativos.length} ${inativos.length === 1 ? "inativo" : "inativos"})\n>\n` +
+      `> 🔎 *Status* (${inativos.length} ${inativos.length === 1 ? "inativo" : "inativos"})\n\n` +
       blocoDisp +
       `> ${SEP}\n\n` +
       `🤖 By Tech Solutions Bot\n` +
