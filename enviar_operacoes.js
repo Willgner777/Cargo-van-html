@@ -1,4 +1,4 @@
-// enviar_operacoes.js — Relatório de Operações (LIBERACAO_VEICULO + DISPONIBILIDADE)
+// enviar_operacoes.js — Relatório de Operações (LIBERACAO_VEICULO)
 
 const {
   AZURE_TENANT_ID,
@@ -13,7 +13,6 @@ const {
 const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const NOME_LISTA = "LIBERACAO_VEICULO";
-const NOME_LISTA_DISP = "DISPONIBILIDADE";
 
 // >>> Ajuste aqui se o nome interno do campo for diferente <<<
 const CAMPO_CLIENTE_OPERACAO = "CLIENTE_x007c_OPERA_x00c7__x00c3"; // Coluna "CLIENTE | OPERAÇÃO"
@@ -180,25 +179,6 @@ function isHojeSaoPaulo(createdDateTime) {
       blocoClientes = "> Nenhuma operação registrada hoje.\n>\n";
     }
 
-    // ===== Disponibilidade Frota: somente STATUS_DISP = Inativo =====
-    const itensDisp = await buscarItens(token, NOME_LISTA_DISP);
-
-    const inativos = itensDisp.filter(it =>
-      limpar((it.fields || {}).STATUS_DISP).toUpperCase() === "INATIVO"
-    );
-
-    let blocoDisp = "";
-    for (const it of inativos) {
-      const f = it.fields || {};
-      blocoDisp += `> 🚛 *${limpar(f.PLACA)}* — ${titleCase(f.MOTORISTA)}\n`;
-      blocoDisp += `> 📍 ${limpar(f.OPERACAO)}\n`;
-      blocoDisp += `> 🔧 ${limpar(f.STATUS)} · ${limpar(f.STATUS_DISP)}\n`;
-      blocoDisp += `>\n`;
-    }
-    if (!blocoDisp) {
-      blocoDisp = "> Nenhum veículo inativo.\n>\n";
-    }
-
     const dataAtual = new Intl.DateTimeFormat(
       "pt-BR",
       {
@@ -212,10 +192,6 @@ function isHojeSaoPaulo(createdDateTime) {
       `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — CARGO VAN EX\n\n` +
       `> 📋 *Clientes em Operação* (${totalOperacoes})\n>\n` +
       blocoClientes +
-      `> ${SEP}\n` +
-      `⠀\n` +
-      `> 🔎 *Disponibilidade Frota* (${inativos.length} ${inativos.length === 1 ? "inativo" : "inativos"})\n>\n` +
-      blocoDisp +
       `> ${SEP}\n` +
       `⠀\n` +
       `> 📊 *Status dos Veículos*\n` +
