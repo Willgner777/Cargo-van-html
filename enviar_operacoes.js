@@ -1,4 +1,4 @@
-// enviar_operacoes.js — Relatório de Operações (LIBERACAO_VEICULO)
+// enviar_operacoes.js — Relatório de Operações (LIBERACAO_VEICULO + DISPONIBILIDADE)
 
 const {
   AZURE_TENANT_ID,
@@ -13,11 +13,14 @@ const {
 const SITE_DOMAIN = "willtech7.sharepoint.com";
 const SITE_PATH = "/sites/CARGOVAN";
 const NOME_LISTA = "LIBERACAO_VEICULO";
+const NOME_LISTA_DISP = "DISPONIBILIDADE";
 
 // >>> Ajuste aqui se o nome interno do campo for diferente <<<
 const CAMPO_CLIENTE_OPERACAO = "CLIENTE_x007c_OPERA_x00c7__x00c3"; // Coluna "CLIENTE | OPERAÇÃO"
 const CAMPO_MOTORISTA = "NOME"; // Coluna "Motorista"
 // A data usada no filtro é a coluna padrão "Criado" do SharePoint (metadado createdDateTime do item)
+
+const SEP = "────────────";
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const limpar = (v) => String(v ?? "").trim();
@@ -81,11 +84,11 @@ async function obterSiteId(token) {
   return site.id;
 }
 
-async function buscarItens(token) {
+async function buscarItens(token, lista = NOME_LISTA) {
   const siteId = await obterSiteId(token);
 
   let url =
-    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${NOME_LISTA}/items?expand=fields&$top=1000`;
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${lista}/items?expand=fields&$top=1000`;
 
   const itens = [];
 
@@ -116,7 +119,7 @@ function isHojeSaoPaulo(createdDateTime) {
   try {
     const token = await getGraphAccessToken();
 
-    const itens = await buscarItens(token);
+    const itens = await buscarItens(token, NOME_LISTA);
 
     // Filtra somente os itens de hoje (não acumulativo), usando o campo padrão "Criado"
     const itensHoje = itens.filter(it => isHojeSaoPaulo(it.createdDateTime));
@@ -159,18 +162,41 @@ function isHojeSaoPaulo(createdDateTime) {
       }
     }
 
-    let blocoClientes = "";
-    for (const [chave, qtd] of Object.entries(porClienteOperacao)) {
-      const motoristas = Array.from(motoristasPorGrupo[chave] || []).join(", ");
+    // ===== Clientes em Operação =====
+    const grupos = Object.entries(porClienteOperacao);
+    const totalOperacoes = grupos.reduce((soma, [, q]) => soma + q, 0);
 
-      blocoClientes += `> 📍 ${chave}\n> ▫️ Qtd: ${qtd}\n`;
-      if (motoristas) {
-        blocoClientes += `> ▫️ Motoristas: ${motoristas}\n`;
+    let blocoClientes = "";
+    for (const [chave, qtd] of grupos) {
+      const motoristas = Array.from(motoristasPorGrupo[chave] || []);
+
+      blocoClientes += `> 📍 *${chave}* — ${qtd} ${qtd === 1 ? "veículo" : "veículos"}\n`;
+      for (const m of motoristas) {
+        blocoClientes += `> 👤 ${m}\n`;
       }
-      blocoClientes += `\n`;
+      blocoClientes += `>\n`;
     }
     if (!blocoClientes) {
-      blocoClientes = "> Nenhuma operação registrada hoje.\n\n";
+      blocoClientes = "> Nenhuma operação registrada hoje.\n>\n";
+    }
+
+    // ===== Disponibilidade Frota: somente STATUS_DISP = Inativo =====
+    const itensDisp = await buscarItens(token, NOME_LISTA_DISP);
+
+    const inativos = itensDisp.filter(it =>
+      limpar((it.fields || {}).STATUS_DISP).toUpperCase() === "INATIVO"
+    );
+
+    let blocoDisp = "";
+    for (const it of inativos) {
+      const f = it.fields || {};
+      blocoDisp += `> 🚛 *${limpar(f.PLACA)}* — ${titleCase(f.MOTORISTA)}\n`;
+      blocoDisp += `> 📍 ${limpar(f.OPERACAO)}\n`;
+      blocoDisp += `> 🔧 ${limpar(f.STATUS)} · ${limpar(f.STATUS_DISP)}\n`;
+      blocoDisp += `>\n`;
+    }
+    if (!blocoDisp) {
+      blocoDisp = "> Nenhum veículo inativo.\n>\n";
     }
 
     const dataAtual = new Intl.DateTimeFormat(
@@ -184,11 +210,15 @@ function isHojeSaoPaulo(createdDateTime) {
 
     const texto =
       `🚚 *ACOMPANHAMENTO DE OPERAÇÕES* — CARGO VAN EX\n\n` +
-      `> 📋 *Clientes em Operação:*\n` +
+      `> 📋 *Clientes em Operação* (${totalOperacoes})\n>\n` +
       blocoClientes +
-      `> ────────────\n` +
+      `> ${SEP}\n` +
       `⠀\n` +
-      `> 📊 *Status dos Veículos:*\n` +
+      `> 🔎 *Disponibilidade Frota* (${inativos.length} ${inativos.length === 1 ? "inativo" : "inativos"})\n>\n` +
+      blocoDisp +
+      `> ${SEP}\n` +
+      `⠀\n` +
+      `> 📊 *Status dos Veículos*\n` +
       `> 🔄 Em Andamento: ${emAndamento}\n` +
       `> 🌙 Pernoite: ${pernoite}\n` +
       `> ✅ Concluído: ${concluidos}\n\n` +
