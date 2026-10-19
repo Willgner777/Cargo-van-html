@@ -20,10 +20,10 @@ const limpar = (v) => String(v ?? "").trim();
     const instancia = limpar(EVOLUTION_INSTANCE);
     const apiKey = limpar(EVOLUTION_API_KEY);
 
-    // Rota padrão da Evolution API para buscar chats/grupos
-    const url = `${base}/chat/findChats/${instancia}`;
+    // Rota corrigida para a versão atual da Evolution API
+    const url = `${base}/chat/fetchChats/${instancia}`;
     
-    console.log(`Buscando grupos em: ${base}/chat/findChats/...`);
+    console.log(`Buscando chats em: ${base}/chat/fetchChats/...`);
 
     const response = await fetch(url, {
       method: "GET",
@@ -42,11 +42,10 @@ const limpar = (v) => String(v ?? "").trim();
     const chats = JSON.parse(resultado);
     console.log("\n--- Chats e Grupos Encontrados ---");
     
-    // Filtra ou exibe os grupos (identificados por @g.us)
     const grupos = Array.isArray(chats) ? chats.filter(c => c.id && c.id.endsWith("@g.us")) : [];
     
     if (grupos.length === 0) {
-      console.log("Nenhum grupo encontrado ou formato de resposta inesperado:", resultado);
+      console.log("Nenhum grupo encontrado ou formato de resposta:", resultado);
     } else {
       grupos.forEach(g => {
         console.log(`Nome: ${g.name || "Sem Nome"} | ID: ${g.id}`);
